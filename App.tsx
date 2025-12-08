@@ -362,12 +362,16 @@ const App: React.FC = () => {
         const finalScale = Math.max(0.1, Math.min(newScale, 2.0));
         scaleStateRef.current.currentScale = finalScale;
 
-        // Dynamically set minWidth and minHeight to ensure the container always fills the viewport,
-        // effectively expanding it when zoomed out.
+        // Use window.innerHeight (or visualViewport if available) to ensure we always fill the *visible* area
+        const currentHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+        // Also check against the container's own clientHeight if needed, but window height is safer for full screen apps
+        
         scalableContainer.style.minWidth = `${viewport.clientWidth / finalScale}px`;
-        scalableContainer.style.minHeight = `${viewport.clientHeight / finalScale}px`;
+        // IMPORTANT: Use the actual window height to determine min-height, resolving "extra space" issues
+        scalableContainer.style.minHeight = `${currentHeight / finalScale}px`;
 
         scalableContainer.style.transform = `scale(${finalScale})`;
+        
         if (scrollX !== undefined) viewport.scrollLeft = scrollX;
         if (scrollY !== undefined) viewport.scrollTop = scrollY;
     }, []);
@@ -481,10 +485,15 @@ const App: React.FC = () => {
                     viewportRef.current.scrollLeft = 0;
                 }
                 
-                // Multiple checks to ensure browser UI has finished animating
-                setTimeout(initializeScale, 50);
-                setTimeout(initializeScale, 200);
-                setTimeout(initializeScale, 500);
+                // Aggressively check for resize for 1 second to catch address bar animations
+                // This is crucial for the "2 tabs open" scenario where background throttling happens
+                initializeScale();
+                let checks = 0;
+                const interval = setInterval(() => {
+                    initializeScale();
+                    checks++;
+                    if (checks > 10) clearInterval(interval); // Run for ~1s (10 * 100ms)
+                }, 100);
             }
         };
 
@@ -839,7 +848,11 @@ const App: React.FC = () => {
 
     return (
         <div className="bg-light-bg-secondary dark:bg-dark-bg min-h-screen text-light-text dark:text-dark-text transition-colors">
-            <div ref={viewportRef} className="viewport fixed inset-0">
+            {/* 
+              Use 100dvh to handle mobile browser address bars dynamically.
+              This container acts as the viewport window.
+            */}
+            <div ref={viewportRef} className="viewport fixed inset-0" style={{ height: '100dvh' }}>
                 <div ref={scalableContainerRef} className="scalable-container w-[2738px] p-8">
                     <Header
                         stats={stats}
