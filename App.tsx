@@ -362,16 +362,12 @@ const App: React.FC = () => {
         const finalScale = Math.max(0.1, Math.min(newScale, 2.0));
         scaleStateRef.current.currentScale = finalScale;
 
-        // Use window.innerHeight (or visualViewport if available) to ensure we always fill the *visible* area
-        const currentHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-        // Also check against the container's own clientHeight if needed, but window height is safer for full screen apps
-        
+        // Dynamically set minWidth and minHeight to ensure the container always fills the viewport,
+        // effectively expanding it when zoomed out.
         scalableContainer.style.minWidth = `${viewport.clientWidth / finalScale}px`;
-        // IMPORTANT: Use the actual window height to determine min-height, resolving "extra space" issues
-        scalableContainer.style.minHeight = `${currentHeight / finalScale}px`;
+        scalableContainer.style.minHeight = `${viewport.clientHeight / finalScale}px`;
 
         scalableContainer.style.transform = `scale(${finalScale})`;
-        
         if (scrollX !== undefined) viewport.scrollLeft = scrollX;
         if (scrollY !== undefined) viewport.scrollTop = scrollY;
     }, []);
@@ -381,15 +377,9 @@ const App: React.FC = () => {
         const scalableContainer = scalableContainerRef.current;
         if (!viewport || !scalableContainer) return;
 
-        // Force scroll to top left on initialization to prevent "white space" offset
-        viewport.scrollLeft = 0;
-        viewport.scrollTop = 0;
-
         const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
         if (isTouchDevice) {
-            // Use visualViewport if available for more accurate dimensions on mobile
-            const viewportWidth = window.visualViewport ? window.visualViewport.width : viewport.clientWidth;
-            const fitScale = viewportWidth / scalableContainer.offsetWidth;
+            const fitScale = viewport.clientWidth / scalableContainer.offsetWidth;
             setScale(fitScale, 0, 0);
         } else {
             setScale(1.0, 0, 0);
@@ -462,70 +452,24 @@ const App: React.FC = () => {
         };
 
         let lastWidth = window.innerWidth;
-        let lastHeight = window.innerHeight;
-
         const handleResize = () => {
-            // Using visualViewport helps detect address bar changes more reliably
-            const currentWidth = window.visualViewport ? window.visualViewport.width : window.innerWidth;
-            const currentHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-
-            if (currentWidth !== lastWidth || currentHeight !== lastHeight) {
-                lastWidth = currentWidth;
-                lastHeight = currentHeight;
-                initializeScale();
-            }
-        };
-
-        // NEW: Handle Visibility Change and Page Show to fix layout issues on mobile restore
-        const handleVisibilityAndRestore = () => {
-            if (document.visibilityState === 'visible') {
-                // When coming back from another tab, force scroll to top to avoid "missing space" at bottom
-                if (viewportRef.current) {
-                    viewportRef.current.scrollTop = 0;
-                    viewportRef.current.scrollLeft = 0;
-                }
-                
-                // Aggressively check for resize for 1 second to catch address bar animations
-                // This is crucial for the "2 tabs open" scenario where background throttling happens
-                initializeScale();
-                let checks = 0;
-                const interval = setInterval(() => {
-                    initializeScale();
-                    checks++;
-                    if (checks > 10) clearInterval(interval); // Run for ~1s (10 * 100ms)
-                }, 100);
+            if (window.innerWidth !== lastWidth) {
+                lastWidth = window.innerWidth;
+                // Re-applying the scale will trigger a recalculation of minWidth/minHeight
+                // based on the new viewport dimensions.
+                setScale(scaleStateRef.current.currentScale);
             }
         };
 
         window.addEventListener('load', initializeScale);
-        
-        // Use Visual Viewport API if available for robust mobile resizing
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener('resize', handleResize);
-        } else {
-            window.addEventListener('resize', handleResize);
-        }
-        
-        // Add listeners for restoring the tab
-        document.addEventListener('visibilitychange', handleVisibilityAndRestore);
-        window.addEventListener('pageshow', handleVisibilityAndRestore);
-
+        window.addEventListener('resize', handleResize);
         viewport.addEventListener('wheel', handleWheel, { passive: false });
         viewport.addEventListener('touchstart', handleTouchStart, { passive: false });
         viewport.addEventListener('touchmove', handleTouchMove, { passive: false });
 
         return () => {
             window.removeEventListener('load', initializeScale);
-            
-            if (window.visualViewport) {
-                window.visualViewport.removeEventListener('resize', handleResize);
-            } else {
-                window.removeEventListener('resize', handleResize);
-            }
-            
-            document.removeEventListener('visibilitychange', handleVisibilityAndRestore);
-            window.removeEventListener('pageshow', handleVisibilityAndRestore);
-
+            window.removeEventListener('resize', handleResize);
             if (viewport) {
               viewport.removeEventListener('wheel', handleWheel);
               viewport.removeEventListener('touchstart', handleTouchStart);
@@ -848,11 +792,7 @@ const App: React.FC = () => {
 
     return (
         <div className="bg-light-bg-secondary dark:bg-dark-bg min-h-screen text-light-text dark:text-dark-text transition-colors">
-            {/* 
-              Use 100dvh to handle mobile browser address bars dynamically.
-              This container acts as the viewport window.
-            */}
-            <div ref={viewportRef} className="viewport fixed inset-0" style={{ height: '100dvh' }}>
+            <div ref={viewportRef} className="viewport fixed inset-0">
                 <div ref={scalableContainerRef} className="scalable-container w-[2738px] p-8">
                     <Header
                         stats={stats}
