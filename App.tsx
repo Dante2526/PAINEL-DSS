@@ -59,6 +59,10 @@ const App: React.FC = () => {
     // State for safety confirmation
     const [pendingMalEmployeeId, setPendingMalEmployeeId] = useState<string | null>(null);
 
+    // Demo Mode State
+    const [isDemoMode, setIsDemoMode] = useState(false);
+    const isDemoModeRef = useRef(false);
+
     const [isDarkMode, setIsDarkMode] = useState(() => {
         const savedTheme = localStorage.getItem('theme');
         if (savedTheme) return savedTheme === 'dark';
@@ -118,6 +122,10 @@ const App: React.FC = () => {
 
     // Função para enviar alerta por e-mail
     const sendAlertEmail = async (name: string, matricula: string, turno: string) => {
+        if (isDemoMode) {
+            console.log(`[DEMO] Email alert triggered for ${name}`);
+            return;
+        }
         try {
             const currentTime = new Date().toLocaleString('pt-BR');
             
@@ -298,6 +306,8 @@ const App: React.FC = () => {
                 // Listener for employees
                 const employeesQuery = query(collection(db, 'employees'), orderBy("name", "asc"));
                 unsubscribeEmployees = onSnapshot(employeesQuery, (querySnapshot) => {
+                    if (isDemoModeRef.current) return;
+
                     const employeesData: Employee[] = querySnapshot.docs.map(doc => {
                         const data = doc.data();
                         return {
@@ -316,13 +326,17 @@ const App: React.FC = () => {
                     if (loading) setLoading(false);
                 }, (error) => {
                     console.error("Error listening to employee updates:", error);
-                    showNotification(`Erro ao carregar funcionários: ${error.message}`, "error");
+                    if (!isDemoModeRef.current) {
+                        showNotification(`Erro ao carregar funcionários: ${error.message}`, "error");
+                    }
                     setLoading(false);
                 });
                 
                 // Listener for manual registrations to persist fields
                 const registrationsQuery = query(collection(db, 'registrosDSS'));
                 unsubscribeRegistrations = onSnapshot(registrationsQuery, (querySnapshot) => {
+                    if (isDemoModeRef.current) return;
+                    
                     const registrations = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() })) as ManualRegistration[];
                     
                     const mainReg = registrations.find(r => r.TURNO === '7H-19H');
@@ -336,12 +350,16 @@ const App: React.FC = () => {
                 });
 
 
-                showNotification('Dados carregados com sucesso!', 'success');
+                if (!isDemoModeRef.current) {
+                    showNotification('Dados carregados com sucesso!', 'success');
+                }
 
             } catch (error) {
                 console.error("Authentication or listener setup failed:", error);
                 const message = error instanceof Error ? error.message : 'Verifique as credenciais e as regras de segurança do Firebase.';
-                showNotification(`Falha na conexão: ${message}`, "error");
+                if (!isDemoModeRef.current) {
+                    showNotification(`Falha na conexão: ${message}`, "error");
+                }
                 setLoading(false);
             }
         };
@@ -479,12 +497,47 @@ const App: React.FC = () => {
 
     }, [initializeScale, setScale]);
 
+    const handleEnterDemoMode = () => {
+        isDemoModeRef.current = true;
+        
+        const firstNames = ["João", "Maria", "Pedro", "Ana", "Carlos", "Fernanda", "Lucas", "Juliana", "Marcos", "Beatriz", "Rafael", "Camila", "Gustavo", "Larissa", "Bruno"];
+        const lastNames = ["Silva", "Santos", "Oliveira", "Souza", "Rodrigues", "Ferreira", "Alves", "Pereira", "Lima", "Gomes", "Costa", "Ribeiro", "Martins"];
+        
+        const generateName = () => {
+             const first = firstNames[Math.floor(Math.random() * firstNames.length)];
+             const last = lastNames[Math.floor(Math.random() * lastNames.length)];
+             return `${first} ${last}`;
+        };
+
+        const mockEmployees: Employee[] = Array.from({ length: 45 }).map((_, i) => {
+            const isPresent = Math.random() > 0.3;
+            const isBem = isPresent && Math.random() > 0.1;
+            const isMal = isPresent && !isBem;
+            const isAbsent = !isPresent;
+            
+            return {
+                id: `demo-${i}`,
+                name: generateName(),
+                matricula: `${1000 + i}`,
+                assDss: isBem, // Usually check together
+                bem: isBem,
+                mal: isMal,
+                absent: isAbsent,
+                time: isPresent ? formatTimestamp(Timestamp.now()) : null,
+                turno: i < 35 ? '7H' : '6H' // Mostly 7H, some 6H for the small column
+            };
+        }).sort((a,b) => a.name.localeCompare(b.name));
+        
+        setEmployees(mockEmployees);
+        setIsDemoMode(true);
+        setIsAdmin(true); // Grant simulated admin for demo
+        setActiveModal(ModalType.None);
+        setLoading(false);
+        showNotification('Modo de Demonstração Ativado! Dados fictícios carregados.', 'success');
+    };
+
     // Original logic separated for reuse
     const processStatusUpdate = async (id: string, type: StatusType) => {
-        if (!db) {
-            showNotification("A conexão com o banco de dados não está disponível.", "error");
-            return;
-        }
         const employee = employees.find(e => e.id === id);
         if (!employee) return;
 
@@ -527,22 +580,51 @@ const App: React.FC = () => {
             }
         }
         
-        const finalStates = {
-            absent: updatedData.absent !== undefined ? updatedData.absent : employee.absent,
-            assDss: updatedData.assDss !== undefined ? updatedData.assDss : employee.assDss,
-            bem: updatedData.bem !== undefined ? updatedData.bem : employee.bem,
-            mal: updatedData.mal !== undefined ? updatedData.mal : employee.mal,
-        };
+        // Handle Demo Mode Local State Update
+        if (isDemoMode) {
+            const finalStates = {
+                absent: updatedData.absent !== undefined ? updatedData.absent : employee.absent,
+                assDss: updatedData.assDss !== undefined ? updatedData.assDss : employee.assDss,
+                bem: updatedData.bem !== undefined ? updatedData.bem : employee.bem,
+                mal: updatedData.mal !== undefined ? updatedData.mal : employee.mal,
+            };
+            
+            let newTime = employee.time;
+             if (finalStates.absent) {
+                newTime = null;
+            } else if (finalStates.bem || finalStates.mal || finalStates.assDss) {
+                // In Demo Mode, use simple string date
+                const date = new Date();
+                newTime = `${date.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit', year: 'numeric'})} ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+            } else {
+                newTime = null;
+            }
 
-        if (finalStates.absent) {
-            updatedData.time = null;
-        } else if (finalStates.bem || finalStates.mal || finalStates.assDss) {
-            updatedData.time = serverTimestamp();
-        } else {
-            updatedData.time = null;
+            setEmployees(prev => prev.map(e => e.id === id ? { ...e, ...updatedData, time: newTime } : e));
+            return;
         }
-        
+
+        if (!db) {
+            showNotification("A conexão com o banco de dados não está disponível.", "error");
+            return;
+        }
+
+        // Handle DB Update
         try {
+            const finalStates = {
+                absent: updatedData.absent !== undefined ? updatedData.absent : employee.absent,
+                assDss: updatedData.assDss !== undefined ? updatedData.assDss : employee.assDss,
+                bem: updatedData.bem !== undefined ? updatedData.bem : employee.bem,
+                mal: updatedData.mal !== undefined ? updatedData.mal : employee.mal,
+            };
+            
+            if (finalStates.absent) {
+                updatedData.time = null;
+            } else if (finalStates.bem || finalStates.mal || finalStates.assDss) {
+                updatedData.time = serverTimestamp();
+            } else {
+                updatedData.time = null;
+            }
             const docRef = doc(db, 'employees', id);
             await updateDoc(docRef, updatedData);
         } catch (error) {
@@ -579,20 +661,31 @@ const App: React.FC = () => {
     };
     
     const handleToggleSpecialTeam = async (id: string) => {
-        if (!db) {
-            showNotification("A conexão com o banco de dados não está disponível.", "error");
-            return;
-        }
         setTogglingSpecialTeamId(id);
         const employee = employees.find(e => e.id === id);
         if (!employee) {
             setTogglingSpecialTeamId(null);
             return;
         }
+        const newTurno = employee.turno === '6H' ? '7H' : '6H';
+
+        if (isDemoMode) {
+             // Simulate network delay
+             setTimeout(() => {
+                 setEmployees(prev => prev.map(e => e.id === id ? { ...e, turno: newTurno } : e));
+                 showNotification(`${employee.name} foi movido para o turno ${newTurno} (DEMO).`, 'success');
+                 setTogglingSpecialTeamId(null);
+             }, 500);
+             return;
+        }
+
+        if (!db) {
+            showNotification("A conexão com o banco de dados não está disponível.", "error");
+            return;
+        }
 
         try {
             const docRef = doc(db, 'employees', id);
-            const newTurno = employee.turno === '6H' ? '7H' : '6H';
             await updateDoc(docRef, { 
                 turno: newTurno
             });
@@ -607,11 +700,6 @@ const App: React.FC = () => {
     };
 
     const handleManualRegister = async (turno: '7H-19H' | '6H') => {
-        if (!db) {
-            showNotification("A conexão com o banco de dados não está disponível.", "error");
-            return;
-        }
-
         const matricula = turno === '7H-19H' ? mainMatricula : specialMatricula;
         const subject = turno === '7H-19H' ? mainSubject : specialSubject;
 
@@ -620,6 +708,16 @@ const App: React.FC = () => {
             return;
         }
         
+        if (isDemoMode) {
+            showNotification(`Registro para turno ${turno} salvo com sucesso (DEMO).`, 'success');
+            return;
+        }
+
+        if (!db) {
+            showNotification("A conexão com o banco de dados não está disponível.", "error");
+            return;
+        }
+
         const registrationData = {
             matricula,
             assunto: subject || 'Não informado',
@@ -645,6 +743,13 @@ const App: React.FC = () => {
     };
     
     const handleAdminLogin = async (email: string) => {
+        if (isDemoMode) {
+            setIsAdmin(true);
+            setActiveModal(ModalType.AdminOptions);
+            showNotification('Acesso Admin (DEMO) concedido.', 'success');
+            return;
+        }
+
         if (!db) {
             showNotification("A conexão com o banco de dados não está disponível.", "error");
             return;
@@ -671,14 +776,34 @@ const App: React.FC = () => {
     };
     
     const handleAddUser = async (name: string, matricula: string) => {
-        if (!db) {
-            showNotification("A conexão com o banco de dados não está disponível.", "error");
-            return;
-        }
         if (!isAdmin) {
             showNotification('Apenas administradores podem adicionar usuários.', 'error');
             return;
         }
+
+        if (isDemoMode) {
+             const newUser: Employee = {
+                id: `demo-new-${Date.now()}`,
+                name,
+                matricula,
+                assDss: false,
+                bem: false,
+                mal: false,
+                absent: false,
+                time: null,
+                turno: '7H'
+            };
+            setEmployees(prev => [...prev, newUser].sort((a,b) => a.name.localeCompare(b.name)));
+            setActiveModal(ModalType.None);
+            showNotification(`Usuário ${name} adicionado com sucesso (DEMO)!`, 'success');
+            return;
+        }
+
+        if (!db) {
+            showNotification("A conexão com o banco de dados não está disponível.", "error");
+            return;
+        }
+        
         try {
             if (matricula) {
                 const existingUser = employees.find(e => e.matricula === matricula);
@@ -705,10 +830,6 @@ const App: React.FC = () => {
     };
 
     const handleDeleteUser = async (employeeId: string) => {
-        if (!db) {
-            showNotification("A conexão com o banco de dados não está disponível.", "error");
-            return;
-        }
         if (!isAdmin) {
             showNotification('Apenas administradores podem deletar usuários.', 'error');
             return;
@@ -720,6 +841,15 @@ const App: React.FC = () => {
         }
 
         if (window.confirm(`Tem certeza que deseja deletar permanentemente ${employeeToDelete.name}? Esta ação não pode ser desfeita.`)) {
+             if (isDemoMode) {
+                setEmployees(prev => prev.filter(e => e.id !== employeeId));
+                showNotification(`Usuário ${employeeToDelete.name} deletado com sucesso (DEMO)!`, 'success');
+                return;
+            }
+            if (!db) {
+                showNotification("A conexão com o banco de dados não está disponível.", "error");
+                return;
+            }
             try {
                 const docRef = doc(db, 'employees', employeeId);
                 await deleteDoc(docRef);
@@ -733,14 +863,34 @@ const App: React.FC = () => {
     };
 
     const handleClearData = async () => {
-        if (!db) {
-            showNotification("A conexão com o banco de dados não está disponível.", "error");
-            return;
-        }
         if (!isAdmin) {
             showNotification('Apenas administradores podem limpar os dados.', 'error');
             return;
         }
+
+        if (isDemoMode) {
+             setEmployees(prev => prev.map(e => ({
+                ...e,
+                assDss: false,
+                bem: false,
+                mal: false,
+                absent: false,
+                time: null
+             })));
+             setMainSubject('');
+             setMainMatricula('');
+             setSpecialSubject('');
+             setSpecialMatricula('');
+             setActiveModal(ModalType.None);
+             showNotification('Dados limpos com sucesso (DEMO)!', 'success');
+             return;
+        }
+
+        if (!db) {
+            showNotification("A conexão com o banco de dados não está disponível.", "error");
+            return;
+        }
+
         try {
             const batch = writeBatch(db);
             
@@ -786,14 +936,16 @@ const App: React.FC = () => {
     const mainTeam = useMemo(() => employees.filter(e => e.turno !== '6H'), [employees]);
     const specialTeam = useMemo(() => employees.filter(e => e.turno === '6H'), [employees]);
 
-    const columnSize = Math.ceil(mainTeam.length / 2);
-    const leftColumn = mainTeam.slice(0, columnSize);
-    const rightColumn = mainTeam.slice(columnSize);
+    // Split mainTeam into 3 columns instead of 2
+    const columnSize = Math.ceil(mainTeam.length / 3);
+    const col1 = mainTeam.slice(0, columnSize);
+    const col2 = mainTeam.slice(columnSize, columnSize * 2);
+    const col3 = mainTeam.slice(columnSize * 2);
 
     return (
         <div className="bg-light-bg-secondary dark:bg-dark-bg min-h-screen text-light-text dark:text-dark-text transition-colors">
             <div ref={viewportRef} className="viewport fixed inset-0">
-                <div ref={scalableContainerRef} className="scalable-container w-[2738px] p-8">
+                <div ref={scalableContainerRef} className="scalable-container w-[3650px] p-8">
                     <Header
                         stats={stats}
                         loading={loading}
@@ -802,8 +954,14 @@ const App: React.FC = () => {
                         onToggleDarkMode={handleToggleDarkMode}
                     />
                     
-                    <div className="flex gap-8 w-[2674px]">
-                       <div className="w-[1772px] flex flex-col gap-8">
+                    {isDemoMode && (
+                        <div className="absolute top-6 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-black px-4 py-1 rounded-full font-bold shadow-md z-10 animate-pulse pointer-events-none">
+                            MODO DEMONSTRAÇÃO ATIVO
+                        </div>
+                    )}
+                    
+                    <div className="flex gap-8 w-[3576px]">
+                       <div className="w-[2674px] flex flex-col gap-8">
                             <ManualRegisterSection 
                                 subject={mainSubject}
                                 matricula={mainMatricula}
@@ -813,10 +971,13 @@ const App: React.FC = () => {
                             />
                             <div className="flex-grow flex gap-8">
                                 <div className="flex flex-col gap-6 w-[870px]">
-                                    {leftColumn.map(emp => <EmployeeCard key={emp.id} employee={emp} onStatusChange={handleStatusChange} onToggleSpecialTeam={handleToggleSpecialTeam} isTogglingSpecialTeam={togglingSpecialTeamId === emp.id} isAdmin={isAdmin} onDelete={handleDeleteUser} />)}
+                                    {col1.map(emp => <EmployeeCard key={emp.id} employee={emp} onStatusChange={handleStatusChange} onToggleSpecialTeam={handleToggleSpecialTeam} isTogglingSpecialTeam={togglingSpecialTeamId === emp.id} isAdmin={isAdmin} onDelete={handleDeleteUser} />)}
                                 </div>
                                 <div className="flex flex-col gap-6 w-[870px]">
-                                    {rightColumn.map(emp => <EmployeeCard key={emp.id} employee={emp} onStatusChange={handleStatusChange} onToggleSpecialTeam={handleToggleSpecialTeam} isTogglingSpecialTeam={togglingSpecialTeamId === emp.id} isAdmin={isAdmin} onDelete={handleDeleteUser} />)}
+                                    {col2.map(emp => <EmployeeCard key={emp.id} employee={emp} onStatusChange={handleStatusChange} onToggleSpecialTeam={handleToggleSpecialTeam} isTogglingSpecialTeam={togglingSpecialTeamId === emp.id} isAdmin={isAdmin} onDelete={handleDeleteUser} />)}
+                                </div>
+                                <div className="flex flex-col gap-6 w-[870px]">
+                                    {col3.map(emp => <EmployeeCard key={emp.id} employee={emp} onStatusChange={handleStatusChange} onToggleSpecialTeam={handleToggleSpecialTeam} isTogglingSpecialTeam={togglingSpecialTeamId === emp.id} isAdmin={isAdmin} onDelete={handleDeleteUser} />)}
                                 </div>
                             </div>
                        </div>
@@ -838,7 +999,13 @@ const App: React.FC = () => {
                 </div>
             </div>
             
-            <AdminLoginModal isOpen={activeModal === ModalType.AdminLogin} onClose={() => setActiveModal(ModalType.None)} onLogin={handleAdminLogin} scale={modalScale} />
+            <AdminLoginModal 
+                isOpen={activeModal === ModalType.AdminLogin} 
+                onClose={() => setActiveModal(ModalType.None)} 
+                onLogin={handleAdminLogin} 
+                scale={modalScale} 
+                onEnterDemo={handleEnterDemoMode}
+            />
             <AdminOptionsModal 
                 isOpen={activeModal === ModalType.AdminOptions} 
                 onClose={() => setActiveModal(ModalType.None)} 
@@ -981,7 +1148,7 @@ const ManualRegisterSection: React.FC<ManualRegisterSectionProps> = ({
     );
 };
 
-const AdminLoginModal: React.FC<{isOpen: boolean, onClose: () => void, onLogin: (email: string) => void, scale?: number}> = ({isOpen, onClose, onLogin, scale}) => {
+const AdminLoginModal: React.FC<{isOpen: boolean, onClose: () => void, onLogin: (email: string) => void, scale?: number, onEnterDemo?: () => void}> = ({isOpen, onClose, onLogin, scale, onEnterDemo}) => {
     const [email, setEmail] = useState('');
 
     const handleSubmit = () => {
@@ -1006,6 +1173,17 @@ const AdminLoginModal: React.FC<{isOpen: boolean, onClose: () => void, onLogin: 
                     />
                 </div>
                 <button onClick={handleSubmit} className="w-full py-4 font-bold text-white bg-primary rounded-lg hover:bg-primary-dark transition">ENTRAR</button>
+                
+                {onEnterDemo && (
+                     <div className="pt-4 border-t border-gray-200 dark:border-gray-700 mt-4">
+                        <button 
+                            onClick={onEnterDemo} 
+                            className="w-full py-3 font-bold text-white bg-neutral rounded-lg hover:bg-gray-600 transition text-sm flex items-center justify-center gap-2"
+                        >
+                            <span>🛠️</span> MODO DEMONSTRAÇÃO
+                        </button>
+                     </div>
+                )}
             </div>
         </Modal>
     );
