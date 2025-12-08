@@ -377,9 +377,15 @@ const App: React.FC = () => {
         const scalableContainer = scalableContainerRef.current;
         if (!viewport || !scalableContainer) return;
 
+        // Force scroll to top left on initialization to prevent "white space" offset
+        viewport.scrollLeft = 0;
+        viewport.scrollTop = 0;
+
         const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
         if (isTouchDevice) {
-            const fitScale = viewport.clientWidth / scalableContainer.offsetWidth;
+            // Use visualViewport if available for more accurate dimensions on mobile
+            const viewportWidth = window.visualViewport ? window.visualViewport.width : viewport.clientWidth;
+            const fitScale = viewportWidth / scalableContainer.offsetWidth;
             setScale(fitScale, 0, 0);
         } else {
             setScale(1.0, 0, 0);
@@ -455,27 +461,41 @@ const App: React.FC = () => {
         let lastHeight = window.innerHeight;
 
         const handleResize = () => {
-            if (window.innerWidth !== lastWidth || window.innerHeight !== lastHeight) {
-                lastWidth = window.innerWidth;
-                lastHeight = window.innerHeight;
-                // Re-applying the scale will trigger a recalculation of minWidth/minHeight
-                // based on the new viewport dimensions.
-                setScale(scaleStateRef.current.currentScale);
+            // Using visualViewport helps detect address bar changes more reliably
+            const currentWidth = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+            const currentHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+
+            if (currentWidth !== lastWidth || currentHeight !== lastHeight) {
+                lastWidth = currentWidth;
+                lastHeight = currentHeight;
+                initializeScale();
             }
         };
 
         // NEW: Handle Visibility Change and Page Show to fix layout issues on mobile restore
         const handleVisibilityAndRestore = () => {
             if (document.visibilityState === 'visible') {
-                // A multiple delay allows the browser UI (address bar) to settle before calculating size
-                setTimeout(initializeScale, 100);
-                setTimeout(initializeScale, 300);
-                setTimeout(initializeScale, 600);
+                // When coming back from another tab, force scroll to top to avoid "missing space" at bottom
+                if (viewportRef.current) {
+                    viewportRef.current.scrollTop = 0;
+                    viewportRef.current.scrollLeft = 0;
+                }
+                
+                // Multiple checks to ensure browser UI has finished animating
+                setTimeout(initializeScale, 50);
+                setTimeout(initializeScale, 200);
+                setTimeout(initializeScale, 500);
             }
         };
 
         window.addEventListener('load', initializeScale);
-        window.addEventListener('resize', handleResize);
+        
+        // Use Visual Viewport API if available for robust mobile resizing
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', handleResize);
+        } else {
+            window.addEventListener('resize', handleResize);
+        }
         
         // Add listeners for restoring the tab
         document.addEventListener('visibilitychange', handleVisibilityAndRestore);
@@ -487,7 +507,12 @@ const App: React.FC = () => {
 
         return () => {
             window.removeEventListener('load', initializeScale);
-            window.removeEventListener('resize', handleResize);
+            
+            if (window.visualViewport) {
+                window.visualViewport.removeEventListener('resize', handleResize);
+            } else {
+                window.removeEventListener('resize', handleResize);
+            }
             
             document.removeEventListener('visibilitychange', handleVisibilityAndRestore);
             window.removeEventListener('pageshow', handleVisibilityAndRestore);
