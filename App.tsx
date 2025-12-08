@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Header from './components/Header';
 import EmployeeCard from './components/EmployeeCard';
@@ -5,6 +6,7 @@ import SpecialTeamPanel from './components/SpecialTeamPanel';
 import Modal from './components/Modal';
 import Notification from './components/Notification';
 import Footer from './components/Footer';
+import InteractiveTutorial, { TutorialStep } from './components/InteractiveTutorial';
 import { SubjectIcon, UserIcon, EraserIcon, FileTextIcon, SortIcon, UserPlusIcon } from './components/icons';
 import { Employee, StatusType, ModalType, ManualRegistration } from './types';
 import type { NotificationData } from './components/Notification';
@@ -37,6 +39,54 @@ const EMAILJS_SERVICE_ID = "service_adjw0cj";
 const EMAILJS_TEMPLATE_ID = "template_owo0dmm";
 const EMAILJS_PUBLIC_KEY = "Ef-7IoF9U9NQ_iV8X";
 // ----------------------------
+
+const tutorialSteps: TutorialStep[] = [
+    {
+        targetId: 'tutorial-manual-register-bar',
+        title: 'Registro Manual',
+        content: 'Use esta barra superior para registrar o Assunto do DSS do dia e a matrícula do responsável. Isso é essencial para o relatório diário.'
+    },
+    {
+        targetId: 'tutorial-first-card',
+        title: 'Cartão do Colaborador',
+        content: 'Este é o cartão individual. O funcionário deve marcar "ASS. DSS" e "ESTOU BEM" ao chegar. Se marcar "ESTOU MAL", um alerta será enviado imediatamente para a gestão.'
+    },
+    {
+        targetId: 'tutorial-card-actions',
+        title: 'Botões de Ação',
+        content: 'Use "TURNO 6H" para mover o colaborador para uma coluna somente para esse turno. Use "AUSENTE" para marcar que o colaborador faltou. Use "DELETAR" para remover permanentemente o usuário (Aparece somente para-ADM).'
+    },
+    {
+        targetId: 'tutorial-card-time',
+        title: 'Registro de Horário',
+        content: 'Aqui fica registrado o momento exato em que o colaborador assinou sua DSS'
+    },
+    {
+        targetId: 'tutorial-special-demo-area',
+        title: 'Turno Diferenciado (6H)',
+        content: 'Painel exclusivo para a turma do turno de 6H. Funciona da mesma forma que o painel principal, mas com controle separado.'
+    },
+    {
+        targetId: 'tutorial-return-turn-btn',
+        title: 'Retornar ao Turno Normal',
+        content: 'Ao Clicar neste botão na coluna do horário especial, o colaborador é movido de volta para o turno normal.'
+    },
+    {
+        targetId: 'tutorial-stats',
+        title: 'Estatísticas em Tempo Real',
+        content: 'Acompanhe quantos colaboradores estão bem, mal ou ausentes instantaneamente.'
+    },
+    {
+        targetId: 'tutorial-dark-mode',
+        title: 'Modo Escuro (BB-8)',
+        content: 'Clique no pequeno droide BB-8 para alternar entre o modo Claro e Escuro. Ideal para ambientes com pouca luz.'
+    },
+    {
+        targetId: 'tutorial-admin-btn',
+        title: 'Área Administrativa',
+        content: 'Acesso restrito para limpar os dados diários, gerar relatórios em PDF/Texto e cadastrar novos usuários.'
+    }
+];
 
 const App: React.FC = () => {
     const [employees, setEmployees] = useState<Employee[]>([]);
@@ -108,6 +158,21 @@ const App: React.FC = () => {
         window.addEventListener('resize', calculateModalScale);
         return () => window.removeEventListener('resize', calculateModalScale);
     }, []);
+
+    // Effect to check if tutorial should be shown for first-time users
+    useEffect(() => {
+        // Wait for loading to finish so DOM elements are present
+        if (!loading) {
+            const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
+            if (!hasSeenTutorial) {
+                // Short delay to ensure rendering frames are complete
+                setTimeout(() => {
+                    setActiveModal(ModalType.Tutorial);
+                    localStorage.setItem('hasSeenTutorial', 'true');
+                }, 1000);
+            }
+        }
+    }, [loading]);
 
     const handleToggleDarkMode = () => setIsDarkMode(prev => !prev);
 
@@ -743,6 +808,16 @@ const App: React.FC = () => {
     };
     
     const handleAdminLogin = async (email: string) => {
+        const normalizedEmail = email.trim().toLowerCase();
+        
+        // Hardcoded admin for test environment
+        if (normalizedEmail === 'naylanmoreira350@gmail.com') {
+             setIsAdmin(true);
+             setActiveModal(ModalType.AdminOptions);
+             showNotification('Login de administrador bem-sucedido!', 'success');
+             return;
+        }
+
         if (isDemoMode) {
             setIsAdmin(true);
             setActiveModal(ModalType.AdminOptions);
@@ -759,7 +834,7 @@ const App: React.FC = () => {
             return;
         }
         try {
-            const q = query(collection(db, 'administrators'), where("email", "==", email.toLowerCase()));
+            const q = query(collection(db, 'administrators'), where("email", "==", normalizedEmail));
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {
                 setIsAdmin(true);
@@ -950,6 +1025,7 @@ const App: React.FC = () => {
                         stats={stats}
                         loading={loading}
                         onAdminClick={() => setActiveModal(ModalType.AdminLogin)}
+                        onHelpClick={() => setActiveModal(ModalType.Tutorial)}
                         isDarkMode={isDarkMode}
                         onToggleDarkMode={handleToggleDarkMode}
                     />
@@ -971,7 +1047,18 @@ const App: React.FC = () => {
                             />
                             <div className="flex-grow flex gap-8">
                                 <div className="flex flex-col gap-6 w-[870px]">
-                                    {col1.map(emp => <EmployeeCard key={emp.id} employee={emp} onStatusChange={handleStatusChange} onToggleSpecialTeam={handleToggleSpecialTeam} isTogglingSpecialTeam={togglingSpecialTeamId === emp.id} isAdmin={isAdmin} onDelete={handleDeleteUser} />)}
+                                    {col1.map((emp, index) => (
+                                        <EmployeeCard 
+                                            key={emp.id} 
+                                            employee={emp} 
+                                            onStatusChange={handleStatusChange} 
+                                            onToggleSpecialTeam={handleToggleSpecialTeam} 
+                                            isTogglingSpecialTeam={togglingSpecialTeamId === emp.id} 
+                                            isAdmin={isAdmin} 
+                                            onDelete={handleDeleteUser}
+                                            domId={index === 0 ? "tutorial-first-card" : undefined}
+                                        />
+                                    ))}
                                 </div>
                                 <div className="flex flex-col gap-6 w-[870px]">
                                     {col2.map(emp => <EmployeeCard key={emp.id} employee={emp} onStatusChange={handleStatusChange} onToggleSpecialTeam={handleToggleSpecialTeam} isTogglingSpecialTeam={togglingSpecialTeamId === emp.id} isAdmin={isAdmin} onDelete={handleDeleteUser} />)}
@@ -1004,7 +1091,6 @@ const App: React.FC = () => {
                 onClose={() => setActiveModal(ModalType.None)} 
                 onLogin={handleAdminLogin} 
                 scale={modalScale} 
-                onEnterDemo={handleEnterDemoMode}
             />
             <AdminOptionsModal 
                 isOpen={activeModal === ModalType.AdminOptions} 
@@ -1013,6 +1099,7 @@ const App: React.FC = () => {
                 onReorganize={handleReorganize} 
                 onAddUser={() => setActiveModal(ModalType.AddUser)}
                 onSendReport={() => setActiveModal(ModalType.Report)}
+                onEnterDemo={handleEnterDemoMode}
                 scale={modalScale}
             />
             <AddUserModal isOpen={activeModal === ModalType.AddUser} onClose={() => setActiveModal(ModalType.None)} onAdd={handleAddUser} scale={modalScale} />
@@ -1022,6 +1109,12 @@ const App: React.FC = () => {
                 employees={employees}
                 showNotification={showNotification}
                 scale={modalScale}
+            />
+            
+            <InteractiveTutorial
+                isOpen={activeModal === ModalType.Tutorial}
+                onClose={() => setActiveModal(ModalType.None)}
+                steps={tutorialSteps}
             />
             
             {/* CUSTOM CONFIRMATION MODAL WITH ROBUST CENTERING */}
@@ -1118,8 +1211,8 @@ const ManualRegisterSection: React.FC<ManualRegisterSectionProps> = ({
     };
 
     return (
-        <div className="bg-light-card dark:bg-dark-card rounded-3xl p-8 shadow-lg flex items-center gap-6">
-            <div className="relative flex-1 max-w-md">
+        <div id="tutorial-manual-register-bar" className="bg-light-card dark:bg-dark-card rounded-3xl p-8 shadow-lg flex items-center gap-6 w-fit">
+            <div className="relative w-[600px]">
                 <SubjectIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input 
                     type="text" 
@@ -1129,7 +1222,7 @@ const ManualRegisterSection: React.FC<ManualRegisterSectionProps> = ({
                     className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
                 />
             </div>
-            <div className="relative flex-1 max-w-md">
+            <div className="relative w-[400px]">
                 <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input 
                     type="text" 
@@ -1148,7 +1241,7 @@ const ManualRegisterSection: React.FC<ManualRegisterSectionProps> = ({
     );
 };
 
-const AdminLoginModal: React.FC<{isOpen: boolean, onClose: () => void, onLogin: (email: string) => void, scale?: number, onEnterDemo?: () => void}> = ({isOpen, onClose, onLogin, scale, onEnterDemo}) => {
+const AdminLoginModal: React.FC<{isOpen: boolean, onClose: () => void, onLogin: (email: string) => void, scale?: number}> = ({isOpen, onClose, onLogin, scale}) => {
     const [email, setEmail] = useState('');
 
     const handleSubmit = () => {
@@ -1173,17 +1266,6 @@ const AdminLoginModal: React.FC<{isOpen: boolean, onClose: () => void, onLogin: 
                     />
                 </div>
                 <button onClick={handleSubmit} className="w-full py-4 font-bold text-white bg-primary rounded-lg hover:bg-primary-dark transition">ENTRAR</button>
-                
-                {onEnterDemo && (
-                     <div className="pt-4 border-t border-gray-200 dark:border-gray-700 mt-4">
-                        <button 
-                            onClick={onEnterDemo} 
-                            className="w-full py-3 font-bold text-white bg-neutral rounded-lg hover:bg-gray-600 transition text-sm flex items-center justify-center gap-2"
-                        >
-                            <span>🛠️</span> MODO DEMONSTRAÇÃO
-                        </button>
-                     </div>
-                )}
             </div>
         </Modal>
     );
@@ -1196,8 +1278,9 @@ const AdminOptionsModal: React.FC<{
     onReorganize: () => void, 
     onAddUser: () => void, 
     onSendReport: () => void,
+    onEnterDemo: () => void,
     scale?: number
-}> = ({isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, scale}) => (
+}> = ({isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onEnterDemo, scale}) => (
     <Modal isOpen={isOpen} onClose={onClose} title="Opções Administrativas" scale={scale}>
         <div className="space-y-4">
             <button onClick={onClear} className="w-full py-4 font-bold text-white bg-orange rounded-lg hover:bg-orange-600 transition flex items-center justify-center gap-3">
@@ -1215,6 +1298,10 @@ const AdminOptionsModal: React.FC<{
             <button onClick={onAddUser} className="w-full py-4 font-bold text-white bg-success rounded-lg hover:bg-green-600 transition flex items-center justify-center gap-3">
                 <UserPlusIcon className="w-6 h-6" />
                 <span>NOVO USUÁRIO</span>
+            </button>
+            <button onClick={onEnterDemo} className="w-full py-4 font-bold text-white bg-neutral rounded-lg hover:bg-gray-600 transition flex items-center justify-center gap-3">
+                <span>🛠️</span>
+                <span>MODO DEMONSTRAÇÃO</span>
             </button>
         </div>
     </Modal>

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import DarkModeToggle from './DarkModeToggle';
-import { AdminIcon } from './icons';
+import { AdminIcon, HelpIcon } from './icons';
 import { FALLBACK_LOGO } from './logoConstants';
 
 interface HeaderProps {
@@ -13,6 +13,7 @@ interface HeaderProps {
     };
     loading: boolean;
     onAdminClick: () => void;
+    onHelpClick: () => void;
     isDarkMode: boolean;
     onToggleDarkMode: () => void;
 }
@@ -24,7 +25,7 @@ const StatCard: React.FC<{ label: string; value: number; colorClass: string }> =
     </div>
 );
 
-const Header: React.FC<HeaderProps> = ({ stats, loading, onAdminClick, isDarkMode, onToggleDarkMode }) => {
+const Header: React.FC<HeaderProps> = ({ stats, loading, onAdminClick, onHelpClick, isDarkMode, onToggleDarkMode }) => {
     return (
         <header className="bg-light-card dark:bg-dark-card rounded-3xl p-6 md:p-10 mb-8 shadow-lg flex justify-between items-center w-[3576px] transition-colors">
             <div className="flex items-center gap-4">
@@ -44,8 +45,22 @@ const Header: React.FC<HeaderProps> = ({ stats, loading, onAdminClick, isDarkMod
             </div>
             <div className="flex flex-col items-end gap-5">
                 <div className="flex items-center gap-5">
-                   <DarkModeToggle isDarkMode={isDarkMode} onToggle={onToggleDarkMode} />
+                   <button 
+                        onClick={onHelpClick}
+                        className="h-[90px] flex items-center gap-3 px-8 text-base font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-cyan-300"
+                        aria-label="Iniciar Tutorial"
+                        title="Como usar o sistema"
+                   >
+                       <HelpIcon className="w-7 h-7" />
+                       <span>TUTORIAL</span>
+                   </button>
+                   
+                   <div id="tutorial-dark-mode" className="pt-6">
+                        <DarkModeToggle isDarkMode={isDarkMode} onToggle={onToggleDarkMode} />
+                   </div>
+                   
                     <button 
+                      id="tutorial-admin-btn"
                       onClick={onAdminClick}
                       className="h-[90px] relative flex items-center gap-3 px-8 text-base font-bold text-white bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-300"
                       aria-label="Acesso Administrativo"
@@ -54,7 +69,7 @@ const Header: React.FC<HeaderProps> = ({ stats, loading, onAdminClick, isDarkMod
                         <span>ACESSO ADM</span>
                     </button>
                 </div>
-                 <div className="flex gap-6">
+                 <div id="tutorial-stats" className="flex gap-6">
                     <StatCard label="Estou Bem" value={stats.bem} colorClass="text-success" />
                     <StatCard label="Estou Mal" value={stats.mal} colorClass="text-danger" />
                     <StatCard label="Ausente" value={stats.absent} colorClass="text-warning" />

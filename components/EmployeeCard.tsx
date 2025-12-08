@@ -11,6 +11,8 @@ interface EmployeeCardProps {
     isTogglingSpecialTeam: boolean;
     isAdmin: boolean;
     onDelete: (id: string) => void;
+    domId?: string; // Prop for tutorial targeting wrapper
+    specialTurnBtnId?: string; // Prop specifically for the shift button tutorial
 }
 
 interface CheckboxItemProps {
@@ -39,7 +41,7 @@ const CheckboxItem: React.FC<CheckboxItemProps> = ({ label, icon, type, checked,
 );
 
 
-const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, onToggleSpecialTeam, isTogglingSpecialTeam, isAdmin, onDelete }) => {
+const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, onToggleSpecialTeam, isTogglingSpecialTeam, isAdmin, onDelete, domId, specialTurnBtnId }) => {
     
     const createRipple = (e: React.MouseEvent<HTMLButtonElement>) => {
         const button = e.currentTarget;
@@ -86,7 +88,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, o
     };
 
     return (
-        <div className="w-full bg-light-card dark:bg-dark-card rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+        <div id={domId} className="w-full bg-light-card dark:bg-dark-card rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">
             {/* Header compactado para ganhar espaço horizontal */}
             <div className={`px-5 py-4 flex items-center text-white ${getHeaderClass()}`}>
                 <div className="w-12 h-12 bg-white/25 rounded-full flex items-center justify-center text-xl mr-3 flex-shrink-0">👤</div>
@@ -94,8 +96,10 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, o
                     <div className="text-xl font-bold truncate" title={employee.name}>{employee.name}</div>
                     <div className="text-sm opacity-90 truncate">Matrícula: {employee.matricula}</div>
                 </div>
-                <div className="flex gap-2 flex-shrink-0">
+                {/* ID adicionado aqui condicionalmente para o tutorial */}
+                <div id={domId ? "tutorial-card-actions" : undefined} className="flex gap-2 flex-shrink-0">
                     <button
+                        id={specialTurnBtnId}
                         onClick={handleToggleSpecialTeamClick}
                         disabled={isTogglingSpecialTeam}
                         className={`turno-button text-base ${employee.turno === '6H' ? 'active' : ''} ${isTogglingSpecialTeam ? 'loading' : ''}`}
@@ -166,11 +170,14 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, o
             </div>
 
             <div className="px-7 pb-7 text-center">
-                <div className={`py-4 px-6 inline-block rounded-lg font-bold text-base min-w-[240px] ${employee.time ? 'bg-gradient-to-r from-orange to-amber-500 text-white' : 'bg-light-bg dark:bg-dark-bg text-light-text-secondary dark:text-dark-text-secondary'}`}>
-                    {formatTimestamp(employee.time)}
-                </div>
-                <div className="mt-3 text-sm font-semibold text-light-text-secondary dark:text-dark-text-secondary uppercase tracking-wider">
-                    Data / Hora da Assinatura
+                {/* ID wrapper for tight tutorial focus */}
+                <div id={domId ? "tutorial-card-time" : undefined} className="inline-block">
+                    <div className={`py-4 px-6 inline-block rounded-lg font-bold text-base min-w-[240px] ${employee.time ? 'bg-gradient-to-r from-orange to-amber-500 text-white' : 'bg-light-bg dark:bg-dark-bg text-light-text-secondary dark:text-dark-text-secondary'}`}>
+                        {formatTimestamp(employee.time)}
+                    </div>
+                    <div className="mt-3 text-sm font-semibold text-light-text-secondary dark:text-dark-text-secondary uppercase tracking-wider">
+                        Data / Hora da Assinatura
+                    </div>
                 </div>
             </div>
         </div>

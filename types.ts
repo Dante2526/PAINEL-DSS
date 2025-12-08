@@ -27,4 +27,5 @@ export enum ModalType {
   AddUser,
   Report,
   ConfirmMal, // Added for safety confirmation
+  Tutorial, // Added for help/tutorial
 }
