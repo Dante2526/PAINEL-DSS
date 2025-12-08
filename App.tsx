@@ -452,17 +452,35 @@ const App: React.FC = () => {
         };
 
         let lastWidth = window.innerWidth;
+        let lastHeight = window.innerHeight;
+
         const handleResize = () => {
-            if (window.innerWidth !== lastWidth) {
+            if (window.innerWidth !== lastWidth || window.innerHeight !== lastHeight) {
                 lastWidth = window.innerWidth;
+                lastHeight = window.innerHeight;
                 // Re-applying the scale will trigger a recalculation of minWidth/minHeight
                 // based on the new viewport dimensions.
                 setScale(scaleStateRef.current.currentScale);
             }
         };
 
+        // NEW: Handle Visibility Change and Page Show to fix layout issues on mobile restore
+        const handleVisibilityAndRestore = () => {
+            if (document.visibilityState === 'visible') {
+                // A multiple delay allows the browser UI (address bar) to settle before calculating size
+                setTimeout(initializeScale, 100);
+                setTimeout(initializeScale, 300);
+                setTimeout(initializeScale, 600);
+            }
+        };
+
         window.addEventListener('load', initializeScale);
         window.addEventListener('resize', handleResize);
+        
+        // Add listeners for restoring the tab
+        document.addEventListener('visibilitychange', handleVisibilityAndRestore);
+        window.addEventListener('pageshow', handleVisibilityAndRestore);
+
         viewport.addEventListener('wheel', handleWheel, { passive: false });
         viewport.addEventListener('touchstart', handleTouchStart, { passive: false });
         viewport.addEventListener('touchmove', handleTouchMove, { passive: false });
@@ -470,6 +488,10 @@ const App: React.FC = () => {
         return () => {
             window.removeEventListener('load', initializeScale);
             window.removeEventListener('resize', handleResize);
+            
+            document.removeEventListener('visibilitychange', handleVisibilityAndRestore);
+            window.removeEventListener('pageshow', handleVisibilityAndRestore);
+
             if (viewport) {
               viewport.removeEventListener('wheel', handleWheel);
               viewport.removeEventListener('touchstart', handleTouchStart);
