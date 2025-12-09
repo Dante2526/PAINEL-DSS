@@ -1,5 +1,5 @@
 // Nome do cache
-const CACHE_NAME = 'painel-dss-v5';
+const CACHE_NAME = 'painel-dss-v3';
 
 // Arquivos para cachear
 const urlsToCache = [
@@ -49,6 +49,7 @@ self.addEventListener('fetch', (event) => {
         // Se não, tenta buscar na rede
         return fetch(event.request).catch(() => {
             // Se falhar (offline) e for uma navegação (HTML), retorna a raiz (/)
+            // Isso corrige o erro 404 ao abrir o app instalado offline
             if (event.request.mode === 'navigate') {
                 return caches.match('/');
             }

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Header from './components/Header';
 import EmployeeCard from './components/EmployeeCard';
@@ -178,9 +179,8 @@ const App: React.FC = () => {
             const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
             
             if (isTouchDevice) {
-                // Aumentado para garantir visibilidade em telas móveis
-                // Ajustado para 3.2 para evitar cortes nas bordas
-                setModalScale(3.2);
+                // Aumentado para 3.5 para garantir visibilidade em telas móveis
+                setModalScale(3.5);
             } else {
                 setModalScale(1); // Default scale for desktop
             }
@@ -1065,7 +1065,7 @@ const App: React.FC = () => {
     return (
         <div className="bg-light-bg-secondary dark:bg-dark-bg min-h-screen text-light-text dark:text-dark-text transition-colors">
             {/* Install Prompt Component */}
-            <PwaInstallPrompt scale={modalScale} />
+            <PwaInstallPrompt />
 
             <div ref={viewportRef} className="viewport fixed inset-0">
                 <div ref={scalableContainerRef} className="scalable-container w-[3650px] p-8">

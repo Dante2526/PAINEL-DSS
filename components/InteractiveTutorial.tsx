@@ -19,11 +19,6 @@ interface InteractiveTutorialProps {
 const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClose, steps, scale = 1 }) => {
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
     const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
     
     // Prevent scrolling when tutorial is open
     useEffect(() => {
@@ -40,9 +35,6 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
         
         // Small delay to ensure DOM is ready and any layout shifts/scrolls have initiated
         const timer = setTimeout(() => {
-            // Safety check for empty steps
-            if (!steps || steps.length === 0 || !steps[currentStepIndex]) return;
-
             const step = steps[currentStepIndex];
             const element = document.getElementById(step.targetId);
             
@@ -93,25 +85,21 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
         }
     };
 
-    if (!mounted || !isOpen || !document.body) return null;
-    if (!steps || steps.length === 0) return null;
+    if (!isOpen) return null;
 
     const step = steps[currentStepIndex];
-    if (!step) return null; // Safety check
-
     const isLastStep = currentStepIndex === steps.length - 1;
-    const safeScale = typeof scale === 'number' && !isNaN(scale) ? scale : 1;
 
     // Calculate Tooltip Position with Scale
     let tooltipStyle: React.CSSProperties = {};
     
     if (targetRect) {
-        const pos = getTooltipPosition(targetRect, safeScale, step.position);
+        const pos = getTooltipPosition(targetRect, scale, step.position);
         tooltipStyle = {
             top: pos.top,
             left: pos.left,
             position: 'absolute',
-            transform: `scale(${safeScale})`,
+            transform: `scale(${scale})`,
             transformOrigin: 'top left', // Important so the calculations in getTooltipPosition match the visual anchor
             width: '400px' // Base width before scaling
         };
@@ -120,7 +108,7 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
         tooltipStyle = {
             top: '50%',
             left: '50%',
-            transform: `translate(-50%, -50%) scale(${safeScale})`,
+            transform: `translate(-50%, -50%) scale(${scale})`,
             position: 'fixed',
             width: '400px'
         };
