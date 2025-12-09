@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Header from './components/Header';
 import EmployeeCard from './components/EmployeeCard';
@@ -179,8 +178,9 @@ const App: React.FC = () => {
             const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
             
             if (isTouchDevice) {
-                // Aumentado para 3.5 para garantir visibilidade em telas móveis
-                setModalScale(3.5);
+                // Aumentado para garantir visibilidade em telas móveis
+                // Ajustado para 3.2 para evitar cortes nas bordas
+                setModalScale(3.2);
             } else {
                 setModalScale(1); // Default scale for desktop
             }
