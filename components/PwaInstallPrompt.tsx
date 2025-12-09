@@ -42,8 +42,8 @@ const PwaInstallPrompt: React.FC<PwaInstallPromptProps> = ({ scale = 1 }) => {
 
     if (!mounted || !isVisible) return null;
 
-    // Ensure scale is a valid number
-    const safeScale = typeof scale === 'number' && !isNaN(scale) ? scale : 1;
+    // Ensure scale is a valid positive number to prevent Calc(x/0) CSS errors
+    const safeScale = (typeof scale === 'number' && !isNaN(scale) && scale > 0.1) ? scale : 1;
 
     return (
         <div 
