@@ -116,3 +116,41 @@ export const MousePointerIcon: React.FC<{ className?: string }> = ({ className }
     <path d="M13 13l6 6"></path>
   </svg>
 );
+
+// CSS-based Vector Shield Logo
+export const ShieldLogo: React.FC<{ className?: string }> = ({ className }) => (
+  <div className={`relative flex items-center justify-center ${className}`}>
+     <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-full h-full drop-shadow-md"
+     >
+        <defs>
+           <linearGradient id="shieldGradient" x1="12" y1="2" x2="12" y2="22" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#4da3ff" />
+              <stop offset="100%" stopColor="#0066cc" />
+           </linearGradient>
+           <linearGradient id="shieldGloss" x1="12" y1="2" x2="12" y2="15" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="white" stopOpacity="0.3" />
+              <stop offset="100%" stopColor="white" stopOpacity="0" />
+           </linearGradient>
+        </defs>
+        {/* Main Shield Body */}
+        <path
+          d="M12 22C12 22 20 18 20 12V5L12 2L4 5V12C4 18 12 22 12 22Z"
+          fill="url(#shieldGradient)"
+          stroke="#0056b3"
+          strokeWidth="1"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        {/* Inner Detail / Gloss */}
+        <path
+          d="M12 3.5L18.5 6V12C18.5 16.5 12 20.5 12 20.5V3.5Z"
+          fill="url(#shieldGloss)"
+          style={{ mixBlendMode: 'overlay' }}
+        />
+     </svg>
+  </div>
+);

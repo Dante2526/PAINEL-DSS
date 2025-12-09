@@ -1,8 +1,7 @@
 
 import React from 'react';
 import DarkModeToggle from './DarkModeToggle';
-import { AdminIcon, HelpIcon } from './icons';
-import { FALLBACK_LOGO } from './logoConstants';
+import { AdminIcon, HelpIcon, ShieldLogo } from './icons';
 
 interface HeaderProps {
     stats: {
@@ -32,11 +31,7 @@ const Header: React.FC<HeaderProps> = ({ stats, loading, onAdminClick, onHelpCli
                 {loading ? (
                     <div className="w-10 h-10 border-4 border-primary-light border-t-primary rounded-full animate-spin"></div>
                 ) : (
-                    <img 
-                        src={FALLBACK_LOGO} 
-                        alt="Logo" 
-                        className="h-12 w-auto object-contain"
-                    />
+                    <ShieldLogo className="h-16 w-16" />
                 )}
                 <div>
                     <h1 className="text-3xl font-bold text-light-text dark:text-dark-text">Painel de Acompanhamento DSS</h1>
