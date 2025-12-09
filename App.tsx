@@ -1065,7 +1065,7 @@ const App: React.FC = () => {
     return (
         <div className="bg-light-bg-secondary dark:bg-dark-bg min-h-screen text-light-text dark:text-dark-text transition-colors">
             {/* Install Prompt Component */}
-            <PwaInstallPrompt />
+            <PwaInstallPrompt scale={modalScale} />
 
             <div ref={viewportRef} className="viewport fixed inset-0">
                 <div ref={scalableContainerRef} className="scalable-container w-[3650px] p-8">

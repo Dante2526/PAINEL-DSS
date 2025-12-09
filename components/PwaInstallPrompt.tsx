@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
 
-const PwaInstallPrompt: React.FC = () => {
+interface PwaInstallPromptProps {
+    scale?: number;
+}
+
+const PwaInstallPrompt: React.FC<PwaInstallPromptProps> = ({ scale = 1 }) => {
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
     const [isVisible, setIsVisible] = useState(false);
 
@@ -37,7 +41,13 @@ const PwaInstallPrompt: React.FC = () => {
     if (!isVisible) return null;
 
     return (
-        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 animate-bounce-subtle">
+        <div 
+            className="fixed top-6 left-1/2 z-50"
+            style={{
+                transform: `translateX(-50%) scale(${scale})`,
+                transformOrigin: 'top center'
+            }}
+        >
             <div className="bg-gradient-to-r from-primary to-primary-dark p-1 rounded-2xl shadow-2xl">
                 <div className="bg-light-card dark:bg-dark-card rounded-xl p-4 flex items-center gap-4 pr-6">
                     <div className="bg-primary/10 p-3 rounded-lg">
