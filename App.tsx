@@ -7,7 +7,6 @@ import Modal from './components/Modal';
 import Notification from './components/Notification';
 import Footer from './components/Footer';
 import InteractiveTutorial, { TutorialStep } from './components/InteractiveTutorial';
-import PwaInstallPrompt from './components/PwaInstallPrompt';
 import { SubjectIcon, UserIcon, EraserIcon, FileTextIcon, SortIcon, UserPlusIcon } from './components/icons';
 import { Employee, StatusType, ModalType, ManualRegistration } from './types';
 import type { NotificationData } from './components/Notification';
@@ -1064,9 +1063,6 @@ const App: React.FC = () => {
 
     return (
         <div className="bg-light-bg-secondary dark:bg-dark-bg min-h-screen text-light-text dark:text-dark-text transition-colors">
-            {/* Install Prompt Component */}
-            <PwaInstallPrompt />
-
             <div ref={viewportRef} className="viewport fixed inset-0">
                 <div ref={scalableContainerRef} className="scalable-container w-[3650px] p-8">
                     <Header
@@ -1269,32 +1265,34 @@ const ManualRegisterSection: React.FC<ManualRegisterSectionProps> = ({
     };
 
     return (
-        <div id="tutorial-manual-register-bar" className="bg-light-card dark:bg-dark-card rounded-3xl p-8 shadow-lg flex items-center gap-6 w-fit">
-            <div className="relative w-[600px]">
-                <SubjectIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input 
-                    type="text" 
-                    value={subject} 
-                    onChange={(e) => onSubjectChange(e.target.value.toUpperCase())} 
-                    placeholder="Assunto do DSS" 
-                    className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
-                />
+        <div className="bg-light-card dark:bg-dark-card rounded-3xl p-8 shadow-lg w-full">
+            <div id="tutorial-manual-register-bar" className="flex items-center gap-6 w-fit">
+                <div className="relative w-[600px]">
+                    <SubjectIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input 
+                        type="text" 
+                        value={subject} 
+                        onChange={(e) => onSubjectChange(e.target.value.toUpperCase())} 
+                        placeholder="Assunto do DSS" 
+                        className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
+                    />
+                </div>
+                <div className="relative w-[500px] flex-shrink-0">
+                    <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input 
+                        type="text" 
+                        value={matricula} 
+                        onChange={handleMatriculaChange} 
+                        placeholder="Matrícula" 
+                        className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                    />
+                </div>
+                <button onClick={onRegister} id="tutorial-manual-register-btn" className="px-9 py-4 font-bold text-white bg-gradient-to-r from-primary to-primary-dark rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex-shrink-0">
+                    REGISTRAR
+                </button>
             </div>
-            <div className="relative w-[400px]">
-                <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input 
-                    type="text" 
-                    value={matricula} 
-                    onChange={handleMatriculaChange} 
-                    placeholder="Matrícula" 
-                    className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                />
-            </div>
-            <button onClick={onRegister} id="tutorial-manual-register-btn" className="px-9 py-4 font-bold text-white bg-gradient-to-r from-primary to-primary-dark rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
-                REGISTRAR
-            </button>
         </div>
     );
 };

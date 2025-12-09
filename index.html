@@ -6,13 +6,6 @@
     <meta name="viewport" content="width=3650" />
     <meta name="theme-color" content="#0080ff" />
     
-    <!-- PWA Settings -->
-    <link rel="manifest" href="manifest.json" />
-    <link rel="apple-touch-icon" href="icon.svg" />
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Painel DSS">
-
     <title>PAINEL DSS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -69,18 +62,5 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('service-worker.js')
-            .then(registration => {
-              // Service Worker registered successfully
-            })
-            .catch(error => {
-              // Silently fail in preview environments
-            });
-        });
-      }
-    </script>
   </body>
 </html>
