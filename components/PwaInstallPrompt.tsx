@@ -7,8 +7,10 @@ interface PwaInstallPromptProps {
 const PwaInstallPrompt: React.FC<PwaInstallPromptProps> = ({ scale = 1 }) => {
     const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
     const [isVisible, setIsVisible] = useState(false);
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        setMounted(true);
         const handler = (e: any) => {
             // Prevent Chrome 67 and earlier from automatically showing the prompt
             e.preventDefault();
@@ -38,13 +40,16 @@ const PwaInstallPrompt: React.FC<PwaInstallPromptProps> = ({ scale = 1 }) => {
         setIsVisible(false);
     };
 
-    if (!isVisible) return null;
+    if (!mounted || !isVisible) return null;
+
+    // Ensure scale is a valid number
+    const safeScale = typeof scale === 'number' && !isNaN(scale) ? scale : 1;
 
     return (
         <div 
-            className="fixed top-6 left-1/2 z-50"
+            className="fixed top-6 left-1/2 z-50 pointer-events-auto"
             style={{
-                transform: `translateX(-50%) scale(${scale})`,
+                transform: `translateX(-50%) scale(${safeScale})`,
                 transformOrigin: 'top center'
             }}
         >
