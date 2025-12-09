@@ -191,8 +191,9 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
 // Helper to calculate tooltip position to ensure it stays on screen
 function getTooltipPosition(rect: DOMRect, preferredPosition?: 'top' | 'bottom' | 'left' | 'right') {
     const margin = 20;
-    const width = 320; // Approx width of tooltip
-    const height = 200; // Approx height
+    // Updated width estimation to 400px to strictly cover max-w-sm (384px) + padding and ensure clamps work for right-edge elements
+    const width = 400; 
+    const height = 300; 
 
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
