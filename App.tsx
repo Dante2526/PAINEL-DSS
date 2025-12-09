@@ -1164,6 +1164,7 @@ const App: React.FC = () => {
                 isOpen={activeModal === ModalType.Tutorial}
                 onClose={() => setActiveModal(ModalType.None)}
                 steps={tutorialSteps}
+                scale={modalScale}
             />
 
             {/* Admin Specific Tutorial */}
@@ -1171,6 +1172,7 @@ const App: React.FC = () => {
                 isOpen={isAdminTutorialOpen}
                 onClose={() => setIsAdminTutorialOpen(false)}
                 steps={adminTutorialSteps}
+                scale={modalScale}
             />
             
             {/* CUSTOM CONFIRMATION MODAL WITH ROBUST CENTERING */}

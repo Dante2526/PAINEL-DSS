@@ -13,9 +13,10 @@ interface InteractiveTutorialProps {
     isOpen: boolean;
     onClose: () => void;
     steps: TutorialStep[];
+    scale?: number; // Added scale prop
 }
 
-const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClose, steps }) => {
+const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClose, steps, scale = 1 }) => {
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
     const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
     
@@ -89,23 +90,27 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
     const step = steps[currentStepIndex];
     const isLastStep = currentStepIndex === steps.length - 1;
 
-    // Calculate Tooltip Position
+    // Calculate Tooltip Position with Scale
     let tooltipStyle: React.CSSProperties = {};
     
     if (targetRect) {
-        const pos = getTooltipPosition(targetRect, step.position);
+        const pos = getTooltipPosition(targetRect, scale, step.position);
         tooltipStyle = {
             top: pos.top,
             left: pos.left,
-            position: 'absolute'
+            position: 'absolute',
+            transform: `scale(${scale})`,
+            transformOrigin: 'top left', // Important so the calculations in getTooltipPosition match the visual anchor
+            width: '400px' // Base width before scaling
         };
     } else {
         // Fallback: Center of screen
         tooltipStyle = {
             top: '50%',
             left: '50%',
-            transform: 'translate(-50%, -50%)',
-            position: 'fixed'
+            transform: `translate(-50%, -50%) scale(${scale})`,
+            position: 'fixed',
+            width: '400px'
         };
     }
 
@@ -138,7 +143,7 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
 
             {/* 2. Tooltip Card */}
             <div 
-                className="bg-white dark:bg-gray-800 text-slate-800 dark:text-white p-6 rounded-2xl shadow-2xl max-w-sm w-full transition-all duration-500 ease-out flex flex-col gap-4 border border-gray-200 dark:border-gray-700 z-[1001]"
+                className="bg-white dark:bg-gray-800 text-slate-800 dark:text-white p-6 rounded-2xl shadow-2xl transition-all duration-500 ease-out flex flex-col gap-4 border border-gray-200 dark:border-gray-700 z-[1001]"
                 style={tooltipStyle}
             >
                 <div>
@@ -189,11 +194,15 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
 };
 
 // Helper to calculate tooltip position to ensure it stays on screen
-function getTooltipPosition(rect: DOMRect, preferredPosition?: 'top' | 'bottom' | 'left' | 'right') {
-    const margin = 20;
-    // Updated width estimation to 400px to strictly cover max-w-sm (384px) + padding and ensure clamps work for right-edge elements
-    const width = 400; 
-    const height = 300; 
+function getTooltipPosition(rect: DOMRect, scale: number, preferredPosition?: 'top' | 'bottom' | 'left' | 'right') {
+    const margin = 20 * scale; // Scale the margin too
+    // Base dimensions
+    const baseWidth = 400; 
+    const baseHeight = 300; // estimated max height
+
+    // Effective dimensions on screen after scaling
+    const scaledWidth = baseWidth * scale;
+    const scaledHeight = baseHeight * scale;
 
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
@@ -201,34 +210,38 @@ function getTooltipPosition(rect: DOMRect, preferredPosition?: 'top' | 'bottom' 
     let top = 0;
     let left = 0;
 
+    // Strategy: Try to place it, if it overflows, flip it.
+    // Calculations return the Top-Left coordinate for the *Scaled Box*
+
     // Default: Bottom Center
-    if (rect.bottom + height + margin < windowHeight) {
+    if (rect.bottom + scaledHeight + margin < windowHeight) {
         top = rect.bottom + margin;
-        left = rect.left + (rect.width / 2) - (width / 2);
+        left = rect.left + (rect.width / 2) - (scaledWidth / 2);
     } 
     // Fallback: Top Center
-    else if (rect.top - height - margin > 0) {
-        top = rect.top - height - margin;
-        left = rect.left + (rect.width / 2) - (width / 2);
+    else if (rect.top - scaledHeight - margin > 0) {
+        top = rect.top - scaledHeight - margin;
+        left = rect.left + (rect.width / 2) - (scaledWidth / 2);
     }
     // Fallback: Right
-    else if (rect.right + width + margin < windowWidth) {
+    else if (rect.right + scaledWidth + margin < windowWidth) {
         top = rect.top;
         left = rect.right + margin;
     }
     // Fallback: Left
     else {
         top = rect.top;
-        left = rect.left - width - margin;
+        left = rect.left - scaledWidth - margin;
     }
     
     // Clamp horizontal
+    // We must ensure the SCALED box fits.
     if (left < margin) left = margin;
-    if (left + width > windowWidth - margin) left = windowWidth - width - margin;
+    if (left + scaledWidth > windowWidth - margin) left = windowWidth - scaledWidth - margin;
     
     // Clamp vertical
     if (top < margin) top = margin;
-    if (top + height > windowHeight - margin) top = windowHeight - height - margin;
+    if (top + scaledHeight > windowHeight - margin) top = windowHeight - scaledHeight - margin;
 
     return { top, left };
 }
