@@ -5,7 +5,8 @@ const CACHE_NAME = 'painel-dss-v1';
 const urlsToCache = [
   './',
   './index.html',
-  './manifest.json'
+  './manifest.json',
+  './icon.svg'
 ];
 
 // Instalação do Service Worker
