@@ -1,12 +1,12 @@
 // Nome do cache
-const CACHE_NAME = 'painel-dss-v1';
+const CACHE_NAME = 'painel-dss-v3';
 
-// Arquivos para cachear (mínimo necessário para o "shell" do app)
+// Arquivos para cachear
 const urlsToCache = [
-  './',
-  './index.html',
-  './manifest.json',
-  './icon.svg'
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/icon.svg'
 ];
 
 // Instalação do Service Worker
@@ -36,15 +36,24 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Interceptação de requisições (Cache First, Network Fallback)
+// Interceptação de requisições
 self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
+        // Se encontrou no cache, retorna
         if (response) {
           return response;
         }
-        return fetch(event.request);
+        
+        // Se não, tenta buscar na rede
+        return fetch(event.request).catch(() => {
+            // Se falhar (offline) e for uma navegação (HTML), retorna a raiz (/)
+            // Isso corrige o erro 404 ao abrir o app instalado offline
+            if (event.request.mode === 'navigate') {
+                return caches.match('/');
+            }
+        });
       })
   );
 });

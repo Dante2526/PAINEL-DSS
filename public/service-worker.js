@@ -1,12 +1,12 @@
 // Nome do cache
-const CACHE_NAME = 'painel-dss-v2';
+const CACHE_NAME = 'painel-dss-v3';
 
 // Arquivos para cachear
 const urlsToCache = [
-  './',
-  './index.html',
-  './manifest.json',
-  './icon.svg'
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/icon.svg'
 ];
 
 // Instalação do Service Worker
@@ -48,10 +48,10 @@ self.addEventListener('fetch', (event) => {
         
         // Se não, tenta buscar na rede
         return fetch(event.request).catch(() => {
-            // Se falhar (offline) e for uma navegação (HTML), retorna o index.html
+            // Se falhar (offline) e for uma navegação (HTML), retorna a raiz (/)
             // Isso corrige o erro 404 ao abrir o app instalado offline
             if (event.request.mode === 'navigate') {
-                return caches.match('./index.html');
+                return caches.match('/');
             }
         });
       })
