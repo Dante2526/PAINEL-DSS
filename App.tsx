@@ -12,7 +12,7 @@ import { Employee, StatusType, ModalType, ManualRegistration } from './types';
 import type { NotificationData } from './components/Notification';
 import { db, auth, isConfigured } from './firebase';
 import { FALLBACK_LOGO } from './components/logoConstants';
-// FIX: Switched to scoped Firebase packages for imports to match project configuration and resolve module errors.
+// FIX: Switched to standard Firebase packages for imports to match project configuration and resolve module errors.
 import { 
     collection, 
     query, 
@@ -27,9 +27,9 @@ import {
     where,
     getDocs,
     deleteDoc
-} from '@firebase/firestore';
-// FIX: Switched to scoped Firebase packages for imports to match project configuration and resolve module errors.
-import { signInAnonymously } from '@firebase/auth';
+} from 'firebase/firestore';
+// FIX: Switched to standard Firebase packages for imports to match project configuration and resolve module errors.
+import { signInAnonymously } from 'firebase/auth';
 import emailjs from '@emailjs/browser';
 import './styles.css';
 import { formatTimestamp } from './services/employeeService';
