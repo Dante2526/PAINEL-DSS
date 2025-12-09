@@ -7,6 +7,7 @@ import Modal from './components/Modal';
 import Notification from './components/Notification';
 import Footer from './components/Footer';
 import InteractiveTutorial, { TutorialStep } from './components/InteractiveTutorial';
+import PwaInstallPrompt from './components/PwaInstallPrompt';
 import { SubjectIcon, UserIcon, EraserIcon, FileTextIcon, SortIcon, UserPlusIcon } from './components/icons';
 import { Employee, StatusType, ModalType, ManualRegistration } from './types';
 import type { NotificationData } from './components/Notification';
@@ -88,6 +89,34 @@ const tutorialSteps: TutorialStep[] = [
     }
 ];
 
+const adminTutorialSteps: TutorialStep[] = [
+    {
+        targetId: 'admin-clear-btn',
+        title: 'Limpar Status Diário',
+        content: 'O sistema realiza a limpeza automática diariamente. Use esta opção apenas caso seja realmente necessário forçar o reset de todos os status manualmente.'
+    },
+    {
+        targetId: 'admin-report-btn',
+        title: 'Gerar Relatório',
+        content: 'Cria um resumo completo da equipe, separando quem está Bem, Mal ou Pendente. Você pode copiar o texto ou baixar um arquivo.'
+    },
+    {
+        targetId: 'admin-reorganize-btn',
+        title: 'Reorganizar Painel',
+        content: 'O sistema já organiza os cartões automaticamente. Use este botão apenas caso seja realmente necessário forçar a reordenação alfabética.'
+    },
+    {
+        targetId: 'admin-adduser-btn',
+        title: 'Novo Usuário',
+        content: 'Cadastre novos colaboradores manualmente no sistema.'
+    },
+    {
+        targetId: 'admin-demo-btn',
+        title: 'Modo Demonstração',
+        content: 'Preenche o sistema com dados fictícios para testes. Recurso destinado ao uso técnico do Desenvolvedor Near.'
+    }
+];
+
 const App: React.FC = () => {
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [loading, setLoading] = useState(true);
@@ -108,6 +137,9 @@ const App: React.FC = () => {
 
     // State for safety confirmation
     const [pendingMalEmployeeId, setPendingMalEmployeeId] = useState<string | null>(null);
+
+    // Admin Tutorial State
+    const [isAdminTutorialOpen, setIsAdminTutorialOpen] = useState(false);
 
     // Demo Mode State
     const [isDemoMode, setIsDemoMode] = useState(false);
@@ -810,11 +842,22 @@ const App: React.FC = () => {
     const handleAdminLogin = async (email: string) => {
         const normalizedEmail = email.trim().toLowerCase();
         
+        const checkAndTriggerAdminTutorial = () => {
+             const hasSeenAdmin = localStorage.getItem('hasSeenAdminTutorial');
+             if (!hasSeenAdmin) {
+                 setTimeout(() => {
+                     setIsAdminTutorialOpen(true);
+                     localStorage.setItem('hasSeenAdminTutorial', 'true');
+                 }, 500); // Small delay to allow modal animation to complete
+             }
+        };
+
         // Hardcoded admin for test environment
         if (normalizedEmail === 'naylanmoreira350@gmail.com') {
              setIsAdmin(true);
              setActiveModal(ModalType.AdminOptions);
              showNotification('Login de administrador bem-sucedido!', 'success');
+             checkAndTriggerAdminTutorial();
              return;
         }
 
@@ -822,6 +865,7 @@ const App: React.FC = () => {
             setIsAdmin(true);
             setActiveModal(ModalType.AdminOptions);
             showNotification('Acesso Admin (DEMO) concedido.', 'success');
+            checkAndTriggerAdminTutorial();
             return;
         }
 
@@ -840,6 +884,7 @@ const App: React.FC = () => {
                 setIsAdmin(true);
                 setActiveModal(ModalType.AdminOptions);
                 showNotification('Login de administrador bem-sucedido!', 'success');
+                checkAndTriggerAdminTutorial();
             } else {
                 showNotification('Credenciais de administrador inválidas.', 'error');
             }
@@ -1019,6 +1064,9 @@ const App: React.FC = () => {
 
     return (
         <div className="bg-light-bg-secondary dark:bg-dark-bg min-h-screen text-light-text dark:text-dark-text transition-colors">
+            {/* Install Prompt Component */}
+            <PwaInstallPrompt />
+
             <div ref={viewportRef} className="viewport fixed inset-0">
                 <div ref={scalableContainerRef} className="scalable-container w-[3650px] p-8">
                     <Header
@@ -1111,10 +1159,18 @@ const App: React.FC = () => {
                 scale={modalScale}
             />
             
+            {/* General Tutorial */}
             <InteractiveTutorial
                 isOpen={activeModal === ModalType.Tutorial}
                 onClose={() => setActiveModal(ModalType.None)}
                 steps={tutorialSteps}
+            />
+
+            {/* Admin Specific Tutorial */}
+            <InteractiveTutorial
+                isOpen={isAdminTutorialOpen}
+                onClose={() => setIsAdminTutorialOpen(false)}
+                steps={adminTutorialSteps}
             />
             
             {/* CUSTOM CONFIRMATION MODAL WITH ROBUST CENTERING */}
@@ -1234,7 +1290,7 @@ const ManualRegisterSection: React.FC<ManualRegisterSectionProps> = ({
                     pattern="[0-9]*"
                 />
             </div>
-            <button onClick={onRegister} className="px-9 py-4 font-bold text-white bg-gradient-to-r from-primary to-primary-dark rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+            <button onClick={onRegister} id="tutorial-manual-register-btn" className="px-9 py-4 font-bold text-white bg-gradient-to-r from-primary to-primary-dark rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
                 REGISTRAR
             </button>
         </div>
@@ -1283,23 +1339,23 @@ const AdminOptionsModal: React.FC<{
 }> = ({isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onEnterDemo, scale}) => (
     <Modal isOpen={isOpen} onClose={onClose} title="Opções Administrativas" scale={scale}>
         <div className="space-y-4">
-            <button onClick={onClear} className="w-full py-4 font-bold text-white bg-orange rounded-lg hover:bg-orange-600 transition flex items-center justify-center gap-3">
+            <button id="admin-clear-btn" onClick={onClear} className="w-full py-4 font-bold text-white bg-orange rounded-lg hover:bg-orange-600 transition flex items-center justify-center gap-3">
                 <EraserIcon className="w-6 h-6" />
                 <span>LIMPAR STATUS DIÁRIO</span>
             </button>
-            <button onClick={onSendReport} className="w-full py-4 font-bold text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition flex items-center justify-center gap-3">
+            <button id="admin-report-btn" onClick={onSendReport} className="w-full py-4 font-bold text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition flex items-center justify-center gap-3">
                 <FileTextIcon className="w-6 h-6" />
                 <span>GERAR RELATÓRIO</span>
             </button>
-            <button onClick={onReorganize} className="w-full py-4 font-bold text-white bg-danger rounded-lg hover:bg-red-600 transition flex items-center justify-center gap-3">
+            <button id="admin-reorganize-btn" onClick={onReorganize} className="w-full py-4 font-bold text-white bg-danger rounded-lg hover:bg-red-600 transition flex items-center justify-center gap-3">
                 <SortIcon className="w-6 h-6" />
                 <span>REORGANIZAR PAINEL</span>
             </button>
-            <button onClick={onAddUser} className="w-full py-4 font-bold text-white bg-success rounded-lg hover:bg-green-600 transition flex items-center justify-center gap-3">
+            <button id="admin-adduser-btn" onClick={onAddUser} className="w-full py-4 font-bold text-white bg-success rounded-lg hover:bg-green-600 transition flex items-center justify-center gap-3">
                 <UserPlusIcon className="w-6 h-6" />
                 <span>NOVO USUÁRIO</span>
             </button>
-            <button onClick={onEnterDemo} className="w-full py-4 font-bold text-white bg-neutral rounded-lg hover:bg-gray-600 transition flex items-center justify-center gap-3">
+            <button id="admin-demo-btn" onClick={onEnterDemo} className="w-full py-4 font-bold text-white bg-neutral rounded-lg hover:bg-gray-600 transition flex items-center justify-center gap-3">
                 <span>🛠️</span>
                 <span>MODO DEMONSTRAÇÃO</span>
             </button>
