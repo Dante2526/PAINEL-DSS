@@ -1,11 +1,12 @@
-
 // FIX: The original combined import statement was causing module resolution errors.
 // Separating the type import for `FirebaseApp` from the value imports (`initializeApp`, `getApps`, `getApp`) can resolve these issues in certain TypeScript configurations or environments by making the import intent clearer to the compiler.
 // FIX: Switched to standard firebase packages to resolve production build errors.
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import type { FirebaseApp } from 'firebase/app';
-import { getFirestore, Firestore } from 'firebase/firestore';
-import { getAuth, Auth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import type { Firestore } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import type { Auth } from 'firebase/auth';
 
 // Firebase configuration is loaded from environment variables provided by the build tool (e.g., Vite).
 // These variables should be prefixed with VITE_ and are set in your hosting provider's (e.g., Vercel) settings.

@@ -28,7 +28,7 @@ import {
     getDocs,
     deleteDoc
 } from 'firebase/firestore';
-// FIX: Switched to standard Firebase packages for imports to match project configuration and resolve module errors.
+// FIX: Ensure correct import for signInAnonymously from firebase/auth
 import { signInAnonymously } from 'firebase/auth';
 import emailjs from '@emailjs/browser';
 import './styles.css';
