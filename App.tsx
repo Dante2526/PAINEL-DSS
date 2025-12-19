@@ -373,7 +373,8 @@ const App: React.FC = () => {
                 console.log("Signed in anonymously");
 
                 // Listener for employees
-                const employeesQuery = query(collection(db, 'employees'), orderBy("name", "asc"));
+                // UPDATED: Now points to 'turma b' instead of 'employees'
+                const employeesQuery = query(collection(db, 'turma b'), orderBy("name", "asc"));
                 unsubscribeEmployees = onSnapshot(employeesQuery, (querySnapshot) => {
                     if (isDemoModeRef.current) return;
 
@@ -700,7 +701,8 @@ const App: React.FC = () => {
             } else {
                 updatedData.time = null;
             }
-            const docRef = doc(db, 'employees', id);
+            // UPDATED: Now points to 'turma b' instead of 'employees'
+            const docRef = doc(db, 'turma b', id);
             await updateDoc(docRef, updatedData);
         } catch (error) {
             console.error("Error updating status:", error);
@@ -728,7 +730,8 @@ const App: React.FC = () => {
         }
 
         try {
-            const docRef = doc(db, 'employees', id);
+            // UPDATED: Now points to 'turma b' instead of 'employees'
+            const docRef = doc(db, 'turma b', id);
             await updateDoc(docRef, {
                 time: Timestamp.fromDate(newDate)
             });
@@ -807,7 +810,8 @@ const App: React.FC = () => {
         }
 
         try {
-            const docRef = doc(db, 'employees', id);
+            // UPDATED: Now points to 'turma b' instead of 'employees'
+            const docRef = doc(db, 'turma b', id);
             await updateDoc(docRef, { 
                 turno: newTurno
             });
@@ -851,7 +855,8 @@ const App: React.FC = () => {
             return;
         }
         try {
-            const docRef = doc(db, 'employees', employeeId);
+            // UPDATED: Now points to 'turma b' instead of 'employees'
+            const docRef = doc(db, 'turma b', employeeId);
             await deleteDoc(docRef);
             showNotification(`Usuário ${employeeToDelete.name} deletado com sucesso!`, 'success');
         } catch (error) {
@@ -1027,7 +1032,8 @@ const App: React.FC = () => {
                     throw new Error('Matrícula já existe.');
                 }
             }
-            await addDoc(collection(db, 'employees'), {
+            // UPDATED: Now points to 'turma b' instead of 'employees'
+            await addDoc(collection(db, 'turma b'), {
                 name: finalName,
                 matricula,
                 assDss: false,
@@ -1077,7 +1083,8 @@ const App: React.FC = () => {
         try {
             const batch = writeBatch(db);
             
-            const employeesSnapshot = await getDocs(collection(db, 'employees'));
+            // UPDATED: Now points to 'turma b' instead of 'employees'
+            const employeesSnapshot = await getDocs(collection(db, 'turma b'));
             employeesSnapshot.forEach((doc) => {
                 batch.update(doc.ref, {
                     assDss: false,
@@ -1109,64 +1116,7 @@ const App: React.FC = () => {
         showNotification('Painel reorganizado alfabeticamente!', 'success');
     };
 
-    const handleMigrateToTurmaB = async () => {
-        if (!isAdmin) {
-            showNotification('Apenas administradores podem realizar esta migração.', 'error');
-            return;
-        }
-        
-        if (isDemoMode) {
-            showNotification('Migração simulada com sucesso (DEMO). Os dados fictícios não foram movidos.', 'success');
-            return;
-        }
-
-        if (!db) {
-            showNotification("A conexão com o banco de dados não está disponível.", "error");
-            return;
-        }
-
-        const confirmMigration = window.confirm("ATENÇÃO: Esta ação irá MOVER todos os colaboradores da coleção atual ('employees') para a coleção 'turma b'. \n\nOs dados sumirão deste painel (que lê 'employees') e serão salvos na nova coleção. \n\nDeseja continuar?");
-        
-        if (!confirmMigration) return;
-
-        try {
-            // Get all employees
-            const sourceRef = collection(db, 'employees');
-            const snapshot = await getDocs(sourceRef);
-
-            if (snapshot.empty) {
-                showNotification("Não há funcionários para migrar.", "error");
-                return;
-            }
-
-            const batch = writeBatch(db);
-            let count = 0;
-
-            snapshot.forEach((docSnap) => {
-                const data = docSnap.data();
-                // Create a reference in the new collection with the SAME ID
-                const targetRef = doc(db, 'turma b', docSnap.id);
-                
-                // Set data to new location
-                batch.set(targetRef, data);
-                
-                // Delete from old location
-                batch.delete(docSnap.ref);
-                
-                count++;
-            });
-
-            // Commit the batch
-            await batch.commit();
-            
-            setActiveModal(ModalType.None);
-            showNotification(`${count} funcionários migrados para 'turma b' com sucesso!`, 'success');
-        } catch (error) {
-             console.error("Error migrating data:", error);
-            const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
-            showNotification(`Falha na migração: ${message}`, 'error');
-        }
-    };
+    // MIGRATION FUNCTION REMOVED
     
     const stats = useMemo(() => ({
         bem: employees.filter(e => e.bem).length,
@@ -1280,7 +1230,7 @@ const App: React.FC = () => {
                 onAddUser={() => setActiveModal(ModalType.AddUser)}
                 onSendReport={() => setActiveModal(ModalType.Report)}
                 onEnterDemo={handleEnterDemoMode}
-                onMigrate={handleMigrateToTurmaB}
+                // Migration prop removed
                 scale={modalScale}
             />
             <AddUserModal isOpen={activeModal === ModalType.AddUser} onClose={() => setActiveModal(ModalType.None)} onAdd={handleAddUser} scale={modalScale} />
@@ -1684,9 +1634,8 @@ const AdminOptionsModal: React.FC<{
     onAddUser: () => void, 
     onSendReport: () => void,
     onEnterDemo: () => void,
-    onMigrate: () => void,
     scale?: number
-}> = ({isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onEnterDemo, onMigrate, scale}) => (
+}> = ({isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onEnterDemo, scale}) => (
     <Modal isOpen={isOpen} onClose={onClose} title="Opções Administrativas" scale={scale}>
         <div className="space-y-4">
             <button id="admin-clear-btn" onClick={onClear} className="w-full py-4 font-bold text-white bg-orange rounded-lg hover:bg-orange-600 transition flex items-center justify-center gap-3">
@@ -1704,10 +1653,6 @@ const AdminOptionsModal: React.FC<{
             <button id="admin-adduser-btn" onClick={onAddUser} className="w-full py-4 font-bold text-white bg-success rounded-lg hover:bg-green-600 transition flex items-center justify-center gap-3">
                 <UserPlusIcon className="w-6 h-6" />
                 <span>NOVO USUÁRIO</span>
-            </button>
-            <button onClick={onMigrate} className="w-full py-4 font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition flex items-center justify-center gap-3">
-                <ExchangeIcon className="w-6 h-6" />
-                <span>MIGRAR PARA 'TURMA B'</span>
             </button>
             <button id="admin-demo-btn" onClick={onEnterDemo} className="w-full py-4 font-bold text-white bg-neutral rounded-lg hover:bg-gray-600 transition flex items-center justify-center gap-3">
                 <span>🛠️</span>
