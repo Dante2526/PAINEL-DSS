@@ -137,7 +137,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, o
                     <div className="text-xl font-bold truncate" title={employee.name}>{employee.name}</div>
                     <div className="text-sm opacity-90 truncate">Matrícula: {employee.matricula}</div>
                 </div>
-                {/* ID adicionado aqui condicionalmente para o tutorial */}
+                {/* ID adicionado aqui condicionalmente para o tutorial focar nos botões deste cartão específico */}
                 <div id={domId ? "tutorial-card-actions" : undefined} className="flex gap-2 flex-shrink-0">
                     <button
                         id={specialTurnBtnId}
@@ -211,7 +211,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, o
             </div>
 
             <div className="px-7 pb-7 text-center">
-                {/* ID wrapper for tight tutorial focus */}
+                {/* ID wrapper for tight tutorial focus on time */}
                 <div id={domId ? "tutorial-card-time" : undefined} className="inline-block">
                     {isEditingTime ? (
                         <div className="flex items-center justify-center gap-2 py-2">

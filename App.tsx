@@ -1529,6 +1529,7 @@ const App: React.FC = () => {
                                                 isAdmin={isAdmin} 
                                                 onDelete={handleDeleteUser}
                                                 onTimeChange={handleTimeUpdate}
+                                                // ID especifico para o primeiro cartão do tutorial
                                                 domId={index === 0 ? "tutorial-first-card" : undefined}
                                             />
                                         ))}
