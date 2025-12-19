@@ -13,21 +13,18 @@ interface InteractiveTutorialProps {
     isOpen: boolean;
     onClose: () => void;
     steps: TutorialStep[];
-    scale?: number; // Added scale prop
-    onStepChange?: (step: TutorialStep) => void; // New prop for zoom control
+    scale?: number;
+    onStepChange?: (step: TutorialStep) => void;
 }
 
 const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClose, steps, scale = 1, onStepChange }) => {
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
     const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
     const [isMobile, setIsMobile] = useState(false);
-    // New state to track if we are currently moving between steps
     const [isTransitioning, setIsTransitioning] = useState(false);
     
-    // Use refs to track animation frames and avoid state staleness in callbacks
     const requestRef = useRef<number>();
     
-    // Prevent scrolling when tutorial is open
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden';
@@ -37,7 +34,6 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
         return () => { document.body.style.overflow = ''; };
     }, [isOpen]);
 
-    // Check for mobile device
     useEffect(() => {
         const checkMobile = () => {
             setIsMobile(window.innerWidth < 768);
@@ -47,26 +43,22 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
-    // Function to calculate and set rect without scrolling
     const measurePosition = useCallback(() => {
         const step = steps[currentStepIndex];
         const element = document.getElementById(step.targetId);
         
         if (element) {
             const rect = element.getBoundingClientRect();
-            // Only update if dimensions are valid and different (simple check)
             if (rect.width > 0 && rect.height > 0) {
                 setTargetRect(rect);
                 return;
             }
         }
-        // If element missing or hidden
         if (!element) {
              setTargetRect(null);
         }
     }, [steps, currentStepIndex]);
 
-    // Handle scroll/resize updates using rAF for performance
     const handleScrollResize = useCallback(() => {
         if (!isOpen) return;
         if (requestRef.current) cancelAnimationFrame(requestRef.current);
@@ -76,45 +68,48 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
         });
     }, [isOpen, measurePosition]);
 
-    // Initial Step Change Logic (includes scrolling)
+    // Step Change Logic with Continuous Tracking
     useEffect(() => {
         if (!isOpen) return;
 
-        // 1. Clear any pending updates
+        // Cleanup previous frames
         if (requestRef.current) cancelAnimationFrame(requestRef.current);
         
-        // SMOOTH TRANSITION FIX:
-        // We do NOT set targetRect to null here anymore. 
-        // Keeping the old rect allows the CSS transition to animate the box 
-        // from the old position to the new position smoothly.
         setIsTransitioning(true);
-
         const step = steps[currentStepIndex];
 
-        // Notify parent to adjust zoom/layout BEFORE we scroll/measure
         if (onStepChange) {
             onStepChange(step);
         }
 
-        // 2. Delay to allow React to render any DOM changes (e.g. modals opening) 
-        // and allow Parent Zoom to settle. 300ms matches the transition duration reasonably well.
+        // Reduced delay to 50ms for snappier response
         const timer = setTimeout(() => {
             const element = document.getElementById(step.targetId);
             
             if (element) {
-                // 3. Scroll instantly to position (layout snap)
-                // We use 'auto' because mixing smooth scroll with our own CSS transition can cause jitter.
-                // The spotlight overlay will handle the visual smoothing.
-                element.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center' });
+                // 1. Trigger Smooth Scroll
+                element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
                 
-                // 4. Measure immediately after scroll layout is set
-                measurePosition();
+                // 2. Start a Tracking Loop for ~1 second (duration of typical smooth scroll)
+                // This ensures the spotlight 'sticks' to the element as the page scrolls smoothly.
+                const startTime = performance.now();
+                
+                const track = () => {
+                    measurePosition();
+                    // Continue tracking for 1000ms to cover the scroll animation duration
+                    if (performance.now() - startTime < 1000) {
+                        requestRef.current = requestAnimationFrame(track);
+                    } else {
+                        setIsTransitioning(false); // End transition state
+                    }
+                };
+                
+                requestRef.current = requestAnimationFrame(track);
             } else {
                 setTargetRect(null);
+                setIsTransitioning(false);
             }
-            // Transition finished, allow UI updates
-            setIsTransitioning(false);
-        }, 300);
+        }, 50);
 
         return () => {
             clearTimeout(timer);
@@ -122,13 +117,10 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
         };
     }, [isOpen, currentStepIndex, steps, measurePosition, onStepChange]);
 
-    // Attach scroll/resize listeners
     useEffect(() => {
         if (!isOpen) return;
-        
         window.addEventListener('resize', handleScrollResize);
-        window.addEventListener('scroll', handleScrollResize, true); // capture: true for internal scrolling
-
+        window.addEventListener('scroll', handleScrollResize, true);
         return () => {
             window.removeEventListener('resize', handleScrollResize);
             window.removeEventListener('scroll', handleScrollResize, true);
@@ -155,25 +147,20 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
     const step = steps[currentStepIndex];
     const isLastStep = currentStepIndex === steps.length - 1;
 
-    // Calculate Tooltip Position
     let tooltipStyle: React.CSSProperties = {};
     
     if (isMobile) {
-        // MOBILE LOGIC: Dock to bottom or top based on target position to avoid covering it
         const isTargetInBottomHalf = targetRect ? targetRect.top > window.innerHeight / 2 : false;
-        
         tooltipStyle = {
             position: 'fixed',
             left: '50%',
             transform: 'translateX(-50%)',
             width: '90vw',
             zIndex: 1002,
-            // If target is in bottom half, show tooltip at top. Otherwise bottom.
             bottom: isTargetInBottomHalf ? undefined : '20px',
             top: isTargetInBottomHalf ? '20px' : undefined,
         };
     } else if (targetRect) {
-        // DESKTOP LOGIC: Follow the target
         const pos = getTooltipPosition(targetRect, scale, step.position);
         tooltipStyle = {
             top: pos.top,
@@ -184,7 +171,6 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
             width: '400px'
         };
     } else {
-        // Fallback: Center of screen
         tooltipStyle = {
             top: '50%',
             left: '50%',
@@ -197,36 +183,33 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
     return createPortal(
         <div className="fixed inset-0 z-[99999]">
             
-            {/* 1. Dark Background / Highlight Logic */}
+            {/* Spotlight Overlay */}
             {targetRect ? (
-                /* Box Shadow Trick for "Hole" effect. 
-                   RGBA(0,0,0,0.75) matches the fallback opacity below exactly. */
                 <div 
-                    className="absolute transition-all duration-500 ease-in-out border-2 border-white rounded-xl shadow-[0_0_0_9999px_rgba(0,0,0,0.75)] pointer-events-none"
+                    className="absolute border-2 border-white/80 rounded-xl shadow-[0_0_0_9999px_rgba(0,0,0,0.75),inset_0_0_20px_rgba(0,0,0,0.3)] pointer-events-none will-change-[top,left,width,height]"
                     style={{
                         top: targetRect.top - 8,
                         left: targetRect.left - 8,
                         width: targetRect.width + 16,
                         height: targetRect.height + 16,
-                        zIndex: 1000
+                        zIndex: 1000,
+                        // Custom bezier for "premium" feel: snappy start, smooth end
+                        transition: 'all 500ms cubic-bezier(0.25, 0.46, 0.45, 0.94)' 
                     }}
                 >
-                    {/* Pulsing indicator */}
                     <span className="absolute -top-2 -right-2 flex h-6 w-6">
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-6 w-6 bg-primary"></span>
+                        <span className="relative inline-flex rounded-full h-6 w-6 bg-primary shadow-sm border border-white"></span>
                     </span>
                 </div>
             ) : (
-                /* Fallback Full Dark Overlay if target not found or during transition.
-                   Hardcoded RGBA to match shadow exactly, preventing flicker. */
                 <div 
                     className="absolute inset-0 transition-opacity duration-500 z-[1000]" 
                     style={{ backgroundColor: 'rgba(0, 0, 0, 0.75)' }}
                 />
             )}
 
-            {/* 2. Tooltip Card */}
+            {/* Tooltip Card */}
             <div 
                 className="bg-white dark:bg-gray-800 text-slate-800 dark:text-white p-6 rounded-2xl shadow-2xl transition-all duration-500 ease-out flex flex-col gap-4 border border-gray-200 dark:border-gray-700 z-[1001]"
                 style={tooltipStyle}
@@ -241,7 +224,6 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
                     <p className="text-sm leading-relaxed text-slate-600 dark:text-gray-300">
                         {step.content}
                     </p>
-                    {/* Only show "missing element" text if we are NOT transitioning and still have no rect */}
                     {!targetRect && !isTransitioning && (
                         <p className="text-xs text-orange mt-2 italic">
                             (Elemento não visível no momento)
@@ -279,14 +261,11 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
     );
 };
 
-// Helper to calculate tooltip position to ensure it stays on screen (Desktop only)
 function getTooltipPosition(rect: DOMRect, scale: number, preferredPosition?: 'top' | 'bottom' | 'left' | 'right') {
-    const margin = 20 * scale; // Scale the margin too
-    // Base dimensions
+    const margin = 20 * scale; 
     const baseWidth = 400; 
-    const baseHeight = 300; // estimated max height
+    const baseHeight = 300; 
 
-    // Effective dimensions on screen after scaling
     const scaledWidth = baseWidth * scale;
     const scaledHeight = baseHeight * scale;
 
@@ -295,35 +274,27 @@ function getTooltipPosition(rect: DOMRect, scale: number, preferredPosition?: 't
 
     let top = 0;
     let left = 0;
-
-    // Strategy: Try to place it, if it overflows, flip it.
     
-    // Default: Bottom Center
     if (rect.bottom + scaledHeight + margin < windowHeight) {
         top = rect.bottom + margin;
         left = rect.left + (rect.width / 2) - (scaledWidth / 2);
     } 
-    // Fallback: Top Center
     else if (rect.top - scaledHeight - margin > 0) {
         top = rect.top - scaledHeight - margin;
         left = rect.left + (rect.width / 2) - (scaledWidth / 2);
     }
-    // Fallback: Right
     else if (rect.right + scaledWidth + margin < windowWidth) {
         top = rect.top;
         left = rect.right + margin;
     }
-    // Fallback: Left
     else {
         top = rect.top;
         left = rect.left - scaledWidth - margin;
     }
     
-    // Clamp horizontal to prevent negative left or overflow
     if (left < margin) left = margin;
     if (left + scaledWidth > windowWidth - margin) left = windowWidth - scaledWidth - margin;
     
-    // Clamp vertical
     if (top < margin) top = margin;
     if (top + scaledHeight > windowHeight - margin) top = windowHeight - scaledHeight - margin;
 
