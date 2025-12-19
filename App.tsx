@@ -447,7 +447,7 @@ const App: React.FC = () => {
         const scalableContainer = scalableContainerRef.current;
         if (!viewport || !scalableContainer) return;
 
-        const finalScale = Math.max(0.1, Math.min(newScale, 2.0));
+        const finalScale = Math.max(0.2, Math.min(newScale, 2.0));
         scaleStateRef.current.currentScale = finalScale;
 
         // Dynamically set minWidth and minHeight to ensure the container always fills the viewport,
