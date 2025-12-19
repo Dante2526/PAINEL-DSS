@@ -567,6 +567,12 @@ const App: React.FC = () => {
 
         let lastWidth = window.innerWidth;
         const handleResize = () => {
+             // CRITICAL FIX: If user is typing, ignore resize events caused by virtual keyboard
+            const activeTag = document.activeElement?.tagName;
+            if (activeTag === 'INPUT' || activeTag === 'TEXTAREA') {
+                return;
+            }
+
             if (window.innerWidth !== lastWidth) {
                 lastWidth = window.innerWidth;
                 // Re-applying the scale will trigger a recalculation of minWidth/minHeight
@@ -797,7 +803,9 @@ const App: React.FC = () => {
 
     const handleManualRegister = async (turno: '7H-19H' | '6H') => {
         const matricula = turno === '7H-19H' ? mainMatricula : specialMatricula;
-        const subject = turno === '7H-19H' ? mainSubject : specialSubject;
+        const rawSubject = turno === '7H-19H' ? mainSubject : specialSubject;
+        // FIX: Ensure subject is UPPERCASE when saving, but allow normal typing in input to prevent cursor jumps
+        const subject = rawSubject ? rawSubject.toUpperCase() : '';
 
         if (!matricula) {
             showNotification('Por favor, insira uma matrícula.', 'error');
@@ -899,11 +907,14 @@ const App: React.FC = () => {
             showNotification('Apenas administradores podem adicionar usuários.', 'error');
             return;
         }
+        
+        // FIX: UpperCase name here instead of during typing
+        const finalName = name.toUpperCase();
 
         if (isDemoMode) {
              const newUser: Employee = {
                 id: `demo-new-${Date.now()}`,
-                name,
+                name: finalName,
                 matricula,
                 assDss: false,
                 bem: false,
@@ -914,7 +925,7 @@ const App: React.FC = () => {
             };
             setEmployees(prev => [...prev, newUser].sort((a,b) => a.name.localeCompare(b.name)));
             setActiveModal(ModalType.None);
-            showNotification(`Usuário ${name} adicionado com sucesso (DEMO)!`, 'success');
+            showNotification(`Usuário ${finalName} adicionado com sucesso (DEMO)!`, 'success');
             return;
         }
 
@@ -931,7 +942,7 @@ const App: React.FC = () => {
                 }
             }
             await addDoc(collection(db, 'employees'), {
-                name,
+                name: finalName,
                 matricula,
                 assDss: false,
                 bem: false,
@@ -941,7 +952,7 @@ const App: React.FC = () => {
                 turno: '7H'
             });
             setActiveModal(ModalType.None);
-            showNotification(`Usuário ${name} adicionado com sucesso!`, 'success');
+            showNotification(`Usuário ${finalName} adicionado com sucesso!`, 'success');
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro.';
             showNotification(errorMessage, 'error');
@@ -1272,9 +1283,10 @@ const ManualRegisterSection: React.FC<ManualRegisterSectionProps> = ({
                     <input 
                         type="text" 
                         value={subject} 
-                        onChange={(e) => onSubjectChange(e.target.value.toUpperCase())} 
+                        onChange={(e) => onSubjectChange(e.target.value)} 
                         placeholder="Assunto do DSS" 
-                        className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
+                        className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition uppercase"
+                        autoCapitalize="characters"
                     />
                 </div>
                 <div className="relative w-[500px] flex-shrink-0">
@@ -1384,7 +1396,14 @@ const AddUserModal: React.FC<{isOpen: boolean, onClose: () => void, onAdd: (name
             <div className="space-y-4">
                 <div className="relative">
                     <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input type="text" value={name} onChange={e => setName(e.target.value.toUpperCase())} placeholder="NOME DO FUNCIONÁRIO" className="w-full pl-12 pr-4 py-3 bg-light-bg dark:bg-dark-bg-secondary border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-primary outline-none"/>
+                    <input 
+                        type="text" 
+                        value={name} 
+                        onChange={e => setName(e.target.value)} 
+                        placeholder="NOME DO FUNCIONÁRIO" 
+                        className="w-full pl-12 pr-4 py-3 bg-light-bg dark:bg-dark-bg-secondary border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-primary outline-none uppercase"
+                        autoCapitalize="characters"
+                    />
                 </div>
                 <div className="relative">
                     <SubjectIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />

@@ -17,7 +17,6 @@ body {
 .scalable-container {
     transform-origin: 0 0; /* Anchor scaling to the top-left corner */
     will-change: transform; /* Hint to the browser for performance optimization */
-    transition: transform 0.05s ease-out; /* Add a slight smoothness to scaling */
 }
 
 
