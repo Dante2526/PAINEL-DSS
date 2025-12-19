@@ -78,19 +78,19 @@ const tutorialSteps: TutorialStep[] = [
         targetId: 'tutorial-stats',
         title: 'Estatísticas em Tempo Real',
         content: 'Acompanhe quantos colaboradores estão bem, mal ou ausentes instantaneamente.',
-        scrollTargetId: 'app-header' // Group view at header
+        scrollTargetId: 'app-header' // Force header context
     },
     {
         targetId: 'tutorial-dark-mode',
         title: 'Modo Escuro (BB-8)',
         content: 'Clique no pequeno droide BB-8 para alternar entre o modo Claro e Escuro. Ideal para ambientes com pouca luz.',
-        scrollTargetId: 'app-header' // Group view at header
+        scrollTargetId: 'app-header' // Force header context
     },
     {
         targetId: 'tutorial-admin-btn',
         title: 'Área Administrativa',
         content: 'Acesso restrito para limpar os dados diários, gerar relatórios em PDF/Texto e cadastrar novos usuários.',
-        scrollTargetId: 'app-header' // Group view at header
+        scrollTargetId: 'app-header' // Force header context
     }
 ];
 
@@ -186,9 +186,6 @@ const ManualRegisterSection: React.FC<{
         </div>
     );
 };
-
-// ... [AdminLoginModal, AdminOptionsModal, AddUserModal, ReportModal remain unchanged, omitting for brevity] ...
-// Re-inserting them properly for context:
 
 const AdminLoginModal: React.FC<{
     isOpen: boolean;
@@ -525,7 +522,6 @@ const App: React.FC = () => {
 
     // Função para enviar alerta por e-mail
     const sendAlertEmail = async (name: string, matricula: string, turno: string) => {
-        // ... [Email alert logic unchanged] ...
          if (isDemoMode) {
             console.log(`[DEMO] Email alert triggered for ${name}`);
             return;
@@ -759,8 +755,6 @@ const App: React.FC = () => {
 
         scalableContainer.style.transform = `scale(${finalScale})`;
         
-        // CRITICAL FIX: Update wrapper dimensions to match the scaled content size.
-        // This prevents empty space when scaling down and ensures scrollbars are correct.
         const originalWidth = scalableContainer.offsetWidth;
         const originalHeight = scalableContainer.offsetHeight;
         
@@ -776,14 +770,10 @@ const App: React.FC = () => {
         const scalableContainer = scalableContainerRef.current;
         if (!viewport || !scalableContainer) return;
 
-        // Enhanced mobile detection: Touch capability OR small screen width
         const isMobileView = ('ontouchstart' in window || navigator.maxTouchPoints > 0) || window.innerWidth < 1366; 
 
         if (isMobileView) {
-            // Calculate scale to fit width
             const fitScale = viewport.clientWidth / scalableContainer.offsetWidth;
-            // Ensure we don't scale up on mobile if the content is smaller (unlikely here)
-            // and apply the scale
             setScale(fitScale, 0, 0);
         } else {
             setScale(1.0, 0, 0);
@@ -797,9 +787,7 @@ const App: React.FC = () => {
 
         if (!viewport || !scalableContainer) return;
         
-        // CRITICAL FIX: Call initializeScale immediately to fix "zoomed in" start
         initializeScale();
-        // Fallback for race conditions
         const initTimer = setTimeout(initializeScale, 50);
 
         let initialDistance = 0;
@@ -830,10 +818,6 @@ const App: React.FC = () => {
                 const originX = touchCenter.x - viewport.getBoundingClientRect().left;
                 const originY = touchCenter.y - viewport.getBoundingClientRect().top;
 
-                // Adjust origin to account for the current scaled offset
-                // Current scroll offset relative to unscaled content:
-                // (viewport.scrollLeft + originX) / currentScale
-                
                 const contentOriginX = (scrollStart.x + originX) / initialScale;
                 const contentOriginY = (scrollStart.y + originY) / initialScale;
 
@@ -866,7 +850,6 @@ const App: React.FC = () => {
 
         let lastWidth = window.innerWidth;
         const handleResize = () => {
-             // CRITICAL FIX: If user is typing, ignore resize events caused by virtual keyboard
             const activeTag = document.activeElement?.tagName;
             if (activeTag === 'INPUT' || activeTag === 'TEXTAREA') {
                 return;
@@ -874,10 +857,8 @@ const App: React.FC = () => {
 
             if (window.innerWidth !== lastWidth) {
                 lastWidth = window.innerWidth;
-                // Re-applying the scale will trigger a recalculation of minWidth/minHeight
-                // based on the new viewport dimensions.
                 setScale(scaleStateRef.current.currentScale);
-                initializeScale(); // Re-check if we need to switch between mobile/desktop modes
+                initializeScale(); 
             }
         };
 
@@ -900,9 +881,6 @@ const App: React.FC = () => {
 
     }, [initializeScale, setScale]);
 
-    // ... [handleEnterDemoMode, processStatusUpdate, handleTimeUpdate, handleStatusChange, handleConfirmMal, handleConfirmAbsent, processToggleSpecialTeam, handleToggleSpecialTeam, handleConfirmTurno, processDeleteUser, handleDeleteUser, handleConfirmDelete, handleManualRegister, handleAdminLogin, handleAddUser, handleClearData, handleReorganize, stats, mainTeam, specialTeam logic unchanged] ...
-    
-    // ... inserting logic back for context ...
     const handleEnterDemoMode = () => {
         isDemoModeRef.current = true;
         
@@ -925,18 +903,18 @@ const App: React.FC = () => {
                 id: `demo-${i}`,
                 name: generateName(),
                 matricula: `${1000 + i}`,
-                assDss: isBem, // Usually check together
+                assDss: isBem, 
                 bem: isBem,
                 mal: isMal,
                 absent: isAbsent,
                 time: isPresent ? formatTimestamp(Timestamp.now()) : null,
-                turno: i < 35 ? '7H' : '6H' // Mostly 7H, some 6H for the small column
+                turno: i < 35 ? '7H' : '6H' 
             };
         }).sort((a,b) => a.name.localeCompare(b.name));
         
         setEmployees(mockEmployees);
         setIsDemoMode(true);
-        setIsAdmin(true); // Grant simulated admin for demo
+        setIsAdmin(true); 
         setActiveModal(ModalType.None);
         setLoading(false);
         showNotification('Modo de Demonstração Ativado! Dados fictícios carregados.', 'success');
@@ -948,7 +926,6 @@ const App: React.FC = () => {
 
         const isChecking = !(employee as any)[type];
 
-        // Admin check: only admins can uncheck a status.
         if (!isChecking && !isAdmin) {
             showNotification('Apenas administradores podem desmarcar esta opção.', 'error');
             return;
@@ -985,7 +962,6 @@ const App: React.FC = () => {
             }
         }
         
-        // Handle Demo Mode Local State Update
         if (isDemoMode) {
             const finalStates = {
                 absent: updatedData.absent !== undefined ? updatedData.absent : employee.absent,
@@ -998,7 +974,6 @@ const App: React.FC = () => {
              if (finalStates.absent) {
                 newTime = null;
             } else if (finalStates.bem || finalStates.mal || finalStates.assDss) {
-                // In Demo Mode, use simple string date
                 const date = new Date();
                 newTime = `${date.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit', year: 'numeric'})} ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
             } else {
@@ -1014,7 +989,6 @@ const App: React.FC = () => {
             return;
         }
 
-        // Handle DB Update
         try {
             const finalStates = {
                 absent: updatedData.absent !== undefined ? updatedData.absent : employee.absent,
@@ -1030,7 +1004,6 @@ const App: React.FC = () => {
             } else {
                 updatedData.time = null;
             }
-            // UPDATED: Now points to 'turma b' instead of 'employees'
             const docRef = doc(db, 'turma b', id);
             await updateDoc(docRef, updatedData);
         } catch (error) {
@@ -1059,7 +1032,6 @@ const App: React.FC = () => {
         }
 
         try {
-            // UPDATED: Now points to 'turma b' instead of 'employees'
             const docRef = doc(db, 'turma b', id);
             await updateDoc(docRef, {
                 time: Timestamp.fromDate(newDate)
@@ -1078,21 +1050,18 @@ const App: React.FC = () => {
 
         const isChecking = !(employee as any)[type];
 
-        // Intercept 'mal'
         if (type === 'mal' && isChecking) {
             setPendingEmployeeId(id);
             setActiveModal(ModalType.ConfirmMal);
             return;
         }
 
-        // Intercept 'absent' - NEW
         if (type === 'absent' && isChecking) {
             setPendingEmployeeId(id);
             setActiveModal(ModalType.ConfirmAbsent);
             return;
         }
 
-        // Otherwise, proceed normally
         processStatusUpdate(id, type);
     };
 
@@ -1122,7 +1091,6 @@ const App: React.FC = () => {
         const newTurno = employee.turno === '6H' ? '7H' : '6H';
 
         if (isDemoMode) {
-             // Simulate network delay
              setTimeout(() => {
                  setEmployees(prev => prev.map(e => e.id === id ? { ...e, turno: newTurno } : e));
                  showNotification(`${employee.name} foi movido para o turno ${newTurno} (DEMO).`, 'success');
@@ -1137,7 +1105,6 @@ const App: React.FC = () => {
         }
 
         try {
-            // UPDATED: Now points to 'turma b' instead of 'employees'
             const docRef = doc(db, 'turma b', id);
             await updateDoc(docRef, { 
                 turno: newTurno
@@ -1153,7 +1120,6 @@ const App: React.FC = () => {
     };
 
     const handleToggleSpecialTeam = (id: string) => {
-        // Open confirmation modal
         setPendingEmployeeId(id);
         setActiveModal(ModalType.ConfirmTurno);
     };
@@ -1180,7 +1146,6 @@ const App: React.FC = () => {
             return;
         }
         try {
-            // UPDATED: Now points to 'turma b' instead of 'employees'
             const docRef = doc(db, 'turma b', employeeId);
             await deleteDoc(docRef);
             showNotification(`Usuário ${employeeToDelete.name} deletado com sucesso!`, 'success');
@@ -1202,7 +1167,6 @@ const App: React.FC = () => {
             return;
         }
 
-        // Instead of window.confirm, open modal
         setPendingEmployeeId(employeeId);
         setActiveModal(ModalType.ConfirmDelete);
     };
@@ -1218,7 +1182,6 @@ const App: React.FC = () => {
     const handleManualRegister = async (turno: '7H-19H' | '6H') => {
         const matricula = turno === '7H-19H' ? mainMatricula : specialMatricula;
         const rawSubject = turno === '7H-19H' ? mainSubject : specialSubject;
-        // FIX: Ensure subject is UPPERCASE when saving, but allow normal typing in input to prevent cursor jumps
         const subject = rawSubject ? rawSubject.toUpperCase() : '';
 
         if (!matricula) {
@@ -1269,11 +1232,10 @@ const App: React.FC = () => {
                  setTimeout(() => {
                      setIsAdminTutorialOpen(true);
                      localStorage.setItem('hasSeenAdminTutorial', 'true');
-                 }, 500); // Small delay to allow modal animation to complete
+                 }, 500); 
              }
         };
 
-        // Hardcoded admin for test environment
         if (normalizedEmail === 'naylanmoreira350@gmail.com') {
              setIsAdmin(true);
              setActiveModal(ModalType.AdminOptions);
@@ -1322,7 +1284,6 @@ const App: React.FC = () => {
             return;
         }
         
-        // FIX: UpperCase name here instead of during typing
         const finalName = name.toUpperCase();
 
         if (isDemoMode) {
@@ -1355,7 +1316,6 @@ const App: React.FC = () => {
                     throw new Error('Matrícula já existe.');
                 }
             }
-            // UPDATED: Now points to 'turma b' instead of 'employees'
             await addDoc(collection(db, 'turma b'), {
                 name: finalName,
                 matricula,
@@ -1406,7 +1366,6 @@ const App: React.FC = () => {
         try {
             const batch = writeBatch(db);
             
-            // UPDATED: Now points to 'turma b' instead of 'employees'
             const employeesSnapshot = await getDocs(collection(db, 'turma b'));
             employeesSnapshot.forEach((doc) => {
                 batch.update(doc.ref, {
@@ -1449,7 +1408,6 @@ const App: React.FC = () => {
     const mainTeam = useMemo(() => employees.filter(e => e.turno !== '6H'), [employees]);
     const specialTeam = useMemo(() => employees.filter(e => e.turno === '6H'), [employees]);
 
-    // Split mainTeam into 3 columns instead of 2
     const columnSize = Math.ceil(mainTeam.length / 3);
     const col1 = mainTeam.slice(0, columnSize);
     const col2 = mainTeam.slice(columnSize, columnSize * 2);
@@ -1466,28 +1424,26 @@ const App: React.FC = () => {
 
     // --- NEW TUTORIAL ZOOM LOGIC ---
     const handleTutorialStepChange = (step: TutorialStep) => {
-        // Only auto-zoom on mobile/touch devices
         const isMobile = window.innerWidth < 1024; 
         if (!isMobile) return;
 
-        // FIX: For steps inside the card (actions, time), use the card container's ID 
-        // to calculate the zoom level. This prevents "super zooming" into small elements
-        // and keeps the context (the whole card) visible.
         let targetIdForZoom = step.targetId;
+        
+        // FIX: Group context for card interactions
         if (step.targetId === 'tutorial-card-actions' || step.targetId === 'tutorial-card-time') {
             targetIdForZoom = 'tutorial-first-card';
         }
-        // FIX: Also apply to the special turn button (Step 6) to keep the special panel in view
+        
+        // FIX: Group context for special panel interactions
         if (step.targetId === 'tutorial-return-turn-btn') {
             targetIdForZoom = 'tutorial-special-demo-area';
         }
-        // FIX: For steps 7, 8, and 9 (Stats, Dark Mode, Admin), use the header actions container
-        // and force scroll to top to ensure visibility.
+        
+        // FIX: Group context for header interactions (Stats, Dark Mode, Admin)
         if (['tutorial-stats', 'tutorial-dark-mode', 'tutorial-admin-btn'].includes(step.targetId)) {
             targetIdForZoom = 'tutorial-header-actions';
             
-            // CRITICAL FIX: Explicitly force scroll to top when header steps are active
-            // This bypasses unreliable scrollIntoView logic on scaled containers
+            // CRITICAL FIX: Ensure header is visible by forcing scroll to top immediately
             if (viewportRef.current) {
                 viewportRef.current.scrollTo({ top: 0, behavior: 'smooth' });
             }
@@ -1496,25 +1452,16 @@ const App: React.FC = () => {
         const element = document.getElementById(targetIdForZoom);
         if (!element) return;
         
-        // Logic to calculate scale to make element focused
         const margin = 32;
         const availableWidth = window.innerWidth - margin;
-        // Visual width in layout flow (approx)
         const elementWidth = element.offsetWidth; 
         
         if (elementWidth > 0) {
             let newScale = availableWidth / elementWidth;
-            
-            // Clamp scale to avoid extreme zooms
-            // Min 0.3 (very zoomed out)
-            // Max 1.1 (slightly zoomed in)
             newScale = Math.min(Math.max(newScale, 0.3), 1.1);
-            
-            // Apply scale
             setScale(newScale);
         }
     }
-    // -------------------------------
 
     return (
         <div className="bg-light-bg-secondary dark:bg-dark-bg min-h-screen text-light-text dark:text-dark-text transition-colors">
@@ -1558,7 +1505,6 @@ const App: React.FC = () => {
                                                 isAdmin={isAdmin} 
                                                 onDelete={handleDeleteUser}
                                                 onTimeChange={handleTimeUpdate}
-                                                // ID especifico para o primeiro cartão do tutorial
                                                 domId={index === 0 ? "tutorial-first-card" : undefined}
                                             />
                                         ))}
@@ -1598,7 +1544,6 @@ const App: React.FC = () => {
                 onLogin={handleAdminLogin} 
                 scale={modalScale} 
             />
-            {/* ... rest of the modals ... */}
             <AdminOptionsModal 
                 isOpen={activeModal === ModalType.AdminOptions} 
                 onClose={() => setActiveModal(ModalType.None)} 
@@ -1697,7 +1642,6 @@ const App: React.FC = () => {
                 </div>
             )}
 
-            {/* ... [ConfirmTurno, ConfirmAbsent, ConfirmDelete modals remain identical to previous App.tsx] ... */}
             {activeModal === ModalType.ConfirmTurno && (
                 <div 
                     className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
