@@ -83,8 +83,10 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
         // 1. Clear any pending updates
         if (requestRef.current) cancelAnimationFrame(requestRef.current);
         
-        // Hide spotlight and indicate transition started
-        setTargetRect(null);
+        // SMOOTH TRANSITION FIX:
+        // We do NOT set targetRect to null here anymore. 
+        // Keeping the old rect allows the CSS transition to animate the box 
+        // from the old position to the new position smoothly.
         setIsTransitioning(true);
 
         const step = steps[currentStepIndex];
@@ -95,15 +97,17 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
         }
 
         // 2. Delay to allow React to render any DOM changes (e.g. modals opening) 
-        // and allow Parent Zoom to settle. Increased to 300ms for smoother zoom sync.
+        // and allow Parent Zoom to settle. 300ms matches the transition duration reasonably well.
         const timer = setTimeout(() => {
             const element = document.getElementById(step.targetId);
             
             if (element) {
-                // 3. Scroll instantly to position to ensure subsequent measurement is correct.
+                // 3. Scroll instantly to position (layout snap)
+                // We use 'auto' because mixing smooth scroll with our own CSS transition can cause jitter.
+                // The spotlight overlay will handle the visual smoothing.
                 element.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center' });
                 
-                // 4. Measure immediately after scroll
+                // 4. Measure immediately after scroll layout is set
                 measurePosition();
             } else {
                 setTargetRect(null);
