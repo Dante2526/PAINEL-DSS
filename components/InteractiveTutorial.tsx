@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
 export interface TutorialStep {
@@ -21,6 +21,9 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
     const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
     const [isMobile, setIsMobile] = useState(false);
     
+    // Use refs to track animation frames and avoid state staleness in callbacks
+    const requestRef = useRef<number>();
+    
     // Prevent scrolling when tutorial is open
     useEffect(() => {
         if (isOpen) {
@@ -41,45 +44,81 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
-    const updateTargetPosition = useCallback(() => {
-        if (!isOpen) return;
+    // Function to calculate and set rect without scrolling
+    const measurePosition = useCallback(() => {
+        const step = steps[currentStepIndex];
+        const element = document.getElementById(step.targetId);
         
-        // Small delay to ensure DOM is ready and any layout shifts/scrolls have initiated
+        if (element) {
+            const rect = element.getBoundingClientRect();
+            // Only update if dimensions are valid and different (simple check)
+            if (rect.width > 0 && rect.height > 0) {
+                setTargetRect(rect);
+                return;
+            }
+        }
+        // If element missing or hidden, keep previous rect if valid to prevent flash, 
+        // or set to null if we really want to hide it. 
+        // For smoother transitions, we might want to check if it's truly gone.
+        // Here we set to null to indicate "lost target" which shows fallback.
+        // But to avoid blinking during quick transitions, we only set null if definitely gone.
+        if (!element) {
+             setTargetRect(null);
+        }
+    }, [steps, currentStepIndex]);
+
+    // Handle scroll/resize updates using rAF for performance
+    const handleScrollResize = useCallback(() => {
+        if (!isOpen) return;
+        if (requestRef.current) cancelAnimationFrame(requestRef.current);
+        
+        requestRef.current = requestAnimationFrame(() => {
+            measurePosition();
+        });
+    }, [isOpen, measurePosition]);
+
+    // Initial Step Change Logic (includes scrolling)
+    useEffect(() => {
+        if (!isOpen) return;
+
+        // 1. Clear any pending updates
+        if (requestRef.current) cancelAnimationFrame(requestRef.current);
+
+        // 2. Small delay to allow React to render any DOM changes (e.g. modals opening)
         const timer = setTimeout(() => {
             const step = steps[currentStepIndex];
             const element = document.getElementById(step.targetId);
             
             if (element) {
-                // Scroll element into view smoothly
-                element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+                // 3. Scroll instantly to position to ensure subsequent measurement is correct.
+                // 'smooth' behavior causes layout drift during measurement.
+                element.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center' });
                 
-                const rect = element.getBoundingClientRect();
-                // Check if element has valid dimensions
-                if (rect.width > 0 && rect.height > 0) {
-                    setTargetRect(rect);
-                } else {
-                    console.warn(`Tutorial: Element ${step.targetId} has 0 dimensions.`);
-                    setTargetRect(null);
-                }
+                // 4. Measure immediately after scroll
+                measurePosition();
             } else {
-                console.warn(`Tutorial: Element ${step.targetId} not found.`);
-                setTargetRect(null); 
+                setTargetRect(null);
             }
-        }, 150); // 150ms delay for robustness
-
-        return () => clearTimeout(timer);
-    }, [isOpen, currentStepIndex, steps]);
-
-    useEffect(() => {
-        updateTargetPosition();
-        window.addEventListener('resize', updateTargetPosition);
-        window.addEventListener('scroll', updateTargetPosition, true); // true for capture phase
+        }, 100);
 
         return () => {
-            window.removeEventListener('resize', updateTargetPosition);
-            window.removeEventListener('scroll', updateTargetPosition, true);
+            clearTimeout(timer);
+            if (requestRef.current) cancelAnimationFrame(requestRef.current);
         };
-    }, [updateTargetPosition]);
+    }, [isOpen, currentStepIndex, steps, measurePosition]);
+
+    // Attach scroll/resize listeners
+    useEffect(() => {
+        if (!isOpen) return;
+        
+        window.addEventListener('resize', handleScrollResize);
+        window.addEventListener('scroll', handleScrollResize, true); // capture: true for internal scrolling
+
+        return () => {
+            window.removeEventListener('resize', handleScrollResize);
+            window.removeEventListener('scroll', handleScrollResize, true);
+        };
+    }, [isOpen, handleScrollResize]);
 
     const handleNext = () => {
         if (currentStepIndex < steps.length - 1) {
