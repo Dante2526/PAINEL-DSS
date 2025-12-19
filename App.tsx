@@ -136,15 +136,15 @@ const ManualRegisterSection: React.FC<{
     };
 
     return (
-        <div id="tutorial-manual-register-bar" className="w-[870px] bg-light-card dark:bg-dark-card rounded-3xl p-6 shadow-lg mb-8 shrink-0">
+        <div id="tutorial-manual-register-bar" className="w-full bg-light-card dark:bg-dark-card rounded-3xl p-6 shadow-lg mb-8 shrink-0">
              <div className="flex gap-4 items-center">
-                <div className="relative flex-grow">
+                <div className="relative w-[600px]">
                     <SubjectIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input 
                         type="text" 
                         value={subject}
                         onChange={(e) => onSubjectChange(e.target.value)}
-                        placeholder="ASSUNTO DO DSS (TURMA A)" 
+                        placeholder="ASSUNTO DO DSS" 
                         className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition uppercase"
                         autoCapitalize="characters"
                     />
