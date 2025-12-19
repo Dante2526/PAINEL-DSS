@@ -7,7 +7,7 @@ import Modal from './components/Modal';
 import Notification from './components/Notification';
 import Footer from './components/Footer';
 import InteractiveTutorial, { TutorialStep } from './components/InteractiveTutorial';
-import { SubjectIcon, UserIcon, EraserIcon, FileTextIcon, SortIcon, UserPlusIcon, ShiftIcon, AbsentIcon, TrashIcon, ExchangeIcon } from './components/icons';
+import { SubjectIcon, UserIcon, EraserIcon, FileTextIcon, SortIcon, UserPlusIcon, ShiftIcon, AbsentIcon, TrashIcon, ExchangeIcon, MousePointerIcon } from './components/icons';
 import { Employee, StatusType, ModalType, ManualRegistration } from './types';
 import type { NotificationData } from './components/Notification';
 import { db, auth, isConfigured } from './firebase';
@@ -116,6 +116,309 @@ const adminTutorialSteps: TutorialStep[] = [
     }
 ];
 
+const ManualRegisterSection: React.FC<{
+    subject: string;
+    matricula: string;
+    onSubjectChange: (v: string) => void;
+    onMatriculaChange: (v: string) => void;
+    onRegister: () => void;
+    employees: Employee[];
+}> = ({ subject, matricula, onSubjectChange, onMatriculaChange, onRegister, employees }) => {
+    // Logic to find name
+    const foundName = useMemo(() => {
+        if (!matricula) return '';
+        const employee = employees.find(e => e.matricula === matricula);
+        return employee ? employee.name : '';
+    }, [matricula, employees]);
+
+    const handleMatriculaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        onMatriculaChange(e.target.value.replace(/[^0-9]/g, ''));
+    };
+
+    return (
+        <div id="tutorial-manual-register-bar" className="w-[870px] bg-light-card dark:bg-dark-card rounded-3xl p-6 shadow-lg mb-8 shrink-0">
+             <div className="flex gap-4 items-center">
+                <div className="relative flex-grow">
+                    <SubjectIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input 
+                        type="text" 
+                        value={subject}
+                        onChange={(e) => onSubjectChange(e.target.value)}
+                        placeholder="ASSUNTO DO DSS (TURMA A)" 
+                        className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition uppercase"
+                        autoCapitalize="characters"
+                    />
+                </div>
+                 <div className="relative w-[180px]">
+                    <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                     <input 
+                        type="text" 
+                        value={matricula}
+                        onChange={handleMatriculaChange}
+                        placeholder="Matrícula" 
+                        className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                     />
+                </div>
+                <div className="relative w-[250px]">
+                    <input 
+                        type="text" 
+                        value={foundName}
+                        readOnly
+                        placeholder="Nome do Responsável"
+                        className="w-full px-4 py-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-bold border-2 border-gray-200 dark:border-gray-600 rounded-xl outline-none pointer-events-none truncate"
+                    />
+                </div>
+                <button
+                    onClick={onRegister}
+                    className="h-[60px] px-8 font-bold text-white bg-gradient-to-r from-primary to-primary-dark rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+                >
+                    REGISTRAR
+                </button>
+            </div>
+        </div>
+    );
+};
+
+const AdminLoginModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    onLogin: (email: string) => void;
+    scale: number;
+}> = ({ isOpen, onClose, onLogin, scale }) => {
+    const [email, setEmail] = useState('');
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        onLogin(email);
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title="Acesso Administrativo" scale={scale}>
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <input
+                    type="email"
+                    placeholder="Email do Administrador"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
+                    autoFocus
+                />
+                <button type="submit" className="w-full py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition">
+                    ENTRAR
+                </button>
+            </form>
+        </Modal>
+    );
+};
+
+const AdminOptionsModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    onClear: () => void;
+    onReorganize: () => void;
+    onAddUser: () => void;
+    onSendReport: () => void;
+    onEnterDemo: () => void;
+    scale: number;
+}> = ({ isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onEnterDemo, scale }) => {
+    if (!isOpen) return null;
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title="Painel do Administrador" scale={scale}>
+            <div className="grid grid-cols-2 gap-4">
+                <button 
+                    id="admin-clear-btn"
+                    onClick={() => { onClear(); onClose(); }} 
+                    className="p-4 bg-orange text-white rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-orange-600 transition shadow-lg"
+                >
+                    <EraserIcon className="w-8 h-8" />
+                    <span className="font-bold text-sm">LIMPAR TUDO</span>
+                </button>
+
+                 <button 
+                    id="admin-report-btn"
+                    onClick={() => { onSendReport(); onClose(); }}
+                    className="p-4 bg-blue-500 text-white rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-blue-600 transition shadow-lg"
+                >
+                    <FileTextIcon className="w-8 h-8" />
+                    <span className="font-bold text-sm">RELATÓRIO</span>
+                </button>
+
+                 <button 
+                    id="admin-reorganize-btn"
+                    onClick={() => { onReorganize(); onClose(); }}
+                    className="p-4 bg-purple-500 text-white rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-purple-600 transition shadow-lg"
+                >
+                    <SortIcon className="w-8 h-8" />
+                    <span className="font-bold text-sm">REORGANIZAR</span>
+                </button>
+                
+                <button 
+                    id="admin-adduser-btn"
+                    onClick={() => { onAddUser(); onClose(); }}
+                    className="p-4 bg-green-500 text-white rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-green-600 transition shadow-lg"
+                >
+                    <UserPlusIcon className="w-8 h-8" />
+                    <span className="font-bold text-sm">ADD USUÁRIO</span>
+                </button>
+
+                <button 
+                    id="admin-demo-btn"
+                    onClick={() => { onEnterDemo(); onClose(); }}
+                    className="col-span-2 p-4 bg-gray-700 text-white rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-gray-800 transition shadow-lg mt-2 border border-gray-500"
+                >
+                    <MousePointerIcon className="w-6 h-6" />
+                    <span className="font-bold text-sm">MODO DEMONSTRAÇÃO</span>
+                </button>
+            </div>
+        </Modal>
+    );
+};
+
+const AddUserModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    onAdd: (name: string, matricula: string) => void;
+    scale: number;
+}> = ({ isOpen, onClose, onAdd, scale }) => {
+    const [name, setName] = useState('');
+    const [matricula, setMatricula] = useState('');
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (name && matricula) {
+            onAdd(name, matricula);
+            setName('');
+            setMatricula('');
+        }
+    };
+    
+    // Auto uppercase for name
+    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setName(e.target.value.toUpperCase());
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title="Adicionar Colaborador" scale={scale}>
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <input
+                    type="text"
+                    placeholder="Nome Completo"
+                    value={name}
+                    onChange={handleNameChange}
+                    className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white uppercase"
+                    autoFocus
+                />
+                 <input
+                    type="text"
+                    placeholder="Matrícula"
+                    value={matricula}
+                    onChange={(e) => setMatricula(e.target.value.replace(/[^0-9]/g, ''))}
+                    className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
+                    inputMode="numeric"
+                />
+                <button type="submit" className="w-full py-3 bg-success text-white font-bold rounded-lg hover:bg-green-600 transition shadow-lg">
+                    ADICIONAR
+                </button>
+            </form>
+        </Modal>
+    );
+};
+
+const ReportModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    employees: Employee[];
+    showNotification: (msg: string, type: 'success' | 'error') => void;
+    scale: number;
+}> = ({ isOpen, onClose, employees, showNotification, scale }) => {
+    const generateReport = () => {
+        const present = employees.filter(e => e.bem || e.assDss || e.mal);
+        const absent = employees.filter(e => e.absent);
+        const missing = employees.filter(e => !e.bem && !e.assDss && !e.mal && !e.absent);
+        const mal = employees.filter(e => e.mal);
+
+        const date = new Date().toLocaleDateString('pt-BR');
+        
+        let report = `RELATÓRIO DSS - ${date}\n\n`;
+        report += `TOTAL: ${employees.length}\n`;
+        report += `PRESENTES: ${present.length}\n`;
+        report += `AUSENTES: ${absent.length}\n`;
+        report += `PENDENTES: ${missing.length}\n`;
+        report += `RELATOS DE MAL-ESTAR: ${mal.length}\n\n`;
+
+        if (mal.length > 0) {
+            report += `⚠️ COLABORADORES COM MAL-ESTAR:\n`;
+            mal.forEach(e => report += `- ${e.name} (${e.matricula})\n`);
+            report += `\n`;
+        }
+
+        if (absent.length > 0) {
+            report += `❌ AUSENTES:\n`;
+            absent.forEach(e => report += `- ${e.name} (${e.matricula})\n`);
+            report += `\n`;
+        }
+
+        if (missing.length > 0) {
+            report += `⏳ PENDENTES DE ASSINATURA:\n`;
+            missing.forEach(e => report += `- ${e.name} (${e.matricula})\n`);
+        }
+
+        return report;
+    };
+
+    const handleCopy = () => {
+        const text = generateReport();
+        navigator.clipboard.writeText(text);
+        showNotification('Relatório copiado para a área de transferência!', 'success');
+        onClose();
+    };
+
+    const handleDownload = () => {
+        const text = generateReport();
+        const blob = new Blob([text], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `relatorio-dss-${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.txt`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        showNotification('Relatório baixado com sucesso!', 'success');
+        onClose();
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title="Gerar Relatório" scale={scale}>
+            <div className="space-y-4">
+                <p className="text-light-text-secondary dark:text-dark-text-secondary text-sm mb-4">
+                    Escolha como deseja exportar o resumo diário da equipe.
+                </p>
+                <button 
+                    onClick={handleCopy}
+                    className="w-full py-4 bg-blue-500 text-white font-bold rounded-xl hover:bg-blue-600 transition flex items-center justify-center gap-2 shadow-md"
+                >
+                    <FileTextIcon className="w-5 h-5" />
+                    COPIAR TEXTO
+                </button>
+                <button 
+                    onClick={handleDownload}
+                    className="w-full py-4 bg-gray-700 text-white font-bold rounded-xl hover:bg-gray-800 transition flex items-center justify-center gap-2 shadow-md"
+                >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    BAIXAR ARQUIVO
+                </button>
+            </div>
+        </Modal>
+    );
+};
+
 const App: React.FC = () => {
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [loading, setLoading] = useState(true);
@@ -124,6 +427,7 @@ const App: React.FC = () => {
     const [togglingSpecialTeamId, setTogglingSpecialTeamId] = useState<string | null>(null);
     const [isAdmin, setIsAdmin] = useState(false);
     const viewportRef = useRef<HTMLDivElement>(null);
+    const contentWrapperRef = useRef<HTMLDivElement>(null); // New wrapper ref
     const scalableContainerRef = useRef<HTMLDivElement>(null);
     const scaleStateRef = useRef({ currentScale: 1 });
     const [modalScale, setModalScale] = useState(1);
@@ -439,15 +743,22 @@ const App: React.FC = () => {
     const setScale = useCallback((newScale: number, scrollX?: number, scrollY?: number) => {
         const viewport = viewportRef.current;
         const scalableContainer = scalableContainerRef.current;
-        if (!viewport || !scalableContainer) return;
+        const contentWrapper = contentWrapperRef.current;
+        if (!viewport || !scalableContainer || !contentWrapper) return;
 
         const finalScale = Math.max(0.2, Math.min(newScale, 2.0));
         scaleStateRef.current.currentScale = finalScale;
 
-        // REMOVED: Dynamic minWidth and minHeight which caused empty space.
-        // The container will now fit its content exactly.
-
         scalableContainer.style.transform = `scale(${finalScale})`;
+        
+        // CRITICAL FIX: Update wrapper dimensions to match the scaled content size.
+        // This prevents empty space when scaling down and ensures scrollbars are correct.
+        const originalWidth = scalableContainer.offsetWidth;
+        const originalHeight = scalableContainer.offsetHeight;
+        
+        contentWrapper.style.width = `${originalWidth * finalScale}px`;
+        contentWrapper.style.height = `${originalHeight * finalScale}px`;
+
         if (scrollX !== undefined) viewport.scrollLeft = scrollX;
         if (scrollY !== undefined) viewport.scrollTop = scrollY;
     }, []);
@@ -511,6 +822,10 @@ const App: React.FC = () => {
                 const originX = touchCenter.x - viewport.getBoundingClientRect().left;
                 const originY = touchCenter.y - viewport.getBoundingClientRect().top;
 
+                // Adjust origin to account for the current scaled offset
+                // Current scroll offset relative to unscaled content:
+                // (viewport.scrollLeft + originX) / currentScale
+                
                 const contentOriginX = (scrollStart.x + originX) / initialScale;
                 const contentOriginY = (scrollStart.y + originY) / initialScale;
 
@@ -1150,73 +1465,75 @@ const App: React.FC = () => {
     return (
         <div className="bg-light-bg-secondary dark:bg-dark-bg min-h-screen text-light-text dark:text-dark-text transition-colors">
             <div ref={viewportRef} className="viewport fixed inset-0">
-                <div ref={scalableContainerRef} className="scalable-container w-fit origin-top-left p-8">
-                    <Header
-                        stats={stats}
-                        loading={loading}
-                        onAdminClick={() => setActiveModal(ModalType.AdminLogin)}
-                        onHelpClick={() => setActiveModal(ModalType.Tutorial)}
-                        isDarkMode={isDarkMode}
-                        onToggleDarkMode={handleToggleDarkMode}
-                    />
-                    
-                    {isDemoMode && (
-                        <div className="absolute top-6 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-black px-4 py-1 rounded-full font-bold shadow-md z-10 animate-pulse pointer-events-none">
-                            MODO DEMONSTRAÇÃO ATIVO
+                <div ref={contentWrapperRef} className="origin-top-left">
+                    <div ref={scalableContainerRef} className="scalable-container w-fit origin-top-left p-8">
+                        <Header
+                            stats={stats}
+                            loading={loading}
+                            onAdminClick={() => setActiveModal(ModalType.AdminLogin)}
+                            onHelpClick={() => setActiveModal(ModalType.Tutorial)}
+                            isDarkMode={isDarkMode}
+                            onToggleDarkMode={handleToggleDarkMode}
+                        />
+                        
+                        {isDemoMode && (
+                            <div className="absolute top-6 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-black px-4 py-1 rounded-full font-bold shadow-md z-10 animate-pulse pointer-events-none">
+                                MODO DEMONSTRAÇÃO ATIVO
+                            </div>
+                        )}
+                        
+                        <div className="flex gap-8 flex-nowrap">
+                        <div className="flex flex-col gap-8 shrink-0">
+                                <ManualRegisterSection 
+                                    subject={mainSubject}
+                                    matricula={mainMatricula}
+                                    onSubjectChange={setMainSubject}
+                                    onMatriculaChange={setMainMatricula}
+                                    onRegister={() => handleManualRegister('7H-19H')}
+                                    employees={employees}
+                                />
+                                <div className="flex gap-8">
+                                    <div className="flex flex-col gap-6 w-[870px]">
+                                        {col1.map((emp, index) => (
+                                            <EmployeeCard 
+                                                key={emp.id} 
+                                                employee={emp} 
+                                                onStatusChange={handleStatusChange} 
+                                                onToggleSpecialTeam={handleToggleSpecialTeam} 
+                                                isTogglingSpecialTeam={togglingSpecialTeamId === emp.id} 
+                                                isAdmin={isAdmin} 
+                                                onDelete={handleDeleteUser}
+                                                onTimeChange={handleTimeUpdate}
+                                                domId={index === 0 ? "tutorial-first-card" : undefined}
+                                            />
+                                        ))}
+                                    </div>
+                                    <div className="flex flex-col gap-6 w-[870px]">
+                                        {col2.map(emp => <EmployeeCard key={emp.id} employee={emp} onStatusChange={handleStatusChange} onToggleSpecialTeam={handleToggleSpecialTeam} isTogglingSpecialTeam={togglingSpecialTeamId === emp.id} isAdmin={isAdmin} onDelete={handleDeleteUser} onTimeChange={handleTimeUpdate} />)}
+                                    </div>
+                                    <div className="flex flex-col gap-6 w-[870px]">
+                                        {col3.map(emp => <EmployeeCard key={emp.id} employee={emp} onStatusChange={handleStatusChange} onToggleSpecialTeam={handleToggleSpecialTeam} isTogglingSpecialTeam={togglingSpecialTeamId === emp.id} isAdmin={isAdmin} onDelete={handleDeleteUser} onTimeChange={handleTimeUpdate} />)}
+                                    </div>
+                                </div>
                         </div>
-                    )}
-                    
-                    <div className="flex gap-8 flex-nowrap">
-                       <div className="flex flex-col gap-8 shrink-0">
-                            <ManualRegisterSection 
-                                subject={mainSubject}
-                                matricula={mainMatricula}
-                                onSubjectChange={setMainSubject}
-                                onMatriculaChange={setMainMatricula}
-                                onRegister={() => handleManualRegister('7H-19H')}
+                            <SpecialTeamPanel 
+                                specialTeam={specialTeam} 
+                                onStatusChange={handleStatusChange}
+                                onToggleSpecialTeam={handleToggleSpecialTeam}
+                                togglingSpecialTeamId={togglingSpecialTeamId}
+                                isAdmin={isAdmin}
+                                onDeleteUser={handleDeleteUser}
+                                onTimeChange={handleTimeUpdate}
+                                subject={specialSubject}
+                                matricula={specialMatricula}
+                                onSubjectChange={setSpecialSubject}
+                                onMatriculaChange={setSpecialMatricula}
+                                onRegister={() => handleManualRegister('6H')}
                                 employees={employees}
                             />
-                            <div className="flex gap-8">
-                                <div className="flex flex-col gap-6 w-[870px]">
-                                    {col1.map((emp, index) => (
-                                        <EmployeeCard 
-                                            key={emp.id} 
-                                            employee={emp} 
-                                            onStatusChange={handleStatusChange} 
-                                            onToggleSpecialTeam={handleToggleSpecialTeam} 
-                                            isTogglingSpecialTeam={togglingSpecialTeamId === emp.id} 
-                                            isAdmin={isAdmin} 
-                                            onDelete={handleDeleteUser}
-                                            onTimeChange={handleTimeUpdate}
-                                            domId={index === 0 ? "tutorial-first-card" : undefined}
-                                        />
-                                    ))}
-                                </div>
-                                <div className="flex flex-col gap-6 w-[870px]">
-                                    {col2.map(emp => <EmployeeCard key={emp.id} employee={emp} onStatusChange={handleStatusChange} onToggleSpecialTeam={handleToggleSpecialTeam} isTogglingSpecialTeam={togglingSpecialTeamId === emp.id} isAdmin={isAdmin} onDelete={handleDeleteUser} onTimeChange={handleTimeUpdate} />)}
-                                </div>
-                                <div className="flex flex-col gap-6 w-[870px]">
-                                    {col3.map(emp => <EmployeeCard key={emp.id} employee={emp} onStatusChange={handleStatusChange} onToggleSpecialTeam={handleToggleSpecialTeam} isTogglingSpecialTeam={togglingSpecialTeamId === emp.id} isAdmin={isAdmin} onDelete={handleDeleteUser} onTimeChange={handleTimeUpdate} />)}
-                                </div>
-                            </div>
-                       </div>
-                        <SpecialTeamPanel 
-                            specialTeam={specialTeam} 
-                            onStatusChange={handleStatusChange}
-                            onToggleSpecialTeam={handleToggleSpecialTeam}
-                            togglingSpecialTeamId={togglingSpecialTeamId}
-                            isAdmin={isAdmin}
-                            onDeleteUser={handleDeleteUser}
-                            onTimeChange={handleTimeUpdate}
-                            subject={specialSubject}
-                            matricula={specialMatricula}
-                            onSubjectChange={setSpecialSubject}
-                            onMatriculaChange={setSpecialMatricula}
-                            onRegister={() => handleManualRegister('6H')}
-                            employees={employees}
-                        />
+                        </div>
+                        <Footer />
                     </div>
-                    <Footer />
                 </div>
             </div>
             
@@ -1226,6 +1543,7 @@ const App: React.FC = () => {
                 onLogin={handleAdminLogin} 
                 scale={modalScale} 
             />
+            {/* ... rest of the modals ... */}
             <AdminOptionsModal 
                 isOpen={activeModal === ModalType.AdminOptions} 
                 onClose={() => setActiveModal(ModalType.None)} 
@@ -1234,7 +1552,6 @@ const App: React.FC = () => {
                 onAddUser={() => setActiveModal(ModalType.AddUser)}
                 onSendReport={() => setActiveModal(ModalType.Report)}
                 onEnterDemo={handleEnterDemoMode}
-                // Migration prop removed
                 scale={modalScale}
             />
             <AddUserModal isOpen={activeModal === ModalType.AddUser} onClose={() => setActiveModal(ModalType.None)} onAdd={handleAddUser} scale={modalScale} />
@@ -1246,7 +1563,6 @@ const App: React.FC = () => {
                 scale={modalScale}
             />
             
-            {/* General Tutorial */}
             <InteractiveTutorial
                 isOpen={activeModal === ModalType.Tutorial}
                 onClose={() => setActiveModal(ModalType.None)}
@@ -1254,7 +1570,6 @@ const App: React.FC = () => {
                 scale={modalScale}
             />
 
-            {/* Admin Specific Tutorial */}
             <InteractiveTutorial
                 isOpen={isAdminTutorialOpen}
                 onClose={() => setIsAdminTutorialOpen(false)}
@@ -1262,7 +1577,6 @@ const App: React.FC = () => {
                 scale={modalScale}
             />
             
-            {/* CUSTOM CONFIRMATION MODAL - ESTOU MAL */}
             {activeModal === ModalType.ConfirmMal && (
                 <div 
                     className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
@@ -1326,7 +1640,6 @@ const App: React.FC = () => {
                 </div>
             )}
 
-            {/* CUSTOM CONFIRMATION MODAL - TURNO 6H */}
             {activeModal === ModalType.ConfirmTurno && (
                 <div 
                     className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
@@ -1387,7 +1700,6 @@ const App: React.FC = () => {
                 </div>
             )}
 
-            {/* CUSTOM CONFIRMATION MODAL - AUSENTE */}
             {activeModal === ModalType.ConfirmAbsent && (
                 <div 
                     className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
@@ -1452,7 +1764,6 @@ const App: React.FC = () => {
                 </div>
             )}
 
-            {/* CUSTOM CONFIRMATION MODAL - DELETAR */}
             {activeModal === ModalType.ConfirmDelete && (
                 <div 
                     className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
@@ -1522,466 +1833,6 @@ const App: React.FC = () => {
             >
                 {notifications.map(n => <Notification key={n.id} notification={n} onDismiss={dismissNotification} />)}
             </div>
-        </div>
-    );
-};
-
-interface ManualRegisterSectionProps {
-    subject: string;
-    matricula: string;
-    onSubjectChange: (value: string) => void;
-    onMatriculaChange: (value: string) => void;
-    onRegister: () => void;
-    employees: Employee[];
-}
-
-const ManualRegisterSection: React.FC<ManualRegisterSectionProps> = ({
-    subject,
-    matricula,
-    onSubjectChange,
-    onMatriculaChange,
-    onRegister,
-    employees
-}) => {
-    const handleMatriculaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        onMatriculaChange(e.target.value.replace(/[^0-9]/g, ''));
-    };
-    
-    // Find name based on matricula
-    const foundName = useMemo(() => {
-        if (!matricula) return '';
-        const employee = employees.find(e => e.matricula === matricula);
-        return employee ? employee.name : '';
-    }, [matricula, employees]);
-
-    return (
-        <div className="bg-light-card dark:bg-dark-card rounded-3xl p-8 shadow-lg w-full">
-            <div id="tutorial-manual-register-bar" className="flex items-center gap-6 w-fit">
-                <div className="relative w-[600px]">
-                    <SubjectIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input 
-                        type="text" 
-                        value={subject} 
-                        onChange={(e) => onSubjectChange(e.target.value)} 
-                        placeholder="Assunto do DSS" 
-                        className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition uppercase"
-                        autoCapitalize="characters"
-                    />
-                </div>
-                {/* Modified Matricula Field with Split View */}
-                <div className="relative w-[500px] flex-shrink-0 flex items-stretch">
-                    <div className="relative w-[40%]">
-                        <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <input 
-                            type="text" 
-                            value={matricula} 
-                            onChange={handleMatriculaChange} 
-                            placeholder="Matrícula" 
-                            className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg border-2 border-r-0 border-gray-200 dark:border-gray-600 rounded-l-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                        />
-                    </div>
-                    <div className="relative w-[60%]">
-                         <input 
-                            type="text" 
-                            value={foundName} 
-                            readOnly
-                            placeholder={matricula ? "Colaborador não encontrado" : "Nome do Colaborador"}
-                            className="w-full px-4 py-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-medium border-2 border-l-0 border-gray-200 dark:border-gray-600 rounded-r-lg outline-none pointer-events-none truncate"
-                        />
-                    </div>
-                </div>
-                <button onClick={onRegister} id="tutorial-manual-register-btn" className="px-9 py-4 font-bold text-white bg-gradient-to-r from-primary to-primary-dark rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex-shrink-0">
-                    REGISTRAR
-                </button>
-            </div>
-        </div>
-    );
-};
-
-const AdminLoginModal: React.FC<{isOpen: boolean, onClose: () => void, onLogin: (email: string) => void, scale?: number}> = ({isOpen, onClose, onLogin, scale}) => {
-    const [email, setEmail] = useState('');
-
-    const handleSubmit = () => {
-        onLogin(email);
-        setEmail('');
-    };
-
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Acesso Administrativo" scale={scale}>
-            <div className="space-y-4">
-                <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary">
-                    Insira o e-mail de administrador para continuar.
-                </p>
-                <div className="relative">
-                     <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input 
-                        type="email" 
-                        value={email} 
-                        onChange={e => setEmail(e.target.value)} 
-                        placeholder="E-MAIL DO ADMINISTRADOR" 
-                        className="w-full pl-12 pr-4 py-3 bg-light-bg dark:bg-dark-bg-secondary border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-primary outline-none"
-                    />
-                </div>
-                <button onClick={handleSubmit} className="w-full py-4 font-bold text-white bg-primary rounded-lg hover:bg-primary-dark transition">ENTRAR</button>
-            </div>
-        </Modal>
-    );
-};
-
-const AdminOptionsModal: React.FC<{
-    isOpen: boolean, 
-    onClose: () => void, 
-    onClear: () => void, 
-    onReorganize: () => void, 
-    onAddUser: () => void, 
-    onSendReport: () => void,
-    onEnterDemo: () => void,
-    scale?: number
-}> = ({isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onEnterDemo, scale}) => (
-    <Modal isOpen={isOpen} onClose={onClose} title="Opções Administrativas" scale={scale}>
-        <div className="space-y-4">
-            <button id="admin-clear-btn" onClick={onClear} className="w-full py-4 font-bold text-white bg-orange rounded-lg hover:bg-orange-600 transition flex items-center justify-center gap-3">
-                <EraserIcon className="w-6 h-6" />
-                <span>LIMPAR STATUS DIÁRIO</span>
-            </button>
-            <button id="admin-report-btn" onClick={onSendReport} className="w-full py-4 font-bold text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition flex items-center justify-center gap-3">
-                <FileTextIcon className="w-6 h-6" />
-                <span>GERAR RELATÓRIO</span>
-            </button>
-            <button id="admin-reorganize-btn" onClick={onReorganize} className="w-full py-4 font-bold text-white bg-danger rounded-lg hover:bg-red-600 transition flex items-center justify-center gap-3">
-                <SortIcon className="w-6 h-6" />
-                <span>REORGANIZAR PAINEL</span>
-            </button>
-            <button id="admin-adduser-btn" onClick={onAddUser} className="w-full py-4 font-bold text-white bg-success rounded-lg hover:bg-green-600 transition flex items-center justify-center gap-3">
-                <UserPlusIcon className="w-6 h-6" />
-                <span>NOVO USUÁRIO</span>
-            </button>
-            <button id="admin-demo-btn" onClick={onEnterDemo} className="w-full py-4 font-bold text-white bg-neutral rounded-lg hover:bg-gray-600 transition flex items-center justify-center gap-3">
-                <span>🛠️</span>
-                <span>MODO DEMONSTRAÇÃO</span>
-            </button>
-        </div>
-    </Modal>
-);
-
-const AddUserModal: React.FC<{isOpen: boolean, onClose: () => void, onAdd: (name: string, matricula: string) => void, scale?: number}> = ({isOpen, onClose, onAdd, scale}) => {
-    const [name, setName] = useState('');
-    const [matricula, setMatricula] = useState('');
-    
-    const handleSubmit = () => {
-        if (name) {
-            onAdd(name, matricula);
-            setName('');
-            setMatricula('');
-        }
-    };
-
-    const handleMatriculaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setMatricula(e.target.value.replace(/[^0-9]/g, ''));
-    };
-
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Adicionar Novo Usuário" scale={scale}>
-            <div className="space-y-4">
-                <div className="relative">
-                    <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input 
-                        type="text" 
-                        value={name} 
-                        onChange={e => setName(e.target.value)} 
-                        placeholder="NOME DO FUNCIONÁRIO" 
-                        className="w-full pl-12 pr-4 py-3 bg-light-bg dark:bg-dark-bg-secondary border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-primary outline-none uppercase"
-                        autoCapitalize="characters"
-                    />
-                </div>
-                <div className="relative">
-                    <SubjectIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input 
-                        type="text" 
-                        value={matricula} 
-                        onChange={handleMatriculaChange} 
-                        placeholder="MATRÍCULA" 
-                        className="w-full pl-12 pr-4 py-3 bg-light-bg dark:bg-dark-bg-secondary border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-primary outline-none"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                    />
-                </div>
-                <button onClick={handleSubmit} className="w-full py-4 font-bold text-white bg-success rounded-lg hover:bg-green-600 transition">ADICIONAR</button>
-            </div>
-        </Modal>
-    );
-};
-
-const ReportModal: React.FC<{
-    isOpen: boolean;
-    onClose: () => void;
-    employees: Employee[];
-    showNotification: (message: string, type?: 'success' | 'error') => void;
-    scale?: number;
-}> = ({ isOpen, onClose, employees, showNotification, scale = 1 }) => {
-    const [manualRegistrations, setManualRegistrations] = useState<ManualRegistration[]>([]);
-    
-    useEffect(() => {
-        if (isOpen && db) {
-            const fetchRegistrations = async () => {
-                try {
-                    const registrationsQuery = query(collection(db, 'registrosDSS'));
-                    const querySnapshot = await getDocs(registrationsQuery);
-                    const registrationsData: ManualRegistration[] = querySnapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    } as ManualRegistration));
-                    setManualRegistrations(registrationsData);
-                } catch (error) {
-                    console.error("Error fetching manual registrations for report:", error);
-                    showNotification('Erro ao carregar registros manuais para o relatório.', 'error');
-                }
-            };
-            fetchRegistrations();
-        }
-    }, [isOpen, showNotification]);
-
-    // Logic for plain text clipboard/email
-    const reportText = useMemo(() => {
-        const total = employees.length;
-        
-        const categorizeEmployees = (team: Employee[]) => {
-            const mal = team.filter(e => e.mal);
-            const ok = team.filter(e => !e.mal && e.bem && e.assDss);
-            const pending = team.filter(e => !e.mal && !(e.bem && e.assDss));
-            return { mal, ok, pending };
-        };
-
-        const mainTeam = employees.filter(e => e.turno !== '6H');
-        const specialTeam = employees.filter(e => e.turno === '6H');
-
-        const mainCat = categorizeEmployees(mainTeam);
-        const specialCat = categorizeEmployees(specialTeam);
-        
-        const totalOk = mainCat.ok.length + specialCat.ok.length;
-        const totalMal = mainCat.mal.length + specialCat.mal.length;
-        const presentCount = totalOk + totalMal;
-        const pendingAbsentCount = total - presentCount;
-
-        // Format helper
-        const formatList = (list: Employee[], emptyLabel = "Nenhum") => {
-            if (list.length === 0) return emptyLabel;
-            return list.map(e => `• ${e.name} (Matrícula: ${e.matricula})`).join('\n');
-        };
-
-        let employeeReport = `RESUMO GERAL
---------------------------------------------------
-• Total de Funcionários: ${total}
-• Presentes (DSS + Bem/Mal): ${presentCount}
-• Pendentes / Ausentes: ${pendingAbsentCount}
-
-TURNO 7H
---------------------------------------------------
-ASS.DSS + ESTOU BEM
-${formatList(mainCat.ok)}
-
-ESTOU MAL
-${formatList(mainCat.mal)}
-
-PENDENTES / AUSENTES
-${formatList(mainCat.pending)}
-
-TURNO 6H
---------------------------------------------------
-ASS.DSS + ESTOU BEM
-${formatList(specialCat.ok)}
-
-ESTOU MAL
-${formatList(specialCat.mal)}
-
-PENDENTES / AUSENTES
-${formatList(specialCat.pending)}
-
-TURNO 6H
---------------------------------------------------
-ASS.DSS + ESTOU BEM
-${formatList(specialCat.ok)}
-
-ESTOU MAL
-${formatList(specialCat.mal)}
-
-PENDENTES / AUSENTES
-${formatList(specialCat.pending)}`;
-
-        if (manualRegistrations.length > 0) {
-            employeeReport += `\n\nASSUNTOS DA DSS
---------------------------------------------------
-${manualRegistrations.map(reg => `• ${reg.matricula} - ${reg.assunto} (${reg.TURNO === '7H-19H' ? '7H' : reg.TURNO})`).join('\n')}`;
-        }
-
-        return employeeReport;
-    }, [employees, manualRegistrations]);
-
-    // Logic for Visual HTML Report
-    const categorizeEmployees = (team: Employee[]) => {
-        const mal = team.filter(e => e.mal);
-        const ok = team.filter(e => !e.mal && e.bem && e.assDss);
-        const pending = team.filter(e => !e.mal && !(e.bem && e.assDss));
-        return { mal, ok, pending };
-    };
-
-    const mainTeam = employees.filter(e => e.turno !== '6H');
-    const specialTeam = employees.filter(e => e.turno === '6H');
-
-    const mainCat = categorizeEmployees(mainTeam);
-    const specialCat = categorizeEmployees(specialTeam);
-
-    const renderEmployeeList = (list: Employee[], emptyText: string = 'Ninguém') => (
-        <ul className="list-none space-y-1 pl-1">
-            {list.map(e => (
-                <li key={e.id} className="text-light-text dark:text-dark-text text-sm flex items-center gap-2">
-                   {e.mal ? <span className="text-red-500 font-bold">⚠</span> : 
-                    (e.bem && e.assDss) ? <span className="text-green-500 font-bold">✓</span> : 
-                    <span className="text-gray-400">•</span>}
-                   <span className={e.mal ? "font-bold" : ""}>{e.name} ({e.matricula})</span>
-                   {e.absent && <span className="text-xs text-gray-400">(Ausente)</span>}
-                </li>
-            ))}
-            {list.length === 0 && <li className="text-gray-400 text-xs italic ml-4">{emptyText}</li>}
-        </ul>
-    );
-
-    const handleCopyReport = () => {
-        navigator.clipboard.writeText(reportText).then(() => {
-            showNotification('Relatório copiado para a área de transferência!', 'success');
-        }).catch(err => {
-            console.error('Failed to copy report: ', err);
-            showNotification('Falha ao copiar o relatório.', 'error');
-        });
-    };
-
-    const handleDownloadReport = () => {
-        try {
-            const today = new Date().toISOString().slice(0, 10);
-            const filename = `relatorio-dss-${today}.txt`;
-            // Add BOM for proper UTF-8 handling in Windows/Excel/Some browsers
-            const blob = new Blob(['\uFEFF' + reportText], { type: 'text/plain;charset=utf-8' });
-            
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = filename;
-            
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            URL.revokeObjectURL(link.href);
-            showNotification('Download do relatório iniciado!', 'success');
-        } catch (err) {
-            console.error('Failed to download report: ', err);
-            showNotification('Falha ao baixar o relatório.', 'error');
-        }
-    };
-
-    if (!isOpen) return null;
-
-    // Mobile specific scale logic for ReportModal
-    // Update logic to depend on window width since scale is now normalized to 1
-    const isMobileView = typeof window !== 'undefined' && window.innerWidth < 768;
-    const finalScale = isMobileView ? 0.95 : 1;
-    const maxWidthClass = isMobileView ? 'max-w-[95vw]' : 'max-w-5xl';
-    const maxHeightClass = isMobileView ? 'max-h-[65vh]' : 'max-h-[80vh]';
-
-    const modalStyle = { 
-        transform: `scale(${finalScale})`, 
-        animation: 'fade-in-scale 0.3s forwards ease-out' 
-    };
-
-    return (
-        <div 
-            className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 transition-opacity duration-300"
-            onClick={onClose}
-        >
-            <div 
-                className={`bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-8 w-full ${maxWidthClass} text-center`}
-                style={modalStyle}
-                onClick={(e) => e.stopPropagation()}
-            >
-                <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10">&times;</button>
-                <h2 className="text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6">RELATÓRIO</h2>
-                
-                <div className={`text-left bg-light-bg dark:bg-dark-bg-secondary p-6 rounded-lg ${maxHeightClass} overflow-y-auto`}>
-                    <div className={`grid gap-8 ${isMobileView ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2'}`}>
-                        {/* Column 7H */}
-                        <div>
-                            <h2 className="text-xl font-bold text-primary mb-4 border-b-2 border-primary pb-2">TURNO 7H</h2>
-                            
-                            <div className="mb-6">
-                                <h3 className="bg-success text-white font-bold px-3 py-1 rounded text-sm uppercase mb-2">ASS.DSS + ESTOU BEM ({mainCat.ok.length})</h3>
-                                {renderEmployeeList(mainCat.ok)}
-                            </div>
-
-                            <div className="mb-6">
-                                <h3 className="bg-danger text-white font-bold px-3 py-1 rounded text-sm uppercase mb-2">ESTOU MAL ({mainCat.mal.length})</h3>
-                                {renderEmployeeList(mainCat.mal)}
-                            </div>
-
-                            <div className="mb-6">
-                                <h3 className="bg-neutral text-white font-bold px-3 py-1 rounded text-sm uppercase mb-2">PENDENTES / AUSENTES ({mainCat.pending.length})</h3>
-                                {renderEmployeeList(mainCat.pending)}
-                            </div>
-                        </div>
-
-                        {/* Column 6H */}
-                         <div>
-                            <h2 className="text-xl font-bold text-orange mb-4 border-b-2 border-orange pb-2">TURNO 6H</h2>
-                            
-                            <div className="mb-6">
-                                <h3 className="bg-success text-white font-bold px-3 py-1 rounded text-sm uppercase mb-2">ASS.DSS + ESTOU BEM ({specialCat.ok.length})</h3>
-                                {renderEmployeeList(specialCat.ok)}
-                            </div>
-
-                            <div className="mb-6">
-                                <h3 className="bg-danger text-white font-bold px-3 py-1 rounded text-sm uppercase mb-2">ESTOU MAL ({specialCat.mal.length})</h3>
-                                {renderEmployeeList(specialCat.mal)}
-                            </div>
-
-                            <div className="mb-6">
-                                <h3 className="bg-neutral text-white font-bold px-3 py-1 rounded text-sm uppercase mb-2">PENDENTES / AUSENTES ({specialCat.pending.length})</h3>
-                                {renderEmployeeList(specialCat.pending)}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Manual Registrations Section */}
-                    {manualRegistrations.length > 0 && (
-                        <div className="mt-8 pt-6 border-t-2 border-gray-200 dark:border-gray-700">
-                            <h2 className="text-lg font-bold text-light-text dark:text-dark-text mb-4">ASSUNTOS DA DSS</h2>
-                            <ul className="list-disc pl-5 space-y-2">
-                                 {manualRegistrations.map(reg => {
-                                     return (
-                                         <li key={reg.id} className="text-sm text-light-text dark:text-dark-text">
-                                             <span className="font-bold">{reg.matricula}</span> - {reg.assunto} <span className="text-xs bg-gray-200 dark:bg-gray-600 px-1 rounded">{reg.TURNO === '7H-19H' ? '7H' : reg.TURNO}</span>
-                                         </li>
-                                     )
-                                 })}
-                            </ul>
-                        </div>
-                    )}
-                </div>
-
-                <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <button onClick={handleCopyReport} className="w-full py-4 font-bold text-white bg-primary rounded-lg hover:bg-primary-dark transition">
-                        COPIAR
-                    </button>
-                    <button onClick={handleDownloadReport} className="w-full py-4 font-bold text-white bg-success rounded-lg hover:bg-green-600 transition">
-                        BAIXAR
-                    </button>
-                </div>
-            </div>
-            <style>{`
-                @keyframes fade-in-scale {
-                  from { opacity: 0; transform: scale(${finalScale * 0.95}); }
-                  to { opacity: 1; transform: scale(${finalScale}); }
-                }
-            `}</style>
         </div>
     );
 };
