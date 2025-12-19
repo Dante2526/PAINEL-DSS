@@ -77,17 +77,20 @@ const tutorialSteps: TutorialStep[] = [
     {
         targetId: 'tutorial-stats',
         title: 'Estatísticas em Tempo Real',
-        content: 'Acompanhe quantos colaboradores estão bem, mal ou ausentes instantaneamente.'
+        content: 'Acompanhe quantos colaboradores estão bem, mal ou ausentes instantaneamente.',
+        scrollTargetId: 'app-header' // Keep header in view
     },
     {
         targetId: 'tutorial-dark-mode',
         title: 'Modo Escuro (BB-8)',
-        content: 'Clique no pequeno droide BB-8 para alternar entre o modo Claro e Escuro. Ideal para ambientes com pouca luz.'
+        content: 'Clique no pequeno droide BB-8 para alternar entre o modo Claro e Escuro. Ideal para ambientes com pouca luz.',
+        scrollTargetId: 'app-header' // Keep header in view
     },
     {
         targetId: 'tutorial-admin-btn',
         title: 'Área Administrativa',
-        content: 'Acesso restrito para limpar os dados diários, gerar relatórios em PDF/Texto e cadastrar novos usuários.'
+        content: 'Acesso restrito para limpar os dados diários, gerar relatórios em PDF/Texto e cadastrar novos usuários.',
+        scrollTargetId: 'app-header' // Keep header in view
     }
 ];
 
@@ -1477,6 +1480,10 @@ const App: React.FC = () => {
         // FIX: Also apply to the special turn button (Step 6) to keep the special panel in view
         if (step.targetId === 'tutorial-return-turn-btn') {
             targetIdForZoom = 'tutorial-special-demo-area';
+        }
+        // FIX: For steps 7, 8, and 9 (Stats, Dark Mode, Admin), use the whole header for zoom calculation
+        if (['tutorial-stats', 'tutorial-dark-mode', 'tutorial-admin-btn'].includes(step.targetId)) {
+            targetIdForZoom = 'app-header';
         }
 
         const element = document.getElementById(targetIdForZoom);
