@@ -1,6 +1,14 @@
 
 
 /* === GENERAL STYLES === */
+html, body {
+    height: 100%;
+    width: 100%;
+    overflow-x: hidden; /* Prevent horizontal scroll from bouncing */
+    overscroll-behavior-y: none; /* Prevent pull-to-refresh effect and bounce */
+    touch-action: pan-x pan-y; /* Let browser handle panning, we handle zoom */
+}
+
 body {
     overflow: hidden; /* Prevent the main page from scrolling */
 }
@@ -8,6 +16,8 @@ body {
 .viewport {
     overflow: auto; /* Allow this container to have scrollbars */
     cursor: grab;
+    overscroll-behavior: none; /* Prevent bounce within viewport */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 .viewport:active {
