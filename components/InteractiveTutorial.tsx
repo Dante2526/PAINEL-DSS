@@ -82,7 +82,7 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
             onStepChange(step);
         }
 
-        // Reduced delay to 50ms for snappier response
+        // Removed delay almost entirely to start tracking immediately with the scroll
         const timer = setTimeout(() => {
             const element = document.getElementById(step.targetId);
             
@@ -90,17 +90,18 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
                 // 1. Trigger Smooth Scroll
                 element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
                 
-                // 2. Start a Tracking Loop for ~1 second (duration of typical smooth scroll)
-                // This ensures the spotlight 'sticks' to the element as the page scrolls smoothly.
+                // 2. Start a Tracking Loop
+                // Since we removed CSS transition on top/left, this loop will make the spotlight
+                // stick perfectly to the element as it moves across the screen.
                 const startTime = performance.now();
                 
                 const track = () => {
                     measurePosition();
-                    // Continue tracking for 1000ms to cover the scroll animation duration
-                    if (performance.now() - startTime < 1000) {
+                    // Track for 1.2 seconds to ensure scroll momentum is finished
+                    if (performance.now() - startTime < 1200) {
                         requestRef.current = requestAnimationFrame(track);
                     } else {
-                        setIsTransitioning(false); // End transition state
+                        setIsTransitioning(false); 
                     }
                 };
                 
@@ -109,7 +110,7 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
                 setTargetRect(null);
                 setIsTransitioning(false);
             }
-        }, 50);
+        }, 10);
 
         return () => {
             clearTimeout(timer);
@@ -193,8 +194,10 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
                         width: targetRect.width + 16,
                         height: targetRect.height + 16,
                         zIndex: 1000,
-                        // Custom bezier for "premium" feel: snappy start, smooth end
-                        transition: 'all 500ms cubic-bezier(0.25, 0.46, 0.45, 0.94)' 
+                        // OPTIMIZATION: Only animate width and height. 
+                        // We let the JS loop handle top/left updates instantly to match the scroll speed exactly.
+                        // This prevents the "searching" or "rubber band" effect.
+                        transition: 'width 0.4s ease-out, height 0.4s ease-out' 
                     }}
                 >
                     <span className="absolute -top-2 -right-2 flex h-6 w-6">
