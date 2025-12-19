@@ -38,7 +38,7 @@ const Header: React.FC<HeaderProps> = ({ stats, loading, onAdminClick, onHelpCli
                     <p className="text-light-text-secondary dark:text-dark-text-secondary">Diálogo de Saúde e Segurança - Monitoramento em tempo real</p>
                 </div>
             </div>
-            <div className="flex flex-col items-end gap-5">
+            <div id="tutorial-header-actions" className="flex flex-col items-end gap-5">
                 <div className="flex items-center gap-5">
                    <button 
                         onClick={onHelpClick}

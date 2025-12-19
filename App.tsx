@@ -78,19 +78,19 @@ const tutorialSteps: TutorialStep[] = [
         targetId: 'tutorial-stats',
         title: 'Estatísticas em Tempo Real',
         content: 'Acompanhe quantos colaboradores estão bem, mal ou ausentes instantaneamente.',
-        scrollTargetId: 'app-header' // Keep header in view
+        scrollTargetId: 'app-header' // Group view at header
     },
     {
         targetId: 'tutorial-dark-mode',
         title: 'Modo Escuro (BB-8)',
         content: 'Clique no pequeno droide BB-8 para alternar entre o modo Claro e Escuro. Ideal para ambientes com pouca luz.',
-        scrollTargetId: 'app-header' // Keep header in view
+        scrollTargetId: 'app-header' // Group view at header
     },
     {
         targetId: 'tutorial-admin-btn',
         title: 'Área Administrativa',
         content: 'Acesso restrito para limpar os dados diários, gerar relatórios em PDF/Texto e cadastrar novos usuários.',
-        scrollTargetId: 'app-header' // Keep header in view
+        scrollTargetId: 'app-header' // Group view at header
     }
 ];
 
@@ -1481,9 +1481,16 @@ const App: React.FC = () => {
         if (step.targetId === 'tutorial-return-turn-btn') {
             targetIdForZoom = 'tutorial-special-demo-area';
         }
-        // FIX: For steps 7, 8, and 9 (Stats, Dark Mode, Admin), use the whole header for zoom calculation
+        // FIX: For steps 7, 8, and 9 (Stats, Dark Mode, Admin), use the header actions container
+        // and force scroll to top to ensure visibility.
         if (['tutorial-stats', 'tutorial-dark-mode', 'tutorial-admin-btn'].includes(step.targetId)) {
-            targetIdForZoom = 'app-header';
+            targetIdForZoom = 'tutorial-header-actions';
+            
+            // CRITICAL FIX: Explicitly force scroll to top when header steps are active
+            // This bypasses unreliable scrollIntoView logic on scaled containers
+            if (viewportRef.current) {
+                viewportRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         }
 
         const element = document.getElementById(targetIdForZoom);
