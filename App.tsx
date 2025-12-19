@@ -54,12 +54,14 @@ const tutorialSteps: TutorialStep[] = [
     {
         targetId: 'tutorial-card-actions',
         title: 'Botões de Ação',
-        content: 'Use "TURNO 6H" para mover o colaborador para uma coluna somente para esse turno. Use "AUSENTE" para marcar que o colaborador faltou. Use "DELETAR" para remover permanentemente o usuário (Aparece somente para-ADM).'
+        content: 'Use "TURNO 6H" para mover o colaborador para uma coluna somente para esse turno. Use "AUSENTE" para marcar que o colaborador faltou. Use "DELETAR" para remover permanentemente o usuário (Aparece somente para-ADM).',
+        scrollTargetId: 'tutorial-first-card' // Centers the view on the whole card
     },
     {
         targetId: 'tutorial-card-time',
         title: 'Registro de Horário',
-        content: 'Aqui fica registrado o momento exato em que o colaborador assinou sua DSS'
+        content: 'Aqui fica registrado o momento exato em que o colaborador assinou sua DSS',
+        scrollTargetId: 'tutorial-first-card' // Centers the view on the whole card
     },
     {
         targetId: 'tutorial-special-demo-area',
@@ -69,7 +71,8 @@ const tutorialSteps: TutorialStep[] = [
     {
         targetId: 'tutorial-return-turn-btn',
         title: 'Retornar ao Turno Normal',
-        content: 'Ao Clicar neste botão na coluna do horário especial, o colaborador é movido de volta para o turno normal.'
+        content: 'Ao Clicar neste botão na coluna do horário especial, o colaborador é movido de volta para o turno normal.',
+        scrollTargetId: 'tutorial-special-demo-area' // Centers the view on the special panel area
     },
     {
         targetId: 'tutorial-stats',
@@ -1470,6 +1473,10 @@ const App: React.FC = () => {
         let targetIdForZoom = step.targetId;
         if (step.targetId === 'tutorial-card-actions' || step.targetId === 'tutorial-card-time') {
             targetIdForZoom = 'tutorial-first-card';
+        }
+        // FIX: Also apply to the special turn button (Step 6) to keep the special panel in view
+        if (step.targetId === 'tutorial-return-turn-btn') {
+            targetIdForZoom = 'tutorial-special-demo-area';
         }
 
         const element = document.getElementById(targetIdForZoom);
