@@ -447,12 +447,16 @@ const App: React.FC = () => {
         const scalableContainer = scalableContainerRef.current;
         if (!viewport || !scalableContainer) return;
 
-        const finalScale = Math.max(0.2, Math.min(newScale, 2.0));
+        // Calculate dynamic minimum scale based on viewport width
+        // This ensures the user cannot zoom out beyond the content width (Fit to Width)
+        const minScale = viewport.clientWidth / scalableContainer.offsetWidth;
+        
+        // Clamp scale: min is the fit-to-width ratio, max is 2.0
+        // Use a slightly more robust check in case minScale calculation is off (e.g. 0.05 default floor)
+        const effectiveMinScale = Math.max(0.05, minScale);
+        const finalScale = Math.max(effectiveMinScale, Math.min(newScale, 2.0));
+        
         scaleStateRef.current.currentScale = finalScale;
-
-        // FIXED: Removed dynamic minWidth/minHeight calculation based on viewport/scale.
-        // This was causing the container to expand infinitely when zoom level was low or after keyboard usage.
-        // The container uses a fixed class width (w-[3650px]), so we let it be its natural size.
         
         scalableContainer.style.transform = `scale(${finalScale})`;
         if (scrollX !== undefined) viewport.scrollLeft = scrollX;
