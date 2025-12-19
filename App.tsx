@@ -1429,18 +1429,17 @@ const App: React.FC = () => {
 
         let targetIdForZoom = step.targetId;
         
-        // Contexto de grupo para interações com cartões
+        // Group context for card interactions
         if (step.targetId === 'tutorial-card-actions' || step.targetId === 'tutorial-card-time') {
             targetIdForZoom = 'tutorial-first-card';
         }
         
-        // Contexto de grupo para painel especial
+        // Group context for special panel interactions
         if (step.targetId === 'tutorial-return-turn-btn') {
             targetIdForZoom = 'tutorial-special-demo-area';
         }
         
-        // CRITICAL FIX: Lógica específica para passos do cabeçalho (7, 8, 9)
-        // No celular, forçamos o scroll para o topo (0,0) antes de calcular e aplicar o zoom.
+        // CRITICAL FIX: Explicitly handle header steps (7, 8, 9)
         if (['tutorial-stats', 'tutorial-dark-mode', 'tutorial-admin-btn'].includes(step.targetId)) {
             targetIdForZoom = 'tutorial-header-actions';
             
@@ -1452,15 +1451,9 @@ const App: React.FC = () => {
                 let newScale = availableWidth / elementWidth;
                 newScale = Math.min(Math.max(newScale, 0.3), 1.1);
                 
-                // Forçamos o scrollTop para 0 instantaneamente para garantir que o cabeçalho esteja no topo.
-                if (viewportRef.current) {
-                    viewportRef.current.scrollTop = 0;
-                    viewportRef.current.scrollLeft = 0;
-                }
-                
-                // Aplica escala resetando as coordenadas de scroll no sistema de zoom customizado.
+                // Force scroll to top (0,0) and set scale simultaneously
                 setScale(newScale, 0, 0);
-                return; 
+                return; // Early return to avoid double logic
             }
         }
 
