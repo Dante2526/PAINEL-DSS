@@ -57,11 +57,7 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
                 return;
             }
         }
-        // If element missing or hidden, keep previous rect if valid to prevent flash, 
-        // or set to null if we really want to hide it. 
-        // For smoother transitions, we might want to check if it's truly gone.
-        // Here we set to null to indicate "lost target" which shows fallback.
-        // But to avoid blinking during quick transitions, we only set null if definitely gone.
+        // If element missing or hidden
         if (!element) {
              setTargetRect(null);
         }
@@ -83,6 +79,11 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
 
         // 1. Clear any pending updates
         if (requestRef.current) cancelAnimationFrame(requestRef.current);
+        
+        // CRITICAL FIX: Hide the spotlight immediately when changing steps.
+        // This prevents the "ghost" spotlight from being seen at the old position 
+        // while the page scrolls to the new position.
+        setTargetRect(null);
 
         // 2. Small delay to allow React to render any DOM changes (e.g. modals opening)
         const timer = setTimeout(() => {
@@ -91,7 +92,6 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
             
             if (element) {
                 // 3. Scroll instantly to position to ensure subsequent measurement is correct.
-                // 'smooth' behavior causes layout drift during measurement.
                 element.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center' });
                 
                 // 4. Measure immediately after scroll
@@ -184,7 +184,8 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
             
             {/* 1. Dark Background / Highlight Logic */}
             {targetRect ? (
-                /* Box Shadow Trick for "Hole" effect */
+                /* Box Shadow Trick for "Hole" effect. 
+                   RGBA(0,0,0,0.75) matches the fallback opacity below exactly. */
                 <div 
                     className="absolute transition-all duration-500 ease-in-out border-2 border-white rounded-xl shadow-[0_0_0_9999px_rgba(0,0,0,0.75)] pointer-events-none"
                     style={{
@@ -202,8 +203,12 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
                     </span>
                 </div>
             ) : (
-                /* Fallback Full Dark Overlay if target not found */
-                <div className="absolute inset-0 bg-black/80 transition-opacity duration-500 z-[1000]" />
+                /* Fallback Full Dark Overlay if target not found or during transition.
+                   Hardcoded RGBA to match shadow exactly, preventing flicker. */
+                <div 
+                    className="absolute inset-0 transition-opacity duration-500 z-[1000]" 
+                    style={{ backgroundColor: 'rgba(0, 0, 0, 0.75)' }}
+                />
             )}
 
             {/* 2. Tooltip Card */}
@@ -223,7 +228,7 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
                     </p>
                     {!targetRect && (
                         <p className="text-xs text-orange mt-2 italic">
-                            (Elemento destacado não visível no momento)
+                            (Localizando elemento...)
                         </p>
                     )}
                 </div>
