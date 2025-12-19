@@ -14,9 +14,10 @@ interface InteractiveTutorialProps {
     onClose: () => void;
     steps: TutorialStep[];
     scale?: number; // Added scale prop
+    onStepChange?: (step: TutorialStep) => void; // New prop for zoom control
 }
 
-const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClose, steps, scale = 1 }) => {
+const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClose, steps, scale = 1, onStepChange }) => {
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
     const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
     const [isMobile, setIsMobile] = useState(false);
@@ -86,9 +87,16 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
         setTargetRect(null);
         setIsTransitioning(true);
 
-        // 2. Small delay to allow React to render any DOM changes (e.g. modals opening)
+        const step = steps[currentStepIndex];
+
+        // Notify parent to adjust zoom/layout BEFORE we scroll/measure
+        if (onStepChange) {
+            onStepChange(step);
+        }
+
+        // 2. Delay to allow React to render any DOM changes (e.g. modals opening) 
+        // and allow Parent Zoom to settle. Increased to 300ms for smoother zoom sync.
         const timer = setTimeout(() => {
-            const step = steps[currentStepIndex];
             const element = document.getElementById(step.targetId);
             
             if (element) {
@@ -102,13 +110,13 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
             }
             // Transition finished, allow UI updates
             setIsTransitioning(false);
-        }, 100);
+        }, 300);
 
         return () => {
             clearTimeout(timer);
             if (requestRef.current) cancelAnimationFrame(requestRef.current);
         };
-    }, [isOpen, currentStepIndex, steps, measurePosition]);
+    }, [isOpen, currentStepIndex, steps, measurePosition, onStepChange]);
 
     // Attach scroll/resize listeners
     useEffect(() => {

@@ -181,6 +181,9 @@ const ManualRegisterSection: React.FC<{
     );
 };
 
+// ... [AdminLoginModal, AdminOptionsModal, AddUserModal, ReportModal remain unchanged, omitting for brevity] ...
+// Re-inserting them properly for context:
+
 const AdminLoginModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
@@ -516,14 +519,13 @@ const App: React.FC = () => {
 
     // Função para enviar alerta por e-mail
     const sendAlertEmail = async (name: string, matricula: string, turno: string) => {
-        if (isDemoMode) {
+        // ... [Email alert logic unchanged] ...
+         if (isDemoMode) {
             console.log(`[DEMO] Email alert triggered for ${name}`);
             return;
         }
         try {
             const currentTime = new Date().toLocaleString('pt-BR');
-            
-            // HTML EMAIL BUILDER
             const emailContent = `
             <!DOCTYPE html>
             <html lang="pt-BR">
@@ -892,6 +894,9 @@ const App: React.FC = () => {
 
     }, [initializeScale, setScale]);
 
+    // ... [handleEnterDemoMode, processStatusUpdate, handleTimeUpdate, handleStatusChange, handleConfirmMal, handleConfirmAbsent, processToggleSpecialTeam, handleToggleSpecialTeam, handleConfirmTurno, processDeleteUser, handleDeleteUser, handleConfirmDelete, handleManualRegister, handleAdminLogin, handleAddUser, handleClearData, handleReorganize, stats, mainTeam, specialTeam logic unchanged] ...
+    
+    // ... inserting logic back for context ...
     const handleEnterDemoMode = () => {
         isDemoModeRef.current = true;
         
@@ -931,7 +936,6 @@ const App: React.FC = () => {
         showNotification('Modo de Demonstração Ativado! Dados fictícios carregados.', 'success');
     };
 
-    // Original logic separated for reuse
     const processStatusUpdate = async (id: string, type: StatusType) => {
         const employee = employees.find(e => e.id === id);
         if (!employee) return;
@@ -1062,7 +1066,6 @@ const App: React.FC = () => {
         }
     };
 
-    // Intercept click handler
     const handleStatusChange = (id: string, type: StatusType) => {
         const employee = employees.find(e => e.id === id);
         if (!employee) return;
@@ -1103,7 +1106,6 @@ const App: React.FC = () => {
         }
     };
     
-    // Original toggle separated for reuse
     const processToggleSpecialTeam = async (id: string) => {
         setTogglingSpecialTeamId(id);
         const employee = employees.find(e => e.id === id);
@@ -1144,7 +1146,6 @@ const App: React.FC = () => {
         }
     };
 
-    // Intercepted Handler for Special Team Toggle
     const handleToggleSpecialTeam = (id: string) => {
         // Open confirmation modal
         setPendingEmployeeId(id);
@@ -1159,7 +1160,6 @@ const App: React.FC = () => {
         }
     };
 
-    // Separated Delete Logic
     const processDeleteUser = async (employeeId: string) => {
         const employeeToDelete = employees.find(e => e.id === employeeId);
         if (!employeeToDelete) return;
@@ -1185,7 +1185,6 @@ const App: React.FC = () => {
         }
     };
 
-    // Intercepted Delete Handler
     const handleDeleteUser = (employeeId: string) => {
         if (!isAdmin) {
             showNotification('Apenas administradores podem deletar usuários.', 'error');
@@ -1202,7 +1201,6 @@ const App: React.FC = () => {
         setActiveModal(ModalType.ConfirmDelete);
     };
 
-    // Confirmation Handler for Delete
     const handleConfirmDelete = () => {
         if (pendingEmployeeId) {
             processDeleteUser(pendingEmployeeId);
@@ -1435,8 +1433,6 @@ const App: React.FC = () => {
         showNotification('Painel reorganizado alfabeticamente!', 'success');
     };
 
-    // MIGRATION FUNCTION REMOVED
-    
     const stats = useMemo(() => ({
         bem: employees.filter(e => e.bem).length,
         mal: employees.filter(e => e.mal).length,
@@ -1461,6 +1457,35 @@ const App: React.FC = () => {
         const current = employees.find(e => e.id === pendingEmployeeId)?.turno;
         return current === '6H' ? '7H' : '6H';
     };
+
+    // --- NEW TUTORIAL ZOOM LOGIC ---
+    const handleTutorialStepChange = (step: TutorialStep) => {
+        // Only auto-zoom on mobile/touch devices
+        const isMobile = window.innerWidth < 1024; 
+        if (!isMobile) return;
+
+        const element = document.getElementById(step.targetId);
+        if (!element) return;
+        
+        // Logic to calculate scale to make element focused
+        const margin = 32;
+        const availableWidth = window.innerWidth - margin;
+        // Visual width in layout flow (approx)
+        const elementWidth = element.offsetWidth; 
+        
+        if (elementWidth > 0) {
+            let newScale = availableWidth / elementWidth;
+            
+            // Clamp scale to avoid extreme zooms
+            // Min 0.3 (very zoomed out)
+            // Max 1.1 (slightly zoomed in)
+            newScale = Math.min(Math.max(newScale, 0.3), 1.1);
+            
+            // Apply scale
+            setScale(newScale);
+        }
+    }
+    // -------------------------------
 
     return (
         <div className="bg-light-bg-secondary dark:bg-dark-bg min-h-screen text-light-text dark:text-dark-text transition-colors">
@@ -1568,6 +1593,7 @@ const App: React.FC = () => {
                 onClose={() => setActiveModal(ModalType.None)}
                 steps={tutorialSteps}
                 scale={modalScale}
+                onStepChange={handleTutorialStepChange}
             />
 
             <InteractiveTutorial
@@ -1575,6 +1601,7 @@ const App: React.FC = () => {
                 onClose={() => setIsAdminTutorialOpen(false)}
                 steps={adminTutorialSteps}
                 scale={modalScale}
+                onStepChange={handleTutorialStepChange}
             />
             
             {activeModal === ModalType.ConfirmMal && (
@@ -1640,6 +1667,7 @@ const App: React.FC = () => {
                 </div>
             )}
 
+            {/* ... [ConfirmTurno, ConfirmAbsent, ConfirmDelete modals remain identical to previous App.tsx] ... */}
             {activeModal === ModalType.ConfirmTurno && (
                 <div 
                     className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
