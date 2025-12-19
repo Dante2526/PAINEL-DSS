@@ -1464,7 +1464,15 @@ const App: React.FC = () => {
         const isMobile = window.innerWidth < 1024; 
         if (!isMobile) return;
 
-        const element = document.getElementById(step.targetId);
+        // FIX: For steps inside the card (actions, time), use the card container's ID 
+        // to calculate the zoom level. This prevents "super zooming" into small elements
+        // and keeps the context (the whole card) visible.
+        let targetIdForZoom = step.targetId;
+        if (step.targetId === 'tutorial-card-actions' || step.targetId === 'tutorial-card-time') {
+            targetIdForZoom = 'tutorial-first-card';
+        }
+
+        const element = document.getElementById(targetIdForZoom);
         if (!element) return;
         
         // Logic to calculate scale to make element focused
