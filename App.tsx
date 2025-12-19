@@ -1167,7 +1167,7 @@ const App: React.FC = () => {
                     )}
                     
                     <div className="flex gap-8 flex-nowrap">
-                       <div className="w-[2674px] flex flex-col gap-8 shrink-0">
+                       <div className="flex flex-col gap-8 shrink-0">
                             <ManualRegisterSection 
                                 subject={mainSubject}
                                 matricula={mainMatricula}
@@ -1176,7 +1176,7 @@ const App: React.FC = () => {
                                 onRegister={() => handleManualRegister('7H-19H')}
                                 employees={employees}
                             />
-                            <div className="flex-grow flex gap-8">
+                            <div className="flex gap-8">
                                 <div className="flex flex-col gap-6 w-[870px]">
                                     {col1.map((emp, index) => (
                                         <EmployeeCard 
