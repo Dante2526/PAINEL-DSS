@@ -19,6 +19,7 @@ interface InteractiveTutorialProps {
 const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClose, steps, scale = 1 }) => {
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
     const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
+    const [isMobile, setIsMobile] = useState(false);
     
     // Prevent scrolling when tutorial is open
     useEffect(() => {
@@ -29,6 +30,16 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
         }
         return () => { document.body.style.overflow = ''; };
     }, [isOpen]);
+
+    // Check for mobile device
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     const updateTargetPosition = useCallback(() => {
         if (!isOpen) return;
@@ -90,18 +101,33 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
     const step = steps[currentStepIndex];
     const isLastStep = currentStepIndex === steps.length - 1;
 
-    // Calculate Tooltip Position with Scale
+    // Calculate Tooltip Position
     let tooltipStyle: React.CSSProperties = {};
     
-    if (targetRect) {
+    if (isMobile) {
+        // MOBILE LOGIC: Dock to bottom or top based on target position to avoid covering it
+        const isTargetInBottomHalf = targetRect ? targetRect.top > window.innerHeight / 2 : false;
+        
+        tooltipStyle = {
+            position: 'fixed',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            width: '90vw',
+            zIndex: 1002,
+            // If target is in bottom half, show tooltip at top. Otherwise bottom.
+            bottom: isTargetInBottomHalf ? undefined : '20px',
+            top: isTargetInBottomHalf ? '20px' : undefined,
+        };
+    } else if (targetRect) {
+        // DESKTOP LOGIC: Follow the target
         const pos = getTooltipPosition(targetRect, scale, step.position);
         tooltipStyle = {
             top: pos.top,
             left: pos.left,
             position: 'absolute',
             transform: `scale(${scale})`,
-            transformOrigin: 'top left', // Important so the calculations in getTooltipPosition match the visual anchor
-            width: '400px' // Base width before scaling
+            transformOrigin: 'top left',
+            width: '400px'
         };
     } else {
         // Fallback: Center of screen
@@ -193,7 +219,7 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
     );
 };
 
-// Helper to calculate tooltip position to ensure it stays on screen
+// Helper to calculate tooltip position to ensure it stays on screen (Desktop only)
 function getTooltipPosition(rect: DOMRect, scale: number, preferredPosition?: 'top' | 'bottom' | 'left' | 'right') {
     const margin = 20 * scale; // Scale the margin too
     // Base dimensions
@@ -211,8 +237,7 @@ function getTooltipPosition(rect: DOMRect, scale: number, preferredPosition?: 't
     let left = 0;
 
     // Strategy: Try to place it, if it overflows, flip it.
-    // Calculations return the Top-Left coordinate for the *Scaled Box*
-
+    
     // Default: Bottom Center
     if (rect.bottom + scaledHeight + margin < windowHeight) {
         top = rect.bottom + margin;
@@ -234,8 +259,7 @@ function getTooltipPosition(rect: DOMRect, scale: number, preferredPosition?: 't
         left = rect.left - scaledWidth - margin;
     }
     
-    // Clamp horizontal
-    // We must ensure the SCALED box fits.
+    // Clamp horizontal to prevent negative left or overflow
     if (left < margin) left = margin;
     if (left + scaledWidth > windowWidth - margin) left = windowWidth - scaledWidth - margin;
     
