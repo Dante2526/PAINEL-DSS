@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import Modal from './Modal';
 import { SubjectIcon, UserIcon, MousePointerIcon, AdminIcon, InfoIcon, ZoomIcon } from './icons';
@@ -10,9 +11,9 @@ interface TutorialModalProps {
 }
 
 const TutorialModal: React.FC<TutorialModalProps> = ({ isOpen, onClose, scale }) => {
-    // Mobile check roughly similar to App.tsx
-    const isMobile = scale && scale > 1.1; 
-    const maxWidthClass = isMobile ? 'max-w-2xl' : 'max-w-5xl';
+    // Mobile check based on screen width since scale is normalized
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    const maxWidthClass = isMobile ? 'max-w-[95vw]' : 'max-w-5xl';
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Como usar o Sistema" scale={scale}>

@@ -175,14 +175,8 @@ const App: React.FC = () => {
 
     useEffect(() => {
         const calculateModalScale = () => {
-            const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-            
-            if (isTouchDevice) {
-                // Aumentado para 3.5 para garantir visibilidade em telas móveis
-                setModalScale(3.5);
-            } else {
-                setModalScale(1); // Default scale for desktop
-            }
+            // Com o viewport configurado para device-width, usamos escala 1 para elementos de UI fixa (modais/notificações)
+            setModalScale(1);
         };
 
         calculateModalScale();
@@ -1879,11 +1873,11 @@ ${manualRegistrations.map(reg => `• ${reg.matricula} - ${reg.assunto} (${reg.T
     if (!isOpen) return null;
 
     // Mobile specific scale logic for ReportModal
-    // Using 0.48 as requested for mobile view
-    const isMobile = scale > 1.1; 
-    const finalScale = isMobile ? scale * 0.48 : 0.85;
-    const maxWidthClass = isMobile ? 'max-w-2xl' : 'max-w-5xl';
-    const maxHeightClass = isMobile ? 'max-h-[65vh]' : 'max-h-[80vh]';
+    // Update logic to depend on window width since scale is now normalized to 1
+    const isMobileView = typeof window !== 'undefined' && window.innerWidth < 768;
+    const finalScale = isMobileView ? 0.95 : 1;
+    const maxWidthClass = isMobileView ? 'max-w-[95vw]' : 'max-w-5xl';
+    const maxHeightClass = isMobileView ? 'max-h-[65vh]' : 'max-h-[80vh]';
 
     const modalStyle = { 
         transform: `scale(${finalScale})`, 
@@ -1904,7 +1898,7 @@ ${manualRegistrations.map(reg => `• ${reg.matricula} - ${reg.assunto} (${reg.T
                 <h2 className="text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6">RELATÓRIO</h2>
                 
                 <div className={`text-left bg-light-bg dark:bg-dark-bg-secondary p-6 rounded-lg ${maxHeightClass} overflow-y-auto`}>
-                    <div className={`grid gap-8 ${isMobile ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2'}`}>
+                    <div className={`grid gap-8 ${isMobileView ? 'grid-cols-2' : 'grid-cols-1 md:grid-cols-2'}`}>
                         {/* Column 7H */}
                         <div>
                             <h2 className="text-xl font-bold text-primary mb-4 border-b-2 border-primary pb-2">TURNO 7H</h2>
