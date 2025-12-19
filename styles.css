@@ -1,22 +1,13 @@
 
+
 /* === GENERAL STYLES === */
-html, body {
-    height: 100%;
-    width: 100%;
-    overflow: hidden; /* Prevent scrolling on body level */
-    overscroll-behavior: none; /* Prevent bounce effects */
-    touch-action: none; /* Disable browser handling of gestures globally */
+body {
+    overflow: hidden; /* Prevent the main page from scrolling */
 }
 
 .viewport {
-    overflow: hidden; /* Hide scrollbars, we use transform translate */
+    overflow: auto; /* Allow this container to have scrollbars */
     cursor: grab;
-    width: 100%;
-    height: 100%;
-    touch-action: none; /* CRITICAL: Disables browser pan/zoom so our JS handles it */
-    position: fixed; /* Fix viewport to screen */
-    top: 0;
-    left: 0;
 }
 
 .viewport:active {
@@ -26,7 +17,6 @@ html, body {
 .scalable-container {
     transform-origin: 0 0; /* Anchor scaling to the top-left corner */
     will-change: transform; /* Hint to the browser for performance optimization */
-    /* Ensure container has explicit dimensions if needed, mostly handled by w-[3650px] in JS */
 }
 
 

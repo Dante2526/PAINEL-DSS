@@ -447,17 +447,14 @@ const App: React.FC = () => {
         const scalableContainer = scalableContainerRef.current;
         if (!viewport || !scalableContainer) return;
 
-        // Calculate dynamic minimum scale based on viewport width
-        // This ensures the user cannot zoom out beyond the content width (Fit to Width)
-        const minScale = viewport.clientWidth / scalableContainer.offsetWidth;
-        
-        // Clamp scale: min is the fit-to-width ratio, max is 2.0
-        // Use a slightly more robust check in case minScale calculation is off (e.g. 0.05 default floor)
-        const effectiveMinScale = Math.max(0.05, minScale);
-        const finalScale = Math.max(effectiveMinScale, Math.min(newScale, 2.0));
-        
+        const finalScale = Math.max(0.2, Math.min(newScale, 2.0));
         scaleStateRef.current.currentScale = finalScale;
-        
+
+        // Dynamically set minWidth and minHeight to ensure the container always fills the viewport,
+        // effectively expanding it when zoomed out.
+        scalableContainer.style.minWidth = `${viewport.clientWidth / finalScale}px`;
+        scalableContainer.style.minHeight = `${viewport.clientHeight / finalScale}px`;
+
         scalableContainer.style.transform = `scale(${finalScale})`;
         if (scrollX !== undefined) viewport.scrollLeft = scrollX;
         if (scrollY !== undefined) viewport.scrollTop = scrollY;
@@ -1563,7 +1560,7 @@ const ManualRegisterSection: React.FC<ManualRegisterSectionProps> = ({
                         value={subject} 
                         onChange={(e) => onSubjectChange(e.target.value)} 
                         placeholder="Assunto do DSS" 
-                        className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition uppercase text-xl"
+                        className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition uppercase"
                         autoCapitalize="characters"
                     />
                 </div>
@@ -1576,7 +1573,7 @@ const ManualRegisterSection: React.FC<ManualRegisterSectionProps> = ({
                             value={matricula} 
                             onChange={handleMatriculaChange} 
                             placeholder="Matrícula" 
-                            className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg border-2 border-r-0 border-gray-200 dark:border-gray-600 rounded-l-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition text-xl"
+                            className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg border-2 border-r-0 border-gray-200 dark:border-gray-600 rounded-l-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
                             inputMode="numeric"
                             pattern="[0-9]*"
                         />
@@ -1587,11 +1584,11 @@ const ManualRegisterSection: React.FC<ManualRegisterSectionProps> = ({
                             value={foundName} 
                             readOnly
                             placeholder={matricula ? "Colaborador não encontrado" : "Nome do Colaborador"}
-                            className="w-full px-4 py-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-medium border-2 border-l-0 border-gray-200 dark:border-gray-600 rounded-r-lg outline-none pointer-events-none truncate text-xl"
+                            className="w-full px-4 py-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-medium border-2 border-l-0 border-gray-200 dark:border-gray-600 rounded-r-lg outline-none pointer-events-none truncate"
                         />
                     </div>
                 </div>
-                <button onClick={onRegister} id="tutorial-manual-register-btn" className="px-9 py-4 font-bold text-white bg-gradient-to-r from-primary to-primary-dark rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex-shrink-0 text-xl">
+                <button onClick={onRegister} id="tutorial-manual-register-btn" className="px-9 py-4 font-bold text-white bg-gradient-to-r from-primary to-primary-dark rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex-shrink-0">
                     REGISTRAR
                 </button>
             </div>
