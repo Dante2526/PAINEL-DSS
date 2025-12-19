@@ -444,10 +444,8 @@ const App: React.FC = () => {
         const finalScale = Math.max(0.2, Math.min(newScale, 2.0));
         scaleStateRef.current.currentScale = finalScale;
 
-        // Dynamically set minWidth and minHeight to ensure the container always fills the viewport,
-        // effectively expanding it when zoomed out.
-        scalableContainer.style.minWidth = `${viewport.clientWidth / finalScale}px`;
-        scalableContainer.style.minHeight = `${viewport.clientHeight / finalScale}px`;
+        // REMOVED: Dynamic minWidth and minHeight which caused empty space.
+        // The container will now fit its content exactly.
 
         scalableContainer.style.transform = `scale(${finalScale})`;
         if (scrollX !== undefined) viewport.scrollLeft = scrollX;
@@ -1152,7 +1150,7 @@ const App: React.FC = () => {
     return (
         <div className="bg-light-bg-secondary dark:bg-dark-bg min-h-screen text-light-text dark:text-dark-text transition-colors">
             <div ref={viewportRef} className="viewport fixed inset-0">
-                <div ref={scalableContainerRef} className="scalable-container w-[3650px] p-8">
+                <div ref={scalableContainerRef} className="scalable-container w-fit origin-top-left p-8">
                     <Header
                         stats={stats}
                         loading={loading}
@@ -1168,8 +1166,8 @@ const App: React.FC = () => {
                         </div>
                     )}
                     
-                    <div className="flex gap-8 w-[3576px]">
-                       <div className="w-[2674px] flex flex-col gap-8">
+                    <div className="flex gap-8 flex-nowrap">
+                       <div className="w-[2674px] flex flex-col gap-8 shrink-0">
                             <ManualRegisterSection 
                                 subject={mainSubject}
                                 matricula={mainMatricula}
