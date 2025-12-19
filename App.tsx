@@ -7,7 +7,7 @@ import Modal from './components/Modal';
 import Notification from './components/Notification';
 import Footer from './components/Footer';
 import InteractiveTutorial, { TutorialStep } from './components/InteractiveTutorial';
-import { SubjectIcon, UserIcon, EraserIcon, FileTextIcon, SortIcon, UserPlusIcon, ShiftIcon, AbsentIcon, TrashIcon, ExchangeIcon, MousePointerIcon } from './components/icons';
+import { SubjectIcon, UserIcon, EraserIcon, FileTextIcon, SortIcon, UserPlusIcon, ShiftIcon, AbsentIcon, TrashIcon, ExchangeIcon, MousePointerIcon, ShieldLogo } from './components/icons';
 import { Employee, StatusType, ModalType, ManualRegistration } from './types';
 import type { NotificationData } from './components/Notification';
 import { db, auth, isConfigured } from './firebase';
@@ -121,6 +121,25 @@ const adminTutorialSteps: TutorialStep[] = [
         content: 'Preenche o sistema com dados fictícios para testes. Recurso destinado ao uso técnico do Desenvolvedor Near.'
     }
 ];
+
+// --- INITIAL LOADER COMPONENT ---
+const InitialLoader: React.FC = () => (
+    <div className="fixed inset-0 flex flex-col items-center justify-center bg-light-bg dark:bg-dark-bg z-[99999] transition-colors duration-300">
+        <div className="w-20 h-20 animate-[pulse-blue_2s_infinite]">
+             <ShieldLogo className="w-full h-full" />
+        </div>
+        <div className="mt-5 font-sans font-semibold text-sm tracking-widest text-primary uppercase opacity-70">
+            Carregando Sistema...
+        </div>
+        <style>{`
+            @keyframes pulse-blue {
+                0% { transform: scale(0.95); filter: drop-shadow(0 0 0 rgba(0, 128, 255, 0.4)); }
+                70% { transform: scale(1); filter: drop-shadow(0 0 20px rgba(0, 128, 255, 0)); }
+                100% { transform: scale(0.95); filter: drop-shadow(0 0 0 rgba(0, 128, 255, 0)); }
+            }
+        `}</style>
+    </div>
+);
 
 const ManualRegisterSection: React.FC<{
     subject: string;
@@ -1469,6 +1488,11 @@ const App: React.FC = () => {
             newScale = Math.min(Math.max(newScale, 0.3), 1.1);
             setScale(newScale);
         }
+    }
+
+    // IF LOADING IS TRUE, SHOW THE SPLASH SCREEN INSTEAD OF THE APP STRUCTURE
+    if (loading) {
+        return <InitialLoader />;
     }
 
     return (
