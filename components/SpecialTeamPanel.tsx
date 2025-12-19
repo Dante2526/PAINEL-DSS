@@ -17,6 +17,7 @@ interface SpecialTeamPanelProps {
     onSubjectChange: (value: string) => void;
     onMatriculaChange: (value: string) => void;
     onRegister: () => void;
+    onTimeChange?: (id: string, newDate: Date) => void;
 }
 
 const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = ({ 
@@ -30,7 +31,8 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = ({
     matricula,
     onSubjectChange,
     onMatriculaChange,
-    onRegister
+    onRegister,
+    onTimeChange
 }) => {
     const handleMatriculaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         onMatriculaChange(e.target.value.replace(/[^0-9]/g, ''));
@@ -88,6 +90,7 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = ({
                         isTogglingSpecialTeam={togglingSpecialTeamId === firstEmployee.id}
                         isAdmin={isAdmin}
                         onDelete={onDeleteUser}
+                        onTimeChange={onTimeChange}
                         specialTurnBtnId="tutorial-return-turn-btn"
                     />
                 )}
@@ -104,6 +107,7 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = ({
                             isTogglingSpecialTeam={togglingSpecialTeamId === employee.id}
                             isAdmin={isAdmin}
                             onDelete={onDeleteUser}
+                            onTimeChange={onTimeChange}
                         />
                     ))}
                 </div>

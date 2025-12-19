@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Employee, StatusType } from '../types';
 import { ShiftIcon, AbsentIcon, TrashIcon } from './icons';
 import { formatTimestamp } from '../services/employeeService';
@@ -11,6 +11,7 @@ interface EmployeeCardProps {
     isTogglingSpecialTeam: boolean;
     isAdmin: boolean;
     onDelete: (id: string) => void;
+    onTimeChange?: (id: string, newDate: Date) => void;
     domId?: string; // Prop for tutorial targeting wrapper
     specialTurnBtnId?: string; // Prop specifically for the shift button tutorial
 }
@@ -41,8 +42,10 @@ const CheckboxItem: React.FC<CheckboxItemProps> = ({ label, icon, type, checked,
 );
 
 
-const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, onToggleSpecialTeam, isTogglingSpecialTeam, isAdmin, onDelete, domId, specialTurnBtnId }) => {
-    
+const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, onToggleSpecialTeam, isTogglingSpecialTeam, isAdmin, onDelete, onTimeChange, domId, specialTurnBtnId }) => {
+    const [isEditingTime, setIsEditingTime] = useState(false);
+    const [editTimeValue, setEditTimeValue] = useState('');
+
     const createRipple = (e: React.MouseEvent<HTMLButtonElement>) => {
         const button = e.currentTarget;
         
@@ -85,6 +88,44 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, o
         if (employee.absent) return 'bg-gradient-to-r from-warning to-amber-600';
         if (employee.assDss) return 'bg-gradient-to-r from-neutral to-gray-500';
         return 'bg-gradient-to-r from-primary to-primary-dark';
+    };
+
+    // --- Time Editing Handlers ---
+    const handleTimeClick = () => {
+        if (!isAdmin || !employee.time || !onTimeChange) return;
+
+        // Parse format "DD/MM/YYYY HH:mm" to ISO for input
+        try {
+            const [datePart, timePart] = employee.time.split(' ');
+            const [day, month, year] = datePart.split('/');
+            // Create "YYYY-MM-DDTHH:mm"
+            const isoString = `${year}-${month}-${day}T${timePart}`;
+            setEditTimeValue(isoString);
+            setIsEditingTime(true);
+        } catch (e) {
+            console.error("Failed to parse date for editing", e);
+            // Fallback to current time if parse fails
+            const now = new Date();
+            const tzOffset = now.getTimezoneOffset() * 60000; 
+            const localISOTime = (new Date(now.getTime() - tzOffset)).toISOString().slice(0, 16);
+            setEditTimeValue(localISOTime);
+            setIsEditingTime(true);
+        }
+    };
+
+    const handleTimeSave = () => {
+        if (onTimeChange && editTimeValue) {
+            const newDate = new Date(editTimeValue);
+            if (!isNaN(newDate.getTime())) {
+                onTimeChange(employee.id, newDate);
+            }
+        }
+        setIsEditingTime(false);
+    };
+
+    const handleTimeCancel = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsEditingTime(false);
     };
 
     return (
@@ -172,9 +213,44 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, o
             <div className="px-7 pb-7 text-center">
                 {/* ID wrapper for tight tutorial focus */}
                 <div id={domId ? "tutorial-card-time" : undefined} className="inline-block">
-                    <div className={`py-4 px-6 inline-block rounded-lg font-bold text-base min-w-[240px] ${employee.time ? 'bg-gradient-to-r from-orange to-amber-500 text-white' : 'bg-light-bg dark:bg-dark-bg text-light-text-secondary dark:text-dark-text-secondary'}`}>
-                        {formatTimestamp(employee.time)}
-                    </div>
+                    {isEditingTime ? (
+                        <div className="flex items-center justify-center gap-2 py-2">
+                             <input 
+                                type="datetime-local" 
+                                value={editTimeValue}
+                                onChange={(e) => setEditTimeValue(e.target.value)}
+                                className="border border-gray-300 rounded px-2 py-1 text-black dark:text-white bg-white dark:bg-gray-700 text-sm w-[200px]"
+                             />
+                             <button onClick={handleTimeSave} className="bg-green-500 text-white rounded-full p-1 hover:bg-green-600 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                             </button>
+                             <button onClick={handleTimeCancel} className="bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                             </button>
+                        </div>
+                    ) : (
+                        <div 
+                            onClick={handleTimeClick}
+                            className={`py-4 px-6 inline-block rounded-lg font-bold text-base min-w-[240px] relative group ${
+                                employee.time ? 'bg-gradient-to-r from-orange to-amber-500 text-white' : 'bg-light-bg dark:bg-dark-bg text-light-text-secondary dark:text-dark-text-secondary'
+                            } ${isAdmin && employee.time ? 'cursor-pointer hover:brightness-110' : ''}`}
+                        >
+                            {formatTimestamp(employee.time)}
+                            
+                            {isAdmin && employee.time && (
+                                <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 rounded p-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                    </svg>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    
                     <div className="mt-3 text-sm font-semibold text-light-text-secondary dark:text-dark-text-secondary uppercase tracking-wider">
                         Data / Hora da Assinatura
                     </div>

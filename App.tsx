@@ -7,7 +7,7 @@ import Modal from './components/Modal';
 import Notification from './components/Notification';
 import Footer from './components/Footer';
 import InteractiveTutorial, { TutorialStep } from './components/InteractiveTutorial';
-import { SubjectIcon, UserIcon, EraserIcon, FileTextIcon, SortIcon, UserPlusIcon } from './components/icons';
+import { SubjectIcon, UserIcon, EraserIcon, FileTextIcon, SortIcon, UserPlusIcon, ShiftIcon, AbsentIcon, TrashIcon } from './components/icons';
 import { Employee, StatusType, ModalType, ManualRegistration } from './types';
 import type { NotificationData } from './components/Notification';
 import { db, auth, isConfigured } from './firebase';
@@ -134,8 +134,8 @@ const App: React.FC = () => {
     const [specialSubject, setSpecialSubject] = useState('');
     const [specialMatricula, setSpecialMatricula] = useState('');
 
-    // State for safety confirmation
-    const [pendingMalEmployeeId, setPendingMalEmployeeId] = useState<string | null>(null);
+    // State for safety confirmation (Generic for Mal, Absent, Turno, Delete)
+    const [pendingEmployeeId, setPendingEmployeeId] = useState<string | null>(null);
 
     // Admin Tutorial State
     const [isAdminTutorialOpen, setIsAdminTutorialOpen] = useState(false);
@@ -225,7 +225,7 @@ const App: React.FC = () => {
         try {
             const currentTime = new Date().toLocaleString('pt-BR');
             
-            // HTML EMAIL BUILDER - CLEAN CARD LAYOUT (NO BORDERS, BLACK TEXT)
+            // HTML EMAIL BUILDER
             const emailContent = `
             <!DOCTYPE html>
             <html lang="pt-BR">
@@ -235,23 +235,15 @@ const App: React.FC = () => {
                 <title>Alerta de Saúde</title>
             </head>
             <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #ffffff;">
-                
-                <!-- Main Wrapper -->
                 <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; width: 100%;">
                     <tr>
                         <td align="center" style="padding: 20px 0;">
-                            
-                            <!-- Container (Max Width 600px for Mobile) -->
                             <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; width: 100%;">
-                                
-                                <!-- Pre-header (Inbox Preview Text) -->
                                 <tr>
                                     <td style="display:none !important; visibility:hidden; mso-hide:all; font-size:1px; color:#ffffff; line-height:1px; max-height:0px; max-width:0px; opacity:0; overflow:hidden;">
                                         🚨 Alerta de Saúde: Colaborador informou "ESTOU MAL". Verifique imediatamente.
                                     </td>
                                 </tr>
-
-                                <!-- Header Alert -->
                                 <tr>
                                     <td style="padding-bottom: 20px;">
                                         <table width="100%" border="0" cellspacing="0" cellpadding="0">
@@ -265,8 +257,6 @@ const App: React.FC = () => {
                                         </table>
                                     </td>
                                 </tr>
-
-                                <!-- Main Message -->
                                 <tr>
                                     <td style="padding-bottom: 30px;">
                                         <p style="margin: 0; font-size: 18px; line-height: 1.5; color: #000000;">
@@ -274,20 +264,13 @@ const App: React.FC = () => {
                                         </p>
                                     </td>
                                 </tr>
-
-                                <!-- Details Card (Clean Layout) -->
                                 <tr>
                                     <td style="padding-bottom: 30px;">
                                         <div style="background-color: #f8f9fa; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px;">
-                                            
-                                            <!-- Card Header -->
                                             <p style="margin: 0 0 16px 0; font-size: 12px; font-weight: bold; color: #000000; text-transform: uppercase; letter-spacing: 1px;">
                                                 DETALHES DO REGISTRO:
                                             </p>
-
-                                            <!-- Data Table (No Borders) -->
                                             <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                                                <!-- Nome -->
                                                 <tr>
                                                     <td style="padding-bottom: 8px; width: 100px; vertical-align: top;">
                                                         <strong style="font-size: 15px; color: #000000;">Nome:</strong>
@@ -296,7 +279,6 @@ const App: React.FC = () => {
                                                         <span style="font-size: 15px; color: #000000; font-weight: bold;">${name}</span>
                                                     </td>
                                                 </tr>
-                                                <!-- Matrícula -->
                                                 <tr>
                                                     <td style="padding-bottom: 8px; width: 100px; vertical-align: top;">
                                                         <strong style="font-size: 15px; color: #000000;">Matrícula:</strong>
@@ -305,7 +287,6 @@ const App: React.FC = () => {
                                                         <span style="font-size: 15px; color: #000000; font-weight: bold;">${matricula}</span>
                                                     </td>
                                                 </tr>
-                                                <!-- Turno -->
                                                 <tr>
                                                     <td style="padding-bottom: 8px; width: 100px; vertical-align: top;">
                                                         <strong style="font-size: 15px; color: #000000;">Turno:</strong>
@@ -314,7 +295,6 @@ const App: React.FC = () => {
                                                         <span style="font-size: 15px; color: #000000; font-weight: bold;">${turno}</span>
                                                     </td>
                                                 </tr>
-                                                <!-- Horário -->
                                                 <tr>
                                                     <td style="padding-bottom: 0; width: 100px; vertical-align: top;">
                                                         <strong style="font-size: 15px; color: #000000;">Horário:</strong>
@@ -327,8 +307,6 @@ const App: React.FC = () => {
                                         </div>
                                     </td>
                                 </tr>
-
-                                <!-- Footer Alert Box -->
                                 <tr>
                                     <td>
                                         <table width="100%" border="0" cellspacing="0" cellpadding="0">
@@ -342,8 +320,6 @@ const App: React.FC = () => {
                                         </table>
                                     </td>
                                 </tr>
-
-                                <!-- Footer Note -->
                                 <tr>
                                     <td align="center" style="padding-top: 30px;">
                                         <p style="margin: 0; font-size: 12px; color: #000000;">
@@ -351,10 +327,7 @@ const App: React.FC = () => {
                                         </p>
                                     </td>
                                 </tr>
-
                             </table>
-                            <!-- End Container -->
-
                         </td>
                     </tr>
                 </table>
@@ -736,6 +709,37 @@ const App: React.FC = () => {
         }
     };
 
+    const handleTimeUpdate = async (id: string, newDate: Date) => {
+        if (!isAdmin) {
+            showNotification('Apenas administradores podem editar o horário.', 'error');
+            return;
+        }
+
+        if (isDemoMode) {
+            const newTimeStr = `${newDate.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit', year: 'numeric'})} ${newDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+            setEmployees(prev => prev.map(e => e.id === id ? { ...e, time: newTimeStr } : e));
+            showNotification('Horário atualizado com sucesso (DEMO)!', 'success');
+            return;
+        }
+
+        if (!db) {
+            showNotification("A conexão com o banco de dados não está disponível.", "error");
+            return;
+        }
+
+        try {
+            const docRef = doc(db, 'employees', id);
+            await updateDoc(docRef, {
+                time: Timestamp.fromDate(newDate)
+            });
+            showNotification('Horário atualizado com sucesso!', 'success');
+        } catch (error) {
+            console.error("Error updating time:", error);
+            const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
+            showNotification(`Falha ao atualizar horário: ${message}`, 'error');
+        }
+    };
+
     // Intercept click handler
     const handleStatusChange = (id: string, type: StatusType) => {
         const employee = employees.find(e => e.id === id);
@@ -743,10 +747,17 @@ const App: React.FC = () => {
 
         const isChecking = !(employee as any)[type];
 
-        // Only intercept if it's 'mal' AND the user is trying to check it (turn it on)
+        // Intercept 'mal'
         if (type === 'mal' && isChecking) {
-            setPendingMalEmployeeId(id);
+            setPendingEmployeeId(id);
             setActiveModal(ModalType.ConfirmMal);
+            return;
+        }
+
+        // Intercept 'absent' - NEW
+        if (type === 'absent' && isChecking) {
+            setPendingEmployeeId(id);
+            setActiveModal(ModalType.ConfirmAbsent);
             return;
         }
 
@@ -755,14 +766,23 @@ const App: React.FC = () => {
     };
 
     const handleConfirmMal = () => {
-        if (pendingMalEmployeeId) {
-            processStatusUpdate(pendingMalEmployeeId, 'mal');
-            setPendingMalEmployeeId(null);
+        if (pendingEmployeeId) {
+            processStatusUpdate(pendingEmployeeId, 'mal');
+            setPendingEmployeeId(null);
+            setActiveModal(ModalType.None);
+        }
+    };
+
+    const handleConfirmAbsent = () => {
+        if (pendingEmployeeId) {
+            processStatusUpdate(pendingEmployeeId, 'absent');
+            setPendingEmployeeId(null);
             setActiveModal(ModalType.None);
         }
     };
     
-    const handleToggleSpecialTeam = async (id: string) => {
+    // Original toggle separated for reuse
+    const processToggleSpecialTeam = async (id: string) => {
         setTogglingSpecialTeamId(id);
         const employee = employees.find(e => e.id === id);
         if (!employee) {
@@ -798,6 +818,72 @@ const App: React.FC = () => {
             showNotification(`Falha ao atualizar status: ${message}`, 'error');
         } finally {
             setTogglingSpecialTeamId(null);
+        }
+    };
+
+    // Intercepted Handler for Special Team Toggle
+    const handleToggleSpecialTeam = (id: string) => {
+        // Open confirmation modal
+        setPendingEmployeeId(id);
+        setActiveModal(ModalType.ConfirmTurno);
+    };
+
+    const handleConfirmTurno = () => {
+        if (pendingEmployeeId) {
+            processToggleSpecialTeam(pendingEmployeeId);
+            setPendingEmployeeId(null);
+            setActiveModal(ModalType.None);
+        }
+    };
+
+    // Separated Delete Logic
+    const processDeleteUser = async (employeeId: string) => {
+        const employeeToDelete = employees.find(e => e.id === employeeId);
+        if (!employeeToDelete) return;
+
+        if (isDemoMode) {
+            setEmployees(prev => prev.filter(e => e.id !== employeeId));
+            showNotification(`Usuário ${employeeToDelete.name} deletado com sucesso (DEMO)!`, 'success');
+            return;
+        }
+        if (!db) {
+            showNotification("A conexão com o banco de dados não está disponível.", "error");
+            return;
+        }
+        try {
+            const docRef = doc(db, 'employees', employeeId);
+            await deleteDoc(docRef);
+            showNotification(`Usuário ${employeeToDelete.name} deletado com sucesso!`, 'success');
+        } catch (error) {
+            console.error("Error deleting user:", error);
+            const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
+            showNotification(`Falha ao deletar: ${message}`, 'error');
+        }
+    };
+
+    // Intercepted Delete Handler
+    const handleDeleteUser = (employeeId: string) => {
+        if (!isAdmin) {
+            showNotification('Apenas administradores podem deletar usuários.', 'error');
+            return;
+        }
+        const employeeToDelete = employees.find(e => e.id === employeeId);
+        if (!employeeToDelete) {
+             showNotification('Usuário não encontrado.', 'error');
+            return;
+        }
+
+        // Instead of window.confirm, open modal
+        setPendingEmployeeId(employeeId);
+        setActiveModal(ModalType.ConfirmDelete);
+    };
+
+    // Confirmation Handler for Delete
+    const handleConfirmDelete = () => {
+        if (pendingEmployeeId) {
+            processDeleteUser(pendingEmployeeId);
+            setPendingEmployeeId(null);
+            setActiveModal(ModalType.None);
         }
     };
 
@@ -959,39 +1045,6 @@ const App: React.FC = () => {
         }
     };
 
-    const handleDeleteUser = async (employeeId: string) => {
-        if (!isAdmin) {
-            showNotification('Apenas administradores podem deletar usuários.', 'error');
-            return;
-        }
-        const employeeToDelete = employees.find(e => e.id === employeeId);
-        if (!employeeToDelete) {
-             showNotification('Usuário não encontrado.', 'error');
-            return;
-        }
-
-        if (window.confirm(`Tem certeza que deseja deletar permanentemente ${employeeToDelete.name}? Esta ação não pode ser desfeita.`)) {
-             if (isDemoMode) {
-                setEmployees(prev => prev.filter(e => e.id !== employeeId));
-                showNotification(`Usuário ${employeeToDelete.name} deletado com sucesso (DEMO)!`, 'success');
-                return;
-            }
-            if (!db) {
-                showNotification("A conexão com o banco de dados não está disponível.", "error");
-                return;
-            }
-            try {
-                const docRef = doc(db, 'employees', employeeId);
-                await deleteDoc(docRef);
-                showNotification(`Usuário ${employeeToDelete.name} deletado com sucesso!`, 'success');
-            } catch (error) {
-                console.error("Error deleting user:", error);
-                const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
-                showNotification(`Falha ao deletar: ${message}`, 'error');
-            }
-        }
-    };
-
     const handleClearData = async () => {
         if (!isAdmin) {
             showNotification('Apenas administradores podem limpar os dados.', 'error');
@@ -1072,6 +1125,15 @@ const App: React.FC = () => {
     const col2 = mainTeam.slice(columnSize, columnSize * 2);
     const col3 = mainTeam.slice(columnSize * 2);
 
+    const getPendingEmployeeName = () => {
+        return employees.find(e => e.id === pendingEmployeeId)?.name || 'Colaborador';
+    };
+
+    const getPendingEmployeeTurno = () => {
+        const current = employees.find(e => e.id === pendingEmployeeId)?.turno;
+        return current === '6H' ? '7H' : '6H';
+    };
+
     return (
         <div className="bg-light-bg-secondary dark:bg-dark-bg min-h-screen text-light-text dark:text-dark-text transition-colors">
             <div ref={viewportRef} className="viewport fixed inset-0">
@@ -1111,15 +1173,16 @@ const App: React.FC = () => {
                                             isTogglingSpecialTeam={togglingSpecialTeamId === emp.id} 
                                             isAdmin={isAdmin} 
                                             onDelete={handleDeleteUser}
+                                            onTimeChange={handleTimeUpdate}
                                             domId={index === 0 ? "tutorial-first-card" : undefined}
                                         />
                                     ))}
                                 </div>
                                 <div className="flex flex-col gap-6 w-[870px]">
-                                    {col2.map(emp => <EmployeeCard key={emp.id} employee={emp} onStatusChange={handleStatusChange} onToggleSpecialTeam={handleToggleSpecialTeam} isTogglingSpecialTeam={togglingSpecialTeamId === emp.id} isAdmin={isAdmin} onDelete={handleDeleteUser} />)}
+                                    {col2.map(emp => <EmployeeCard key={emp.id} employee={emp} onStatusChange={handleStatusChange} onToggleSpecialTeam={handleToggleSpecialTeam} isTogglingSpecialTeam={togglingSpecialTeamId === emp.id} isAdmin={isAdmin} onDelete={handleDeleteUser} onTimeChange={handleTimeUpdate} />)}
                                 </div>
                                 <div className="flex flex-col gap-6 w-[870px]">
-                                    {col3.map(emp => <EmployeeCard key={emp.id} employee={emp} onStatusChange={handleStatusChange} onToggleSpecialTeam={handleToggleSpecialTeam} isTogglingSpecialTeam={togglingSpecialTeamId === emp.id} isAdmin={isAdmin} onDelete={handleDeleteUser} />)}
+                                    {col3.map(emp => <EmployeeCard key={emp.id} employee={emp} onStatusChange={handleStatusChange} onToggleSpecialTeam={handleToggleSpecialTeam} isTogglingSpecialTeam={togglingSpecialTeamId === emp.id} isAdmin={isAdmin} onDelete={handleDeleteUser} onTimeChange={handleTimeUpdate} />)}
                                 </div>
                             </div>
                        </div>
@@ -1130,6 +1193,7 @@ const App: React.FC = () => {
                             togglingSpecialTeamId={togglingSpecialTeamId}
                             isAdmin={isAdmin}
                             onDeleteUser={handleDeleteUser}
+                            onTimeChange={handleTimeUpdate}
                             subject={specialSubject}
                             matricula={specialMatricula}
                             onSubjectChange={setSpecialSubject}
@@ -1182,12 +1246,12 @@ const App: React.FC = () => {
                 scale={modalScale}
             />
             
-            {/* CUSTOM CONFIRMATION MODAL WITH ROBUST CENTERING */}
+            {/* CUSTOM CONFIRMATION MODAL - ESTOU MAL */}
             {activeModal === ModalType.ConfirmMal && (
                 <div 
                     className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
                     onClick={() => {
-                        setPendingMalEmployeeId(null);
+                        setPendingEmployeeId(null);
                         setActiveModal(ModalType.None);
                     }}
                 >
@@ -1201,7 +1265,7 @@ const App: React.FC = () => {
                     >
                         <button 
                             onClick={() => {
-                                setPendingMalEmployeeId(null);
+                                setPendingEmployeeId(null);
                                 setActiveModal(ModalType.None);
                             }} 
                             className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10"
@@ -1233,7 +1297,197 @@ const App: React.FC = () => {
                                 </button>
                                 <button 
                                     onClick={() => {
-                                        setPendingMalEmployeeId(null);
+                                        setPendingEmployeeId(null);
+                                        setActiveModal(ModalType.None);
+                                    }} 
+                                    className="w-full py-4 font-bold text-light-text dark:text-white bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition"
+                                >
+                                    CANCELAR
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* CUSTOM CONFIRMATION MODAL - TURNO 6H */}
+            {activeModal === ModalType.ConfirmTurno && (
+                <div 
+                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
+                    onClick={() => {
+                        setPendingEmployeeId(null);
+                        setActiveModal(ModalType.None);
+                    }}
+                >
+                    <div 
+                        className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center relative mx-4"
+                        style={{ 
+                            transform: `scale(${modalScale})`, 
+                            animation: 'fade-in-scale 0.3s forwards ease-out' 
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button 
+                            onClick={() => {
+                                setPendingEmployeeId(null);
+                                setActiveModal(ModalType.None);
+                            }} 
+                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10"
+                        >
+                            &times;
+                        </button>
+                        
+                        <h2 className="text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6">TROCA DE TURNO</h2>
+
+                        <div className="space-y-6 text-center p-2 flex flex-col items-center">
+                            <div className="mx-auto w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-2 text-primary">
+                                <ShiftIcon className="w-8 h-8" />
+                            </div>
+                            
+                            <div className="text-lg text-light-text dark:text-dark-text font-medium flex flex-col items-center gap-2">
+                                <span>Mover <strong>{getPendingEmployeeName()}</strong> para o turno:</span>
+                                <span className="text-primary font-bold text-3xl">{getPendingEmployeeTurno()}</span>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-3 mt-6 w-full">
+                                <button 
+                                    onClick={handleConfirmTurno} 
+                                    className="w-full py-4 font-bold text-white bg-primary rounded-lg hover:bg-primary-dark shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
+                                >
+                                    CONFIRMAR TROCA
+                                </button>
+                                <button 
+                                    onClick={() => {
+                                        setPendingEmployeeId(null);
+                                        setActiveModal(ModalType.None);
+                                    }} 
+                                    className="w-full py-4 font-bold text-light-text dark:text-white bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition"
+                                >
+                                    CANCELAR
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* CUSTOM CONFIRMATION MODAL - AUSENTE */}
+            {activeModal === ModalType.ConfirmAbsent && (
+                <div 
+                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
+                    onClick={() => {
+                        setPendingEmployeeId(null);
+                        setActiveModal(ModalType.None);
+                    }}
+                >
+                    <div 
+                        className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center relative mx-4"
+                        style={{ 
+                            transform: `scale(${modalScale})`, 
+                            animation: 'fade-in-scale 0.3s forwards ease-out' 
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button 
+                            onClick={() => {
+                                setPendingEmployeeId(null);
+                                setActiveModal(ModalType.None);
+                            }} 
+                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10"
+                        >
+                            &times;
+                        </button>
+                        
+                        <h2 className="text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6">CONFIRMAR AUSÊNCIA</h2>
+
+                        <div className="space-y-6 text-center p-2 flex flex-col items-center">
+                            <div className="mx-auto w-16 h-16 bg-orange/20 rounded-full flex items-center justify-center mb-2 text-orange">
+                                <AbsentIcon className="w-8 h-8" />
+                            </div>
+                            
+                            <div className="text-lg text-light-text dark:text-dark-text font-medium flex flex-col items-center gap-2">
+                                <span>Marcar <strong>{getPendingEmployeeName()}</strong> como:</span>
+                                <span className="text-orange font-bold text-3xl">AUSENTE</span>
+                            </div>
+
+                             <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-2">
+                                Isso limpará quaisquer registros de horário ou status de saúde anteriores deste colaborador hoje.
+                            </p>
+
+                            <div className="grid grid-cols-1 gap-3 mt-6 w-full">
+                                <button 
+                                    onClick={handleConfirmAbsent} 
+                                    className="w-full py-4 font-bold text-white bg-orange rounded-lg hover:bg-orange-600 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
+                                >
+                                    CONFIRMAR AUSÊNCIA
+                                </button>
+                                <button 
+                                    onClick={() => {
+                                        setPendingEmployeeId(null);
+                                        setActiveModal(ModalType.None);
+                                    }} 
+                                    className="w-full py-4 font-bold text-light-text dark:text-white bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition"
+                                >
+                                    CANCELAR
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* CUSTOM CONFIRMATION MODAL - DELETAR */}
+            {activeModal === ModalType.ConfirmDelete && (
+                <div 
+                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
+                    onClick={() => {
+                        setPendingEmployeeId(null);
+                        setActiveModal(ModalType.None);
+                    }}
+                >
+                    <div 
+                        className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center relative mx-4"
+                        style={{ 
+                            transform: `scale(${modalScale})`, 
+                            animation: 'fade-in-scale 0.3s forwards ease-out' 
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button 
+                            onClick={() => {
+                                setPendingEmployeeId(null);
+                                setActiveModal(ModalType.None);
+                            }} 
+                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10"
+                        >
+                            &times;
+                        </button>
+                        
+                        <h2 className="text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6">EXCLUIR USUÁRIO</h2>
+
+                        <div className="space-y-6 text-center p-2 flex flex-col items-center">
+                            <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-2 text-danger">
+                                <TrashIcon className="w-8 h-8" />
+                            </div>
+                            
+                            <div className="text-lg text-light-text dark:text-dark-text font-medium flex flex-col items-center gap-2">
+                                <span>Tem certeza que deseja excluir <strong>{getPendingEmployeeName()}</strong>?</span>
+                            </div>
+
+                             <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-2">
+                                Esta ação removerá o usuário permanentemente do sistema e não pode ser desfeita.
+                            </p>
+
+                            <div className="grid grid-cols-1 gap-3 mt-6 w-full">
+                                <button 
+                                    onClick={handleConfirmDelete} 
+                                    className="w-full py-4 font-bold text-white bg-danger rounded-lg hover:bg-red-700 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
+                                >
+                                    SIM, EXCLUIR
+                                </button>
+                                <button 
+                                    onClick={() => {
+                                        setPendingEmployeeId(null);
                                         setActiveModal(ModalType.None);
                                     }} 
                                     className="w-full py-4 font-bold text-light-text dark:text-white bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition"

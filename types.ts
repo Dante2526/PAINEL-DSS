@@ -26,6 +26,9 @@ export enum ModalType {
   AdminOptions,
   AddUser,
   Report,
-  ConfirmMal, // Added for safety confirmation
-  Tutorial, // Added for help/tutorial
+  ConfirmMal, // Existing safety confirmation
+  ConfirmTurno, // Added for Turno confirmation
+  ConfirmAbsent, // Added for Absent confirmation
+  ConfirmDelete, // Added for Delete confirmation
+  Tutorial, 
 }
