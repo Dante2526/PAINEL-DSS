@@ -78,19 +78,19 @@ const tutorialSteps: TutorialStep[] = [
         targetId: 'tutorial-stats',
         title: 'Estatísticas em Tempo Real',
         content: 'Acompanhe quantos colaboradores estão bem, mal ou ausentes instantaneamente.',
-        scrollTargetId: 'app-header' // Force header context
+        scrollTargetId: 'app-header'
     },
     {
         targetId: 'tutorial-dark-mode',
         title: 'Modo Escuro (BB-8)',
         content: 'Clique no pequeno droide BB-8 para alternar entre o modo Claro e Escuro. Ideal para ambientes com pouca luz.',
-        scrollTargetId: 'app-header' // Force header context
+        scrollTargetId: 'app-header'
     },
     {
         targetId: 'tutorial-admin-btn',
         title: 'Área Administrativa',
         content: 'Acesso restrito para limpar os dados diários, gerar relatórios em PDF/Texto e cadastrar novos usuários.',
-        scrollTargetId: 'app-header' // Force header context
+        scrollTargetId: 'app-header'
     }
 ];
 
@@ -1429,23 +1429,31 @@ const App: React.FC = () => {
 
         let targetIdForZoom = step.targetId;
         
-        // FIX: Group context for card interactions
+        // Group context for card interactions
         if (step.targetId === 'tutorial-card-actions' || step.targetId === 'tutorial-card-time') {
             targetIdForZoom = 'tutorial-first-card';
         }
         
-        // FIX: Group context for special panel interactions
+        // Group context for special panel interactions
         if (step.targetId === 'tutorial-return-turn-btn') {
             targetIdForZoom = 'tutorial-special-demo-area';
         }
         
-        // FIX: Group context for header interactions (Stats, Dark Mode, Admin)
+        // CRITICAL FIX: Explicitly handle header steps (7, 8, 9)
         if (['tutorial-stats', 'tutorial-dark-mode', 'tutorial-admin-btn'].includes(step.targetId)) {
             targetIdForZoom = 'tutorial-header-actions';
             
-            // CRITICAL FIX: Ensure header is visible by forcing scroll to top immediately
-            if (viewportRef.current) {
-                viewportRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+            const element = document.getElementById(targetIdForZoom);
+            if (element) {
+                const margin = 32;
+                const availableWidth = window.innerWidth - margin;
+                const elementWidth = element.offsetWidth; 
+                let newScale = availableWidth / elementWidth;
+                newScale = Math.min(Math.max(newScale, 0.3), 1.1);
+                
+                // Force scroll to top (0,0) and set scale simultaneously
+                setScale(newScale, 0, 0);
+                return; // Early return to avoid double logic
             }
         }
 
