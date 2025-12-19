@@ -8,6 +8,7 @@ export interface TutorialStep {
     content: string;
     position?: 'top' | 'bottom' | 'left' | 'right';
     scrollTargetId?: string;
+    scrollBlock?: 'start' | 'center' | 'end' | 'nearest';
 }
 
 interface InteractiveTutorialProps {
@@ -69,11 +70,9 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
         });
     }, [isOpen, measurePosition]);
 
-    // Step Change Logic with Continuous Tracking
     useEffect(() => {
         if (!isOpen) return;
 
-        // Cleanup previous frames
         if (requestRef.current) cancelAnimationFrame(requestRef.current);
         
         setIsTransitioning(true);
@@ -83,30 +82,32 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
             onStepChange(step);
         }
 
-        // Removed delay almost entirely to start tracking immediately with the scroll
         const timer = setTimeout(() => {
             const element = document.getElementById(step.targetId);
             const scrollElement = step.scrollTargetId ? document.getElementById(step.scrollTargetId) : element;
             
             if (element) {
-                // 1. Trigger Smooth Scroll
-                // Use scrollTargetId if available to center the view on a container (e.g. the card)
-                // while keeping the spotlight on the specific target (e.g. the button).
+                // Se o alvo do scroll for o cabeçalho, usamos 'start' para não centralizar no meio da tela do celular
+                const blockPosition = step.scrollTargetId === 'app-header' ? 'start' : (step.scrollBlock || 'center');
+                
                 if (scrollElement) {
-                    scrollElement.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+                    scrollElement.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: blockPosition, 
+                        inline: 'center' 
+                    });
                 } else {
-                    element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+                    element.scrollIntoView({ 
+                        behavior: 'smooth', 
+                        block: blockPosition, 
+                        inline: 'center' 
+                    });
                 }
                 
-                // 2. Start a Tracking Loop
-                // Since we removed CSS transition on top/left, this loop will make the spotlight
-                // stick perfectly to the element as it moves across the screen.
                 const startTime = performance.now();
-                
                 const track = () => {
                     measurePosition();
-                    // Track for 1.2 seconds to ensure scroll momentum is finished
-                    if (performance.now() - startTime < 1200) {
+                    if (performance.now() - startTime < 1500) {
                         requestRef.current = requestAnimationFrame(track);
                     } else {
                         setIsTransitioning(false); 
@@ -118,7 +119,7 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
                 setTargetRect(null);
                 setIsTransitioning(false);
             }
-        }, 10);
+        }, 50); // Aumentado levemente para permitir o processamento da escala do App.tsx
 
         return () => {
             clearTimeout(timer);
@@ -191,8 +192,6 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
 
     return createPortal(
         <div className="fixed inset-0 z-[99999]">
-            
-            {/* Spotlight Overlay */}
             {targetRect ? (
                 <div 
                     className="absolute border-2 border-white/80 rounded-xl shadow-[0_0_0_9999px_rgba(0,0,0,0.75),inset_0_0_20px_rgba(0,0,0,0.3)] pointer-events-none will-change-[top,left,width,height]"
@@ -202,9 +201,6 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
                         width: targetRect.width + 16,
                         height: targetRect.height + 16,
                         zIndex: 1000,
-                        // OPTIMIZATION: Only animate width and height. 
-                        // We let the JS loop handle top/left updates instantly to match the scroll speed exactly.
-                        // This prevents the "searching" or "rubber band" effect.
                         transition: 'width 0.4s ease-out, height 0.4s ease-out' 
                     }}
                 >
@@ -220,7 +216,6 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
                 />
             )}
 
-            {/* Tooltip Card */}
             <div 
                 className="bg-white dark:bg-gray-800 text-slate-800 dark:text-white p-6 rounded-2xl shadow-2xl transition-all duration-500 ease-out flex flex-col gap-4 border border-gray-200 dark:border-gray-700 z-[1001]"
                 style={tooltipStyle}

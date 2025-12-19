@@ -1452,6 +1452,10 @@ const App: React.FC = () => {
                 newScale = Math.min(Math.max(newScale, 0.3), 1.1);
                 
                 // Force scroll to top (0,0) and set scale simultaneously
+                // Isso garante que o cabeçalho fique visível antes do tutorial tentar focar
+                if (viewportRef.current) {
+                    viewportRef.current.scrollTop = 0;
+                }
                 setScale(newScale, 0, 0);
                 return; // Early return to avoid double logic
             }
