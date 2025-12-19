@@ -64,7 +64,7 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = ({
                                 value={subject}
                                 onChange={(e) => onSubjectChange(e.target.value)}
                                 placeholder="Assunto do DSS" 
-                                className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition uppercase text-3xl"
+                                className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition uppercase text-xl"
                                 autoCapitalize="characters"
                             />
                         </div>
@@ -77,7 +77,7 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = ({
                                     value={matricula}
                                     onChange={handleMatriculaChange}
                                     placeholder="Matrícula" 
-                                    className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 border-r-0 border-gray-200 dark:border-gray-600 rounded-l-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition text-3xl"
+                                    className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 border-r-0 border-gray-200 dark:border-gray-600 rounded-l-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition text-xl"
                                     inputMode="numeric"
                                     pattern="[0-9]*"
                                 />
@@ -88,7 +88,7 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = ({
                                     value={foundName} 
                                     readOnly
                                     placeholder={matricula ? "Colaborador não encontrado" : "Nome do Colaborador"}
-                                    className="w-full px-4 py-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-medium border-2 border-l-0 border-gray-200 dark:border-gray-600 rounded-r-lg outline-none pointer-events-none truncate text-3xl"
+                                    className="w-full px-4 py-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-medium border-2 border-l-0 border-gray-200 dark:border-gray-600 rounded-r-lg outline-none pointer-events-none truncate text-xl"
                                 />
                             </div>
                         </div>
