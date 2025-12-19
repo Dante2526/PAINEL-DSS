@@ -19,10 +19,6 @@ body {
     will-change: transform; /* Hint to the browser for performance optimization */
 }
 
-/* Prevent zoom on double tap and ensure inputs behave well on touch */
-input, textarea, button, select, a {
-  touch-action: manipulation;
-}
 
 /* === BB-8 TOGGLE STYLES === */
 .bb8-toggle {
