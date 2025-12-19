@@ -6,7 +6,6 @@ html, body {
     width: 100%;
     overflow-x: hidden; /* Prevent horizontal scroll from bouncing */
     overscroll-behavior-y: none; /* Prevent pull-to-refresh effect and bounce */
-    touch-action: pan-x pan-y; /* Let browser handle panning, we handle zoom */
 }
 
 body {
