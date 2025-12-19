@@ -20,6 +20,8 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
     const [targetRect, setTargetRect] = useState<DOMRect | null>(null);
     const [isMobile, setIsMobile] = useState(false);
+    // New state to track if we are currently moving between steps
+    const [isTransitioning, setIsTransitioning] = useState(false);
     
     // Use refs to track animation frames and avoid state staleness in callbacks
     const requestRef = useRef<number>();
@@ -80,10 +82,9 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
         // 1. Clear any pending updates
         if (requestRef.current) cancelAnimationFrame(requestRef.current);
         
-        // CRITICAL FIX: Hide the spotlight immediately when changing steps.
-        // This prevents the "ghost" spotlight from being seen at the old position 
-        // while the page scrolls to the new position.
+        // Hide spotlight and indicate transition started
         setTargetRect(null);
+        setIsTransitioning(true);
 
         // 2. Small delay to allow React to render any DOM changes (e.g. modals opening)
         const timer = setTimeout(() => {
@@ -99,6 +100,8 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
             } else {
                 setTargetRect(null);
             }
+            // Transition finished, allow UI updates
+            setIsTransitioning(false);
         }, 100);
 
         return () => {
@@ -226,9 +229,10 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
                     <p className="text-sm leading-relaxed text-slate-600 dark:text-gray-300">
                         {step.content}
                     </p>
-                    {!targetRect && (
+                    {/* Only show "missing element" text if we are NOT transitioning and still have no rect */}
+                    {!targetRect && !isTransitioning && (
                         <p className="text-xs text-orange mt-2 italic">
-                            (Localizando elemento...)
+                            (Elemento não visível no momento)
                         </p>
                     )}
                 </div>
