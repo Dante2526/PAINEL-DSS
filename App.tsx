@@ -1563,7 +1563,7 @@ const ManualRegisterSection: React.FC<ManualRegisterSectionProps> = ({
                         value={subject} 
                         onChange={(e) => onSubjectChange(e.target.value)} 
                         placeholder="Assunto do DSS" 
-                        className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition uppercase text-2xl"
+                        className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition uppercase text-3xl"
                         autoCapitalize="characters"
                     />
                 </div>
@@ -1576,7 +1576,7 @@ const ManualRegisterSection: React.FC<ManualRegisterSectionProps> = ({
                             value={matricula} 
                             onChange={handleMatriculaChange} 
                             placeholder="Matrícula" 
-                            className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg border-2 border-r-0 border-gray-200 dark:border-gray-600 rounded-l-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition text-2xl"
+                            className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg border-2 border-r-0 border-gray-200 dark:border-gray-600 rounded-l-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition text-3xl"
                             inputMode="numeric"
                             pattern="[0-9]*"
                         />
@@ -1587,11 +1587,11 @@ const ManualRegisterSection: React.FC<ManualRegisterSectionProps> = ({
                             value={foundName} 
                             readOnly
                             placeholder={matricula ? "Colaborador não encontrado" : "Nome do Colaborador"}
-                            className="w-full px-4 py-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-medium border-2 border-l-0 border-gray-200 dark:border-gray-600 rounded-r-lg outline-none pointer-events-none truncate text-2xl"
+                            className="w-full px-4 py-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-medium border-2 border-l-0 border-gray-200 dark:border-gray-600 rounded-r-lg outline-none pointer-events-none truncate text-3xl"
                         />
                     </div>
                 </div>
-                <button onClick={onRegister} id="tutorial-manual-register-btn" className="px-9 py-4 font-bold text-white bg-gradient-to-r from-primary to-primary-dark rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex-shrink-0 text-2xl">
+                <button onClick={onRegister} id="tutorial-manual-register-btn" className="px-9 py-4 font-bold text-white bg-gradient-to-r from-primary to-primary-dark rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex-shrink-0 text-3xl">
                     REGISTRAR
                 </button>
             </div>
