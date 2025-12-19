@@ -459,9 +459,14 @@ const App: React.FC = () => {
         const scalableContainer = scalableContainerRef.current;
         if (!viewport || !scalableContainer) return;
 
-        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-        if (isTouchDevice) {
+        // Enhanced mobile detection: Touch capability OR small screen width
+        const isMobileView = ('ontouchstart' in window || navigator.maxTouchPoints > 0) || window.innerWidth < 1366; 
+
+        if (isMobileView) {
+            // Calculate scale to fit width
             const fitScale = viewport.clientWidth / scalableContainer.offsetWidth;
+            // Ensure we don't scale up on mobile if the content is smaller (unlikely here)
+            // and apply the scale
             setScale(fitScale, 0, 0);
         } else {
             setScale(1.0, 0, 0);
@@ -474,6 +479,11 @@ const App: React.FC = () => {
         const scalableContainer = scalableContainerRef.current;
 
         if (!viewport || !scalableContainer) return;
+        
+        // CRITICAL FIX: Call initializeScale immediately to fix "zoomed in" start
+        initializeScale();
+        // Fallback for race conditions
+        const initTimer = setTimeout(initializeScale, 50);
 
         let initialDistance = 0;
         let initialScale = 1;
@@ -546,6 +556,7 @@ const App: React.FC = () => {
                 // Re-applying the scale will trigger a recalculation of minWidth/minHeight
                 // based on the new viewport dimensions.
                 setScale(scaleStateRef.current.currentScale);
+                initializeScale(); // Re-check if we need to switch between mobile/desktop modes
             }
         };
 
@@ -556,6 +567,7 @@ const App: React.FC = () => {
         viewport.addEventListener('touchmove', handleTouchMove, { passive: false });
 
         return () => {
+            clearTimeout(initTimer);
             window.removeEventListener('load', initializeScale);
             window.removeEventListener('resize', handleResize);
             if (viewport) {
