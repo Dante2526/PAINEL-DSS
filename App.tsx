@@ -136,8 +136,8 @@ const ManualRegisterSection: React.FC<{
     };
 
     return (
-        <div id="tutorial-manual-register-bar" className="w-full bg-light-card dark:bg-dark-card rounded-3xl p-6 shadow-lg mb-8 shrink-0">
-             <div className="flex gap-4 items-center">
+        <div className="w-full bg-light-card dark:bg-dark-card rounded-3xl p-6 shadow-lg mb-8 shrink-0">
+             <div id="tutorial-manual-register-bar" className="flex gap-4 items-center w-fit">
                 <div className="relative w-[600px]">
                     <SubjectIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input 
