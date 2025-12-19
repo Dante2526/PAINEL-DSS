@@ -44,7 +44,7 @@ const tutorialSteps: TutorialStep[] = [
     {
         targetId: 'tutorial-manual-register-bar',
         title: 'Registro Manual',
-        content: 'Use esta barra superior para registrar o Assunto do DSS do dia e a matrícula do responsável. Isso é essencial para o relatório diário.'
+        content: 'Use esta barra superior para registrar o Assunto do DSS do dia e a matrícula do responsável. O nome aparecerá automaticamente ao lado.'
     },
     {
         targetId: 'tutorial-first-card',
@@ -1160,7 +1160,8 @@ const App: React.FC = () => {
                                 matricula={mainMatricula}
                                 onSubjectChange={setMainSubject}
                                 onMatriculaChange={setMainMatricula}
-                                onRegister={() => handleManualRegister('7H-19H')} 
+                                onRegister={() => handleManualRegister('7H-19H')}
+                                employees={employees}
                             />
                             <div className="flex-grow flex gap-8">
                                 <div className="flex flex-col gap-6 w-[870px]">
@@ -1199,6 +1200,7 @@ const App: React.FC = () => {
                             onSubjectChange={setSpecialSubject}
                             onMatriculaChange={setSpecialMatricula}
                             onRegister={() => handleManualRegister('6H')}
+                            employees={employees}
                         />
                     </div>
                     <Footer />
@@ -1516,6 +1518,7 @@ interface ManualRegisterSectionProps {
     onSubjectChange: (value: string) => void;
     onMatriculaChange: (value: string) => void;
     onRegister: () => void;
+    employees: Employee[];
 }
 
 const ManualRegisterSection: React.FC<ManualRegisterSectionProps> = ({
@@ -1523,11 +1526,19 @@ const ManualRegisterSection: React.FC<ManualRegisterSectionProps> = ({
     matricula,
     onSubjectChange,
     onMatriculaChange,
-    onRegister
+    onRegister,
+    employees
 }) => {
     const handleMatriculaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         onMatriculaChange(e.target.value.replace(/[^0-9]/g, ''));
     };
+    
+    // Find name based on matricula
+    const foundName = useMemo(() => {
+        if (!matricula) return '';
+        const employee = employees.find(e => e.matricula === matricula);
+        return employee ? employee.name : '';
+    }, [matricula, employees]);
 
     return (
         <div className="bg-light-card dark:bg-dark-card rounded-3xl p-8 shadow-lg w-full">
@@ -1543,17 +1554,29 @@ const ManualRegisterSection: React.FC<ManualRegisterSectionProps> = ({
                         autoCapitalize="characters"
                     />
                 </div>
-                <div className="relative w-[500px] flex-shrink-0">
-                    <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input 
-                        type="text" 
-                        value={matricula} 
-                        onChange={handleMatriculaChange} 
-                        placeholder="Matrícula" 
-                        className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                    />
+                {/* Modified Matricula Field with Split View */}
+                <div className="relative w-[500px] flex-shrink-0 flex items-stretch">
+                    <div className="relative w-[40%]">
+                        <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <input 
+                            type="text" 
+                            value={matricula} 
+                            onChange={handleMatriculaChange} 
+                            placeholder="Matrícula" 
+                            className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg border-2 border-r-0 border-gray-200 dark:border-gray-600 rounded-l-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                        />
+                    </div>
+                    <div className="relative w-[60%]">
+                         <input 
+                            type="text" 
+                            value={foundName} 
+                            readOnly
+                            placeholder={matricula ? "Colaborador não encontrado" : "Nome do Colaborador"}
+                            className="w-full px-4 py-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-medium border-2 border-l-0 border-gray-200 dark:border-gray-600 rounded-r-lg outline-none pointer-events-none truncate"
+                        />
+                    </div>
                 </div>
                 <button onClick={onRegister} id="tutorial-manual-register-btn" className="px-9 py-4 font-bold text-white bg-gradient-to-r from-primary to-primary-dark rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 flex-shrink-0">
                     REGISTRAR
