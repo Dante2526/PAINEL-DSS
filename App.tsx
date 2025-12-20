@@ -770,14 +770,9 @@ const App: React.FC = () => {
         const scalableContainer = scalableContainerRef.current;
         if (!viewport || !scalableContainer) return;
 
-        const isMobileView = ('ontouchstart' in window || navigator.maxTouchPoints > 0) || window.innerWidth < 1366; 
-
-        if (isMobileView) {
-            const fitScale = viewport.clientWidth / scalableContainer.offsetWidth;
-            setScale(fitScale, 0, 0);
-        } else {
-            setScale(1.2, 0, 0);
-        }
+        // Unified scale logic: Start with 1.2 zoom on all devices (Desktop and Mobile)
+        // This ensures consistent initial visibility as requested.
+        setScale(1.2, 0, 0);
     }, [setScale]);
 
 
