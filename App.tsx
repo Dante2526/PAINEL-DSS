@@ -253,7 +253,7 @@ const AdminOptionsModal: React.FC<{
             <div className="grid grid-cols-2 gap-4">
                 <button 
                     id="admin-clear-btn"
-                    onClick={() => { onClear(); onClose(); }} 
+                    onClick={onClear} 
                     className="p-4 bg-orange text-white rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-orange-600 transition shadow-lg"
                 >
                     <EraserIcon className="w-8 h-8" />
@@ -271,7 +271,7 @@ const AdminOptionsModal: React.FC<{
 
                  <button 
                     id="admin-reorganize-btn"
-                    onClick={() => { onReorganize(); onClose(); }}
+                    onClick={onReorganize}
                     className="p-4 bg-purple-500 text-white rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-purple-600 transition shadow-lg"
                 >
                     <SortIcon className="w-8 h-8" />
@@ -408,16 +408,16 @@ const ReportModal: React.FC<{
         return report;
     };
 
+    const reportText = generateReport();
+
     const handleCopy = () => {
-        const text = generateReport();
-        navigator.clipboard.writeText(text);
+        navigator.clipboard.writeText(reportText);
         showNotification('Relatório copiado para a área de transferência!', 'success');
         onClose();
     };
 
     const handleDownload = () => {
-        const text = generateReport();
-        const blob = new Blob([text], { type: 'text/plain' });
+        const blob = new Blob([reportText], { type: 'text/plain' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -433,23 +433,32 @@ const ReportModal: React.FC<{
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Gerar Relatório" scale={scale}>
             <div className="space-y-4">
-                <p className="text-light-text-secondary dark:text-dark-text-secondary text-sm mb-4">
-                    Escolha como deseja exportar o resumo diário da equipe.
+                <p className="text-light-text-secondary dark:text-dark-text-secondary text-sm">
+                    Visualização do relatório diário da equipe:
                 </p>
-                <button 
-                    onClick={handleCopy}
-                    className="w-full py-4 bg-blue-500 text-white font-bold rounded-xl hover:bg-blue-600 transition flex items-center justify-center gap-2 shadow-md"
-                >
-                    <FileTextIcon className="w-5 h-5" />
-                    COPIAR TEXTO
-                </button>
-                <button 
-                    onClick={handleDownload}
-                    className="w-full py-4 bg-gray-700 text-white font-bold rounded-xl hover:bg-gray-800 transition flex items-center justify-center gap-2 shadow-md"
-                >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                    BAIXAR ARQUIVO
-                </button>
+                
+                <div className="w-full bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl p-4 text-left shadow-inner max-h-[250px] overflow-y-auto">
+                    <pre className="whitespace-pre-wrap font-mono text-xs text-gray-700 dark:text-gray-300">
+                        {reportText}
+                    </pre>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3">
+                    <button 
+                        onClick={handleCopy}
+                        className="w-full py-4 bg-blue-500 text-white font-bold rounded-xl hover:bg-blue-600 transition flex items-center justify-center gap-2 shadow-md"
+                    >
+                        <FileTextIcon className="w-5 h-5" />
+                        COPIAR TEXTO
+                    </button>
+                    <button 
+                        onClick={handleDownload}
+                        className="w-full py-4 bg-gray-700 text-white font-bold rounded-xl hover:bg-gray-800 transition flex items-center justify-center gap-2 shadow-md"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        BAIXAR ARQUIVO
+                    </button>
+                </div>
             </div>
         </Modal>
     );
