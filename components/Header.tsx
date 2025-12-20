@@ -50,7 +50,7 @@ const Header: React.FC<HeaderProps> = ({ stats, loading, onAdminClick, onHelpCli
                        <span>TUTORIAL</span>
                    </button>
                    
-                   <div id="tutorial-dark-mode" className="p-1 rounded-xl flex items-center justify-center">
+                   <div id="tutorial-dark-mode">
                         <DarkModeToggle isDarkMode={isDarkMode} onToggle={onToggleDarkMode} />
                    </div>
                    

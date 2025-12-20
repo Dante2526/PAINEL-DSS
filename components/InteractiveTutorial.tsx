@@ -8,7 +8,6 @@ export interface TutorialStep {
     content: string;
     position?: 'top' | 'bottom' | 'left' | 'right';
     scrollTargetId?: string;
-    spotlightPadding?: number | { top?: number; right?: number; bottom?: number; left?: number };
 }
 
 interface InteractiveTutorialProps {
@@ -156,13 +155,6 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
 
     const step = steps[currentStepIndex];
     const isLastStep = currentStepIndex === steps.length - 1;
-    
-    // Calculate padding for spotlight
-    const paddingVal = step.spotlightPadding || 8;
-    const pt = typeof paddingVal === 'number' ? paddingVal : (paddingVal.top ?? 8);
-    const pr = typeof paddingVal === 'number' ? paddingVal : (paddingVal.right ?? 8);
-    const pb = typeof paddingVal === 'number' ? paddingVal : (paddingVal.bottom ?? 8);
-    const pl = typeof paddingVal === 'number' ? paddingVal : (paddingVal.left ?? 8);
 
     let tooltipStyle: React.CSSProperties = {};
     
@@ -205,10 +197,10 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
                 <div 
                     className="absolute border-2 border-white/80 rounded-xl shadow-[0_0_0_9999px_rgba(0,0,0,0.75),inset_0_0_20px_rgba(0,0,0,0.3)] pointer-events-none will-change-[top,left,width,height]"
                     style={{
-                        top: targetRect.top - pt,
-                        left: targetRect.left - pl,
-                        width: targetRect.width + pl + pr,
-                        height: targetRect.height + pt + pb,
+                        top: targetRect.top - 8,
+                        left: targetRect.left - 8,
+                        width: targetRect.width + 16,
+                        height: targetRect.height + 16,
                         zIndex: 1000,
                         // OPTIMIZATION: Only animate width and height. 
                         // We let the JS loop handle top/left updates instantly to match the scroll speed exactly.
