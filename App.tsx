@@ -358,7 +358,11 @@ const ReportModal: React.FC<{
     employees: Employee[];
     showNotification: (msg: string, type: 'success' | 'error') => void;
     scale: number;
-}> = ({ isOpen, onClose, employees, showNotification, scale }) => {
+    subject7H: string;
+    responsible7H: string;
+    subject6H: string;
+    responsible6H: string;
+}> = ({ isOpen, onClose, employees, showNotification, scale, subject7H, responsible7H, subject6H, responsible6H }) => {
     const generateReport = () => {
         const present = employees.filter(e => e.bem || e.assDss || e.mal);
         const absent = employees.filter(e => e.absent);
@@ -368,6 +372,16 @@ const ReportModal: React.FC<{
         const date = new Date().toLocaleDateString('pt-BR');
         
         let report = `RELATÓRIO DSS - ${date}\n\n`;
+
+        // Add Header info
+        if (subject7H || responsible7H) {
+            report += `TURNO 7H-19H\nTEMA: ${subject7H || 'Não informado'}\nRESP: ${responsible7H || 'Não informado'}\n\n`;
+        }
+        if (subject6H || responsible6H) {
+             report += `TURNO 6H\nTEMA: ${subject6H || 'Não informado'}\nRESP: ${responsible6H || 'Não informado'}\n\n`;
+        }
+        report += `--------------------------------\n\n`;
+
         report += `TOTAL: ${employees.length}\n`;
         report += `PRESENTES: ${present.length}\n`;
         report += `AUSENTES: ${absent.length}\n`;
@@ -458,8 +472,11 @@ const App: React.FC = () => {
     // State for manual registration inputs
     const [mainSubject, setMainSubject] = useState('');
     const [mainMatricula, setMainMatricula] = useState('');
+    const [mainResponsible, setMainResponsible] = useState('');
+
     const [specialSubject, setSpecialSubject] = useState('');
     const [specialMatricula, setSpecialMatricula] = useState('');
+    const [specialResponsible, setSpecialResponsible] = useState('');
 
     // State for safety confirmation (Generic for Mal, Absent, Turno, Delete)
     const [pendingEmployeeId, setPendingEmployeeId] = useState<string | null>(null);
@@ -753,9 +770,11 @@ const App: React.FC = () => {
 
                     setMainSubject(mainReg?.assunto || '');
                     setMainMatricula(mainReg?.matricula || '');
+                    setMainResponsible(mainReg?.name || '');
                     
                     setSpecialSubject(specialReg?.assunto || '');
                     setSpecialMatricula(specialReg?.matricula || '');
+                    setSpecialResponsible(specialReg?.name || '');
                 });
 
 
@@ -1233,8 +1252,15 @@ const App: React.FC = () => {
             return;
         }
         
+        // Find the responsible name to persist it
+        const admin = administrators.find(a => a.matricula === matricula);
+        const emp = employees.find(e => e.matricula === matricula);
+        const resolvedName = admin ? admin.name : (emp ? emp.name : '');
+
         if (isDemoMode) {
             showNotification(`Registro para turno ${turno} salvo com sucesso (DEMO).`, 'success');
+            // Update local state for immediate feedback in demo mode if needed, 
+            // though report generation in demo might be static.
             return;
         }
 
@@ -1245,6 +1271,7 @@ const App: React.FC = () => {
 
         const registrationData = {
             matricula,
+            name: resolvedName, // Persist name
             assunto: subject || 'Não informado',
             TURNO: turno,
         };
@@ -1395,8 +1422,10 @@ const App: React.FC = () => {
              })));
              setMainSubject('');
              setMainMatricula('');
+             setMainResponsible('');
              setSpecialSubject('');
              setSpecialMatricula('');
+             setSpecialResponsible('');
              setActiveModal(ModalType.None);
              showNotification('Dados limpos com sucesso (DEMO)!', 'success');
              return;
@@ -1599,6 +1628,10 @@ const App: React.FC = () => {
                 employees={employees}
                 showNotification={showNotification}
                 scale={modalScale}
+                subject7H={mainSubject}
+                responsible7H={mainResponsible}
+                subject6H={specialSubject}
+                responsible6H={specialResponsible}
             />
             
             <InteractiveTutorial

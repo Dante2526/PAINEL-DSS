@@ -21,6 +21,7 @@ export interface Administrator {
 export interface ManualRegistration {
   id: string;
   matricula: string;
+  name?: string; // Added to persist the responsible person's name
   assunto: string;
   TURNO: string;
 }
