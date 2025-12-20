@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Header from './components/Header';
 import EmployeeCard from './components/EmployeeCard';
@@ -219,6 +218,9 @@ const AdminLoginModal: React.FC<{
                     className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
                     autoFocus
                 />
+                <p className="text-xs text-left text-warning font-bold px-1">
+                    * Digite tudo em minúsculo
+                </p>
                 <button type="submit" className="w-full py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition">
                     ENTRAR
                 </button>
