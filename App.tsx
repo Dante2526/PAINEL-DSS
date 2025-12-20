@@ -770,14 +770,9 @@ const App: React.FC = () => {
         const scalableContainer = scalableContainerRef.current;
         if (!viewport || !scalableContainer) return;
 
-        const isMobileView = ('ontouchstart' in window || navigator.maxTouchPoints > 0) || window.innerWidth < 1366; 
-
-        if (isMobileView) {
-            const fitScale = viewport.clientWidth / scalableContainer.offsetWidth;
-            setScale(fitScale, 0, 0);
-        } else {
-            setScale(1.0, 0, 0);
-        }
+        const fitScale = viewport.clientWidth / scalableContainer.offsetWidth;
+        // Always attempt to fit the width initially, regardless of device type
+        setScale(fitScale > 1 ? 1 : fitScale, 0, 0);
     }, [setScale]);
 
 

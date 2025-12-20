@@ -1,22 +1,13 @@
 
-
 /* === GENERAL STYLES === */
 body {
-    overflow: hidden; /* Prevent the main page from scrolling */
+    overflow: hidden; /* Fixed layout requires hidden overflow to handle custom pan/zoom */
+    background-color: var(--light-bg-secondary);
+    overscroll-behavior: none; /* Prevents pull-to-refresh on mobile */
 }
 
-.viewport {
-    overflow: auto; /* Allow this container to have scrollbars */
-    cursor: grab;
-}
-
-.viewport:active {
-    cursor: grabbing;
-}
-
-.scalable-container {
-    transform-origin: 0 0; /* Anchor scaling to the top-left corner */
-    will-change: transform; /* Hint to the browser for performance optimization */
+.dark body {
+    background-color: var(--dark-bg);
 }
 
 /* Prevent zoom on double tap and ensure inputs behave well on touch */
@@ -26,7 +17,7 @@ input, textarea, button, select, a {
 
 /* === BB-8 TOGGLE STYLES === */
 .bb8-toggle {
-    --toggle-size: 16px;
+    --toggle-size: 12px; /* Reduced size slightly for mobile fit */
     --toggle-width: 10.625em;
     --toggle-height: 5.625em;
     --toggle-offset: calc((var(--toggle-height) - var(--bb8-diameter)) / 2);
@@ -39,6 +30,12 @@ input, textarea, button, select, a {
     cursor: pointer;
     font-size: var(--toggle-size);
     margin: 10px;
+}
+
+@media (min-width: 768px) {
+    .bb8-toggle {
+        --toggle-size: 16px;
+    }
 }
 
 .bb8-toggle,
@@ -449,21 +446,28 @@ input, textarea, button, select, a {
 .turno-button {
     position: relative;
     overflow: hidden;
-    padding: 1rem 1.5rem; /* Increased to normal height */
-    font-size: 1rem; /* Normal text size */
-    font-weight: 700; /* font-bold */
-    border-radius: 0.5rem; /* rounded-lg */
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem; 
+    font-weight: 700; 
+    border-radius: 0.5rem; 
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem; /* Restored gap */
+    gap: 0.5rem; 
     color: white;
-    background: linear-gradient(135deg, #F97316 0%, #EA580C 100%); /* Orange gradient */
+    background: linear-gradient(135deg, #F97316 0%, #EA580C 100%); 
     transition: all 0.3s ease;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border: none;
     cursor: pointer;
     outline: none;
+}
+
+@media (min-width: 640px) {
+    .turno-button {
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+    }
 }
 
 .turno-button:hover:not(:disabled) {
@@ -472,7 +476,7 @@ input, textarea, button, select, a {
 }
 
 .turno-button.active {
-    background: linear-gradient(135deg, #0056b3 0%, #004080 100%); /* Dark blue gradient */
+    background: linear-gradient(135deg, #0056b3 0%, #004080 100%); 
     color: #e0e0e0;
 }
 
@@ -541,20 +545,27 @@ input, textarea, button, select, a {
 .absent-button {
     position: relative;
     overflow: hidden;
-    padding: 1rem 1.5rem; /* Increased to normal height */
-    font-size: 1rem; /* Normal text size */
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem; 
     font-weight: 700;
     border-radius: 0.5rem;
     display: flex;
     align-items: center;
-    gap: 0.5rem; /* Restored gap */
+    gap: 0.5rem; 
     color: white;
-    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); /* Amber gradient */
+    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); 
     box-shadow: 0 10px 32px rgba(217, 119, 6, 0.35);
     border: none;
     cursor: pointer;
     outline: none;
     transition: all 0.2s ease-out;
+}
+
+@media (min-width: 640px) {
+    .absent-button {
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+    }
 }
 
 .absent-button:hover:not(.marked) {
@@ -563,7 +574,7 @@ input, textarea, button, select, a {
 }
 
 .absent-button.marked {
-    background: linear-gradient(135deg, #D97706 0%, #B45309 100%); /* Darker amber gradient */
+    background: linear-gradient(135deg, #D97706 0%, #B45309 100%); 
     transform: translateY(1px);
     box-shadow: 0 6px 20px rgba(217, 119, 6, 0.3);
 }
@@ -572,20 +583,27 @@ input, textarea, button, select, a {
 .delete-button {
     position: relative;
     overflow: hidden;
-    padding: 1rem 1.5rem; /* Increased to normal height */
-    font-size: 1rem; /* Normal text size */
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem; 
     font-weight: 700;
     border-radius: 0.5rem;
     display: flex;
     align-items: center;
-    gap: 0.5rem; /* Restored gap */
+    gap: 0.5rem; 
     color: white;
-    background: linear-gradient(135deg, #ff5252 0%, #c51111 100%); /* Red gradient */
+    background: linear-gradient(135deg, #ff5252 0%, #c51111 100%); 
     box-shadow: 0 10px 32px rgba(255, 82, 82, 0.35);
     border: none;
     cursor: pointer;
     outline: none;
     transition: all 0.2s ease-out;
+}
+
+@media (min-width: 640px) {
+    .delete-button {
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
+    }
 }
 
 .delete-button:hover {
