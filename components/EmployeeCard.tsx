@@ -129,7 +129,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, o
     };
 
     return (
-        <div id={domId} className="w-full bg-light-card dark:bg-dark-card rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+        <div id={domId} className="w-full bg-light-card dark:bg-dark-card rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden will-change-transform">
             {/* Header compactado para ganhar espaço horizontal */}
             <div className={`px-5 py-4 flex items-center text-white ${getHeaderClass()}`}>
                 <div className="w-12 h-12 bg-white/25 rounded-full flex items-center justify-center text-xl mr-3 flex-shrink-0">👤</div>
@@ -260,4 +260,4 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, o
     );
 };
 
-export default EmployeeCard;
+export default React.memo(EmployeeCard);

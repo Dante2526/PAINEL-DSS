@@ -137,4 +137,4 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = ({
     );
 };
 
-export default SpecialTeamPanel;
+export default React.memo(SpecialTeamPanel);
