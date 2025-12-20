@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Header from './components/Header';
 import EmployeeCard from './components/EmployeeCard';
@@ -77,19 +78,19 @@ const tutorialSteps: TutorialStep[] = [
         targetId: 'tutorial-stats',
         title: 'Estatísticas em Tempo Real',
         content: 'Acompanhe quantos colaboradores estão bem, mal ou ausentes instantaneamente.',
-        scrollTargetId: 'app-header'
+        scrollTargetId: 'tutorial-header-actions'
     },
     {
         targetId: 'tutorial-dark-mode',
         title: 'Modo Escuro (BB-8)',
         content: 'Clique no pequeno droide BB-8 para alternar entre o modo Claro e Escuro. Ideal para ambientes com pouca luz.',
-        scrollTargetId: 'app-header'
+        scrollTargetId: 'tutorial-header-actions'
     },
     {
         targetId: 'tutorial-admin-btn',
         title: 'Área Administrativa',
         content: 'Acesso restrito para limpar os dados diários, gerar relatórios em PDF/Texto e cadastrar novos usuários.',
-        scrollTargetId: 'app-header'
+        scrollTargetId: 'tutorial-header-actions'
     }
 ];
 
@@ -1487,8 +1488,8 @@ const App: React.FC = () => {
                 let newScale = availableWidth / elementWidth;
                 newScale = Math.min(Math.max(newScale, 0.3), 1.1);
                 
-                // Force scroll to top (0,0) and set scale simultaneously
-                setScale(newScale, 0, 0);
+                // FIXED: Don't force scroll to 0,0. Let InteractiveTutorial handle the scrolling.
+                setScale(newScale);
                 return; // Early return to avoid double logic
             }
         }
