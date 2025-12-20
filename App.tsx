@@ -363,6 +363,7 @@ const ReportModal: React.FC<{
     subject6H: string;
     responsible6H: string;
 }> = ({ isOpen, onClose, employees, showNotification, scale, subject7H, responsible7H, subject6H, responsible6H }) => {
+    // Generate text for Clipboard/File functions
     const generateReport = () => {
         const present = employees.filter(e => e.bem || e.assDss || e.mal);
         const absent = employees.filter(e => e.absent);
@@ -373,7 +374,6 @@ const ReportModal: React.FC<{
         
         let report = `RELATÓRIO DSS - ${date}\n\n`;
 
-        // Add Header info
         if (subject7H || responsible7H) {
             report += `TURNO 7H-19H\nTEMA: ${subject7H || 'Não informado'}\nRESP: ${responsible7H || 'Não informado'}\n\n`;
         }
@@ -410,6 +410,17 @@ const ReportModal: React.FC<{
 
     const reportText = generateReport();
 
+    // Stats for Visual Display
+    const visualStats = {
+        total: employees.length,
+        present: employees.filter(e => e.bem || e.assDss || e.mal).length,
+        absentCount: employees.filter(e => e.absent).length,
+        missingCount: employees.filter(e => !e.bem && !e.assDss && !e.mal && !e.absent).length,
+        malCount: employees.filter(e => e.mal).length,
+        malList: employees.filter(e => e.mal),
+        absentList: employees.filter(e => e.absent),
+    };
+
     const handleCopy = () => {
         navigator.clipboard.writeText(reportText);
         showNotification('Relatório copiado para a área de transferência!', 'success');
@@ -431,34 +442,120 @@ const ReportModal: React.FC<{
     if (!isOpen) return null;
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Gerar Relatório" scale={scale}>
-            <div className="space-y-4">
-                <p className="text-light-text-secondary dark:text-dark-text-secondary text-sm">
-                    Visualização do relatório diário da equipe:
-                </p>
-                
-                <div className="w-full bg-gray-50 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl p-4 text-left shadow-inner max-h-[250px] overflow-y-auto">
-                    <pre className="whitespace-pre-wrap font-mono text-xs text-gray-700 dark:text-gray-300">
-                        {reportText}
-                    </pre>
+        <Modal isOpen={isOpen} onClose={onClose} title="Relatório Diário" scale={scale}>
+            {/* Visual Report Container */}
+            <div className="w-full mb-6">
+                <div className="text-sm font-semibold text-gray-500 mb-4 capitalize border-b border-gray-200 dark:border-gray-700 pb-2">
+                    {new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                 </div>
 
-                <div className="grid grid-cols-1 gap-3">
-                    <button 
-                        onClick={handleCopy}
-                        className="w-full py-4 bg-blue-500 text-white font-bold rounded-xl hover:bg-blue-600 transition flex items-center justify-center gap-2 shadow-md"
-                    >
-                        <FileTextIcon className="w-5 h-5" />
-                        COPIAR TEXTO
-                    </button>
-                    <button 
-                        onClick={handleDownload}
-                        className="w-full py-4 bg-gray-700 text-white font-bold rounded-xl hover:bg-gray-800 transition flex items-center justify-center gap-2 shadow-md"
-                    >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                        BAIXAR ARQUIVO
-                    </button>
+                {/* Shift Info Cards Side-by-Side */}
+                <div className="flex gap-3 mb-6">
+                    {/* 7H Card */}
+                    <div className="flex-1 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-xl border border-blue-100 dark:border-blue-800 text-left relative overflow-hidden group">
+                        <div className="absolute right-0 top-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <SubjectIcon className="w-12 h-12 text-blue-600" />
+                        </div>
+                        <div className="text-[10px] font-bold text-white bg-blue-500 px-2 py-0.5 rounded-full w-fit mb-2">TURNO 7H-19H</div>
+                        <div className="mb-2 relative z-10">
+                            <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Tema DSS</span>
+                            <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight">{subject7H || 'NÃO INFORMADO'}</span>
+                        </div>
+                        <div className="relative z-10">
+                            <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Responsável</span>
+                            <span className="text-xs text-gray-700 dark:text-gray-300 truncate block">{responsible7H || '---'}</span>
+                        </div>
+                    </div>
+
+                    {/* 6H Card */}
+                    <div className="flex-1 bg-orange-50 dark:bg-orange-900/20 p-3 rounded-xl border border-orange-100 dark:border-orange-800 text-left relative overflow-hidden group">
+                        <div className="absolute right-0 top-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                            <ShiftIcon className="w-12 h-12 text-orange-600" />
+                        </div>
+                        <div className="text-[10px] font-bold text-white bg-orange-500 px-2 py-0.5 rounded-full w-fit mb-2">TURNO 6H</div>
+                        <div className="mb-2 relative z-10">
+                            <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Tema DSS</span>
+                            <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight">{subject6H || 'NÃO INFORMADO'}</span>
+                        </div>
+                        <div className="relative z-10">
+                            <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Responsável</span>
+                            <span className="text-xs text-gray-700 dark:text-gray-300 truncate block">{responsible6H || '---'}</span>
+                        </div>
+                    </div>
                 </div>
+
+                {/* Stats Row */}
+                <div className="grid grid-cols-4 gap-2 mb-6">
+                    <div className="bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg p-2 flex flex-col items-center justify-center shadow-sm">
+                        <span className="text-xl font-bold text-green-600 dark:text-green-400">{visualStats.present}</span>
+                        <span className="text-[8px] uppercase text-gray-500 font-bold tracking-tight">Presentes</span>
+                    </div>
+                     <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-lg p-2 flex flex-col items-center justify-center shadow-sm">
+                        <span className="text-xl font-bold text-red-600 dark:text-red-400">{visualStats.malCount}</span>
+                        <span className="text-[8px] uppercase text-red-500/80 font-bold tracking-tight">Mal</span>
+                    </div>
+                    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30 rounded-lg p-2 flex flex-col items-center justify-center shadow-sm">
+                        <span className="text-xl font-bold text-amber-600 dark:text-amber-400">{visualStats.absentCount}</span>
+                        <span className="text-[8px] uppercase text-amber-500/80 font-bold tracking-tight">Ausentes</span>
+                    </div>
+                    <div className="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-2 flex flex-col items-center justify-center opacity-80 shadow-sm">
+                        <span className="text-xl font-bold text-gray-700 dark:text-gray-300">{visualStats.missingCount}</span>
+                        <span className="text-[8px] uppercase text-gray-500 font-bold tracking-tight">Pendentes</span>
+                    </div>
+                </div>
+
+                {/* Compact Issues Lists */}
+                {(visualStats.malList.length > 0 || visualStats.absentList.length > 0) && (
+                    <div className="text-left space-y-3 border-t border-gray-200 dark:border-gray-700 pt-4">
+                        {visualStats.malList.length > 0 && (
+                            <div>
+                                <div className="flex items-center gap-1.5 mb-1.5 text-red-600 dark:text-red-400 font-bold text-[10px] uppercase tracking-wide">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                                    Relatos de Mal-Estar
+                                </div>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {visualStats.malList.map(e => (
+                                        <span key={e.id} className="text-[10px] px-2 py-0.5 bg-red-50 dark:bg-red-900/30 rounded border border-red-100 dark:border-red-900/50 text-red-800 dark:text-red-200 font-medium">
+                                            {e.name}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                         {visualStats.absentList.length > 0 && (
+                            <div>
+                                <div className="flex items-center gap-1.5 mb-1.5 text-amber-600 dark:text-amber-400 font-bold text-[10px] uppercase tracking-wide">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                    Ausentes
+                                </div>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {visualStats.absentList.map(e => (
+                                        <span key={e.id} className="text-[10px] px-2 py-0.5 bg-amber-50 dark:bg-amber-900/30 rounded border border-amber-100 dark:border-amber-900/50 text-amber-800 dark:text-amber-200 font-medium">
+                                            {e.name}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 pt-2">
+                <button 
+                    onClick={handleCopy}
+                    className="w-full py-3 bg-blue-500 text-white font-bold rounded-xl hover:bg-blue-600 transition flex items-center justify-center gap-2 shadow-md text-sm"
+                >
+                    <FileTextIcon className="w-4 h-4" />
+                    COPIAR
+                </button>
+                <button 
+                    onClick={handleDownload}
+                    className="w-full py-3 bg-gray-700 text-white font-bold rounded-xl hover:bg-gray-800 transition flex items-center justify-center gap-2 shadow-md text-sm"
+                >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    BAIXAR
+                </button>
             </div>
         </Modal>
     );
