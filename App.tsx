@@ -77,20 +77,17 @@ const tutorialSteps: TutorialStep[] = [
     {
         targetId: 'tutorial-stats',
         title: 'Estatísticas em Tempo Real',
-        content: 'Acompanhe quantos colaboradores estão bem, mal ou ausentes instantaneamente.',
-        scrollTargetId: 'tutorial-header-actions'
+        content: 'Acompanhe quantos colaboradores estão bem, mal ou ausentes instantaneamente.'
     },
     {
         targetId: 'tutorial-dark-mode',
         title: 'Modo Escuro (BB-8)',
-        content: 'Clique no pequeno droide BB-8 para alternar entre o modo Claro e Escuro. Ideal para ambientes com pouca luz.',
-        scrollTargetId: 'tutorial-header-actions'
+        content: 'Clique no pequeno droide BB-8 para alternar entre o modo Claro e Escuro. Ideal para ambientes com pouca luz.'
     },
     {
         targetId: 'tutorial-admin-btn',
         title: 'Área Administrativa',
-        content: 'Acesso restrito para limpar os dados diários, gerar relatórios em PDF/Texto e cadastrar novos usuários.',
-        scrollTargetId: 'tutorial-header-actions'
+        content: 'Acesso restrito para limpar os dados diários, gerar relatórios em PDF/Texto e cadastrar novos usuários.'
     }
 ];
 
