@@ -776,7 +776,7 @@ const App: React.FC = () => {
             const fitScale = viewport.clientWidth / scalableContainer.offsetWidth;
             setScale(fitScale, 0, 0);
         } else {
-            setScale(1.0, 0, 0);
+            setScale(1.2, 0, 0);
         }
     }, [setScale]);
 
