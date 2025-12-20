@@ -10,6 +10,8 @@ html, body {
     overscroll-behavior: none; /* PREVENTS THE WHITE GLOW/BOUNCE EFFECT */
     background-color: #1A202C; /* Default to dark to prevent white flashes */
     -webkit-overflow-scrolling: touch;
+    /* Smooth theme transition for background colors */
+    transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .viewport {
