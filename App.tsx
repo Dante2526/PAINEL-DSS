@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Header from './components/Header';
 import EmployeeCard from './components/EmployeeCard';
@@ -12,7 +11,6 @@ import { Employee, StatusType, ModalType, ManualRegistration, Administrator } fr
 import type { NotificationData } from './components/Notification';
 import { db, auth, isConfigured } from './firebase';
 import { FALLBACK_LOGO } from './components/logoConstants';
-// FIX: Switched to standard Firebase packages for imports to match project configuration and resolve module errors.
 import { 
     collection, 
     query, 
@@ -28,7 +26,6 @@ import {
     getDocs,
     deleteDoc
 } from 'firebase/firestore';
-// FIX: Ensure correct import for signInAnonymously from firebase/auth
 import { signInAnonymously } from 'firebase/auth';
 import emailjs from '@emailjs/browser';
 import './styles.css';
@@ -42,11 +39,11 @@ const EMAILJS_PUBLIC_KEY = "Ef-7IoF9U9NQ_iV8X";
 
 const tutorialSteps: TutorialStep[] = [
     {
-        targetId: 'app-header', // Mantido para referência interna, mas visualmente ignorado devido ao noHighlight
+        targetId: 'app-header',
         title: 'Controle de Zoom',
         content: 'O painel se adapta a você! Use o movimento de pinça (dois dedos na tela) para dar zoom e ajustar o tamanho ideal para sua visualização.',
         disableHorizontalScroll: true,
-        noHighlight: true // Define que este passo é uma instrução geral sem foco específico
+        noHighlight: true 
     },
     {
         targetId: 'tutorial-manual-register-bar',
@@ -62,13 +59,13 @@ const tutorialSteps: TutorialStep[] = [
         targetId: 'tutorial-card-actions',
         title: 'Botões de Ação',
         content: 'Use "TURNO 6H" para mover o colaborador para uma coluna somente para esse turno. Use "AUSENTE" para marcar que o colaborador faltou. Use "DELETAR" para remover permanentemente o usuário (Aparece somente para-ADM).',
-        scrollTargetId: 'tutorial-first-card' // Centers the view on the whole card
+        scrollTargetId: 'tutorial-first-card' 
     },
     {
         targetId: 'tutorial-card-time',
         title: 'Registro de Horário',
         content: 'Aqui fica registrado o momento exato em que o colaborador assinou sua DSS',
-        scrollTargetId: 'tutorial-first-card' // Centers the view on the whole card
+        scrollTargetId: 'tutorial-first-card' 
     },
     {
         targetId: 'tutorial-special-demo-area',
@@ -79,7 +76,7 @@ const tutorialSteps: TutorialStep[] = [
         targetId: 'tutorial-return-turn-btn',
         title: 'Retornar ao Turno Normal',
         content: 'Ao Clicar neste botão na coluna do horário especial, o colaborador é movido de volta para o turno normal.',
-        scrollTargetId: 'tutorial-special-demo-area' // Centers the view on the special panel area
+        scrollTargetId: 'tutorial-special-demo-area' 
     },
     {
         targetId: 'tutorial-stats',
@@ -138,14 +135,11 @@ const ManualRegisterSection: React.FC<{
     employees: Employee[];
     administrators: Administrator[];
 }> = ({ subject, matricula, onSubjectChange, onMatriculaChange, onRegister, employees, administrators }) => {
-    // Logic to find name based on matricula from administrators list first, then employees list
     const foundName = useMemo(() => {
         if (!matricula) return '';
-        // Check administrators first
         const admin = administrators.find(a => a.matricula === matricula);
         if (admin) return admin.name;
         
-        // Fallback to employees
         const employee = employees.find(e => e.matricula === matricula);
         return employee ? employee.name : '';
     }, [matricula, employees, administrators]);
@@ -318,7 +312,6 @@ const AddUserModal: React.FC<{
         }
     };
     
-    // Auto uppercase for name
     const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setName(e.target.value.toUpperCase());
     };
@@ -360,49 +353,68 @@ const ReportModal: React.FC<{
     scale: number;
     subject7H: string;
     responsible7H: string;
+    matricula7H: string;
     subject6H: string;
     responsible6H: string;
-}> = ({ isOpen, onClose, employees, showNotification, scale, subject7H, responsible7H, subject6H, responsible6H }) => {
+    matricula6H: string;
+}> = ({ isOpen, onClose, employees, showNotification, scale, subject7H, responsible7H, matricula7H, subject6H, responsible6H, matricula6H }) => {
     // Generate text for Clipboard/File functions
     const generateReport = () => {
-        const present = employees.filter(e => e.bem || e.assDss || e.mal);
-        const absent = employees.filter(e => e.absent);
-        const missing = employees.filter(e => !e.bem && !e.assDss && !e.mal && !e.absent);
-        const mal = employees.filter(e => e.mal);
+        // Filter groups by Turno
+        const team7H = employees.filter(e => e.turno !== '6H');
+        const team6H = employees.filter(e => e.turno === '6H');
 
-        const date = new Date().toLocaleDateString('pt-BR');
+        const totalEmployees = employees.length;
+        const totalPresent = employees.filter(e => e.bem || e.assDss || e.mal).length;
+        // Grouping Pending and Absent together for the summary count
+        const totalPendingAbsent = employees.filter(e => !e.bem && !e.assDss && !e.mal).length;
+
         
-        let report = `RELATÓRIO DSS - ${date}\n\n`;
+        let report = `RESUMO GERAL\n`;
+        report += `Total de Funcionários: ${totalEmployees}\n`;
+        report += `Presentes (DSS + Bem/Mal): ${totalPresent}\n`;
+        report += `Pendentes / Ausentes: ${totalPendingAbsent}\n\n`;
 
-        if (subject7H || responsible7H) {
-            report += `TURNO 7H-19H\nTEMA: ${subject7H || 'Não informado'}\nRESP: ${responsible7H || 'Não informado'}\n\n`;
+        // Helper to generate section list
+        const getStatusList = (team: Employee[]) => {
+            const bem = team.filter(e => e.bem || e.assDss);
+            const mal = team.filter(e => e.mal);
+            const pendingAbsent = team.filter(e => !e.bem && !e.assDss && !e.mal);
+
+            let section = `STATUS: "ASS.DSS + ESTOU BEM"\n`;
+            section += bem.length > 0 ? bem.map(e => `${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
+            section += `\nSTATUS "ESTOU MAL"\n`;
+            section += mal.length > 0 ? mal.map(e => `${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
+            section += `\nPENDENTES / AUSENTES\n`;
+            section += pendingAbsent.length > 0 ? pendingAbsent.map(e => `${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
+            
+            return section;
+        };
+
+        report += `EQUIPE TURNO 7H\n`;
+        report += getStatusList(team7H);
+        report += `\n\n`;
+
+        report += `EQUIPE TURNO 6H\n`;
+        report += getStatusList(team6H);
+        report += `\n\n`;
+
+        // Footer Section with Registries
+        report += `REGISTROS DSS (TURNO 7H)\n`;
+        report += `Assunto: ${subject7H || 'NÃO INFORMADO'}`;
+        if (responsible7H) {
+            // Using a new line for Responsible to be clear, including Matricula
+            report += `\nResponsável: ${responsible7H} (Matrícula: ${matricula7H || '---'})\n`;
+        } else {
+             report += `\n`;
         }
-        if (subject6H || responsible6H) {
-             report += `TURNO 6H\nTEMA: ${subject6H || 'Não informado'}\nRESP: ${responsible6H || 'Não informado'}\n\n`;
-        }
-        report += `--------------------------------\n\n`;
 
-        report += `TOTAL: ${employees.length}\n`;
-        report += `PRESENTES: ${present.length}\n`;
-        report += `AUSENTES: ${absent.length}\n`;
-        report += `PENDENTES: ${missing.length}\n`;
-        report += `RELATOS DE MAL-ESTAR: ${mal.length}\n\n`;
-
-        if (mal.length > 0) {
-            report += `⚠️ COLABORADORES COM MAL-ESTAR:\n`;
-            mal.forEach(e => report += `- ${e.name} (${e.matricula})\n`);
-            report += `\n`;
-        }
-
-        if (absent.length > 0) {
-            report += `❌ AUSENTES:\n`;
-            absent.forEach(e => report += `- ${e.name} (${e.matricula})\n`);
-            report += `\n`;
-        }
-
-        if (missing.length > 0) {
-            report += `⏳ PENDENTES DE ASSINATURA:\n`;
-            missing.forEach(e => report += `- ${e.name} (${e.matricula})\n`);
+        report += `\nREGISTROS DSS (TURNO 6H)\n`;
+        report += `Assunto: ${subject6H || 'NÃO INFORMADO'}`;
+        if (responsible6H) {
+            report += `\nResponsável: ${responsible6H} (Matrícula: ${matricula6H || '---'})\n`;
+        } else {
+             report += `\n`;
         }
 
         return report;
@@ -410,7 +422,7 @@ const ReportModal: React.FC<{
 
     const reportText = generateReport();
 
-    // Stats for Visual Display
+    // Stats for Visual Display (Keep this simple for the modal visual)
     const visualStats = {
         total: employees.length,
         present: employees.filter(e => e.bem || e.assDss || e.mal).length,
@@ -1736,8 +1748,10 @@ const App: React.FC = () => {
                 scale={modalScale}
                 subject7H={mainSubject}
                 responsible7H={mainResponsible}
+                matricula7H={mainMatricula}
                 subject6H={specialSubject}
                 responsible6H={specialResponsible}
+                matricula6H={specialMatricula}
             />
             
             <InteractiveTutorial
