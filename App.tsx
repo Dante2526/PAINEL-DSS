@@ -77,17 +77,20 @@ const tutorialSteps: TutorialStep[] = [
     {
         targetId: 'tutorial-stats',
         title: 'Estatísticas em Tempo Real',
-        content: 'Acompanhe quantos colaboradores estão bem, mal ou ausentes instantaneamente.'
+        content: 'Acompanhe quantos colaboradores estão bem, mal ou ausentes instantaneamente.',
+        disableHorizontalScroll: true
     },
     {
         targetId: 'tutorial-dark-mode',
         title: 'Modo Escuro (BB-8)',
-        content: 'Clique no pequeno droide BB-8 para alternar entre o modo Claro e Escuro. Ideal para ambientes com pouca luz.'
+        content: 'Clique no pequeno droide BB-8 para alternar entre o modo Claro e Escuro. Ideal para ambientes com pouca luz.',
+        disableHorizontalScroll: true
     },
     {
         targetId: 'tutorial-admin-btn',
         title: 'Área Administrativa',
-        content: 'Acesso restrito para limpar os dados diários, gerar relatórios em PDF/Texto e cadastrar novos usuários.'
+        content: 'Acesso restrito para limpar os dados diários, gerar relatórios em PDF/Texto e cadastrar novos usuários.',
+        disableHorizontalScroll: true
     }
 ];
 
@@ -1469,26 +1472,10 @@ const App: React.FC = () => {
         }
         
         // Group context for special panel interactions
-        if (step.targetId === 'tutorial-return-turn-btn') {
+        // Also apply this zoom context to header steps (7, 8, 9) to maintain consistency with step 6 as requested
+        if (step.targetId === 'tutorial-return-turn-btn' || 
+            ['tutorial-stats', 'tutorial-dark-mode', 'tutorial-admin-btn'].includes(step.targetId)) {
             targetIdForZoom = 'tutorial-special-demo-area';
-        }
-        
-        // CRITICAL FIX: Explicitly handle header steps (7, 8, 9)
-        if (['tutorial-stats', 'tutorial-dark-mode', 'tutorial-admin-btn'].includes(step.targetId)) {
-            targetIdForZoom = 'tutorial-header-actions';
-            
-            const element = document.getElementById(targetIdForZoom);
-            if (element) {
-                const margin = 32;
-                const availableWidth = window.innerWidth - margin;
-                const elementWidth = element.offsetWidth; 
-                let newScale = availableWidth / elementWidth;
-                newScale = Math.min(Math.max(newScale, 0.3), 1.1);
-                
-                // FIXED: Don't force scroll to 0,0. Let InteractiveTutorial handle the scrolling.
-                setScale(newScale);
-                return; // Early return to avoid double logic
-            }
         }
 
         const element = document.getElementById(targetIdForZoom);

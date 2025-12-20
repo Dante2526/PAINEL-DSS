@@ -8,6 +8,7 @@ export interface TutorialStep {
     content: string;
     position?: 'top' | 'bottom' | 'left' | 'right';
     scrollTargetId?: string;
+    disableHorizontalScroll?: boolean;
 }
 
 interface InteractiveTutorialProps {
@@ -84,24 +85,64 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
             onStepChange(step);
         }
 
-        // Removed delay almost entirely to start tracking immediately with the scroll
+        // Increased delay to 60ms to ensure App.tsx setScale and layout reflow completes 
+        // before we measure and scroll. Prevents layout thrashing/jumping.
         const timer = setTimeout(() => {
             const element = document.getElementById(step.targetId);
             const scrollElement = step.scrollTargetId ? document.getElementById(step.scrollTargetId) : element;
+            const target = scrollElement || element;
             
-            if (element) {
-                // 1. Trigger Smooth Scroll
-                // Use scrollTargetId if available to center the view on a container (e.g. the card)
-                // while keeping the spotlight on the specific target (e.g. the button).
-                if (scrollElement) {
-                    scrollElement.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+            if (target) {
+                // Logic to handle scroll
+                const shouldDisableHorizontal = step.disableHorizontalScroll;
+
+                if (shouldDisableHorizontal) {
+                    // Try to find the specific viewport container first, or fallback to generic scroll parent
+                    let scrollContainer: HTMLElement | null = document.querySelector('.viewport');
+                    
+                    if (!scrollContainer || !scrollContainer.contains(target)) {
+                        let parent = target.parentElement;
+                        scrollContainer = null;
+                        while (parent) {
+                            const style = window.getComputedStyle(parent);
+                            if (['scroll', 'auto'].includes(style.overflowY) || ['scroll', 'auto'].includes(style.overflow)) {
+                                scrollContainer = parent;
+                                break;
+                            }
+                            parent = parent.parentElement;
+                        }
+                    }
+
+                    if (scrollContainer) {
+                        const containerRect = scrollContainer.getBoundingClientRect();
+                        const targetRect = target.getBoundingClientRect();
+                        
+                        // Calculate offset to center the element vertically
+                        const elementTopRelativeToContainer = targetRect.top - containerRect.top;
+                        const desiredTopRelative = (containerRect.height - targetRect.height) / 2;
+                        const scrollOffset = elementTopRelativeToContainer - desiredTopRelative;
+
+                        // EXPLICITLY set 'left' to current scrollLeft. 
+                        // This forces the browser to lock the X-axis and prevents any automatic horizontal adjustment.
+                        scrollContainer.scrollTo({
+                            top: scrollContainer.scrollTop + scrollOffset,
+                            left: scrollContainer.scrollLeft, 
+                            behavior: 'smooth'
+                        });
+                    } else {
+                        // Fallback: use scrollIntoView but with strict inline nearest
+                        target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+                    }
                 } else {
-                    element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+                    // Standard behavior for other steps
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center',
+                        inline: 'center'
+                    });
                 }
                 
                 // 2. Start a Tracking Loop
-                // Since we removed CSS transition on top/left, this loop will make the spotlight
-                // stick perfectly to the element as it moves across the screen.
                 const startTime = performance.now();
                 
                 const track = () => {
@@ -119,7 +160,7 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
                 setTargetRect(null);
                 setIsTransitioning(false);
             }
-        }, 10);
+        }, 60);
 
         return () => {
             clearTimeout(timer);
