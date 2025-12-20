@@ -75,4 +75,4 @@ const Header: React.FC<HeaderProps> = ({ stats, loading, onAdminClick, onHelpCli
     );
 };
 
-export default React.memo(Header);
+export default Header;

@@ -129,7 +129,7 @@ const ManualRegisterSection: React.FC<{
     onMatriculaChange: (v: string) => void;
     onRegister: () => void;
     employees: Employee[];
-}> = React.memo(({ subject, matricula, onSubjectChange, onMatriculaChange, onRegister, employees }) => {
+}> = ({ subject, matricula, onSubjectChange, onMatriculaChange, onRegister, employees }) => {
     // Logic to find name
     const foundName = useMemo(() => {
         if (!matricula) return '';
@@ -185,7 +185,7 @@ const ManualRegisterSection: React.FC<{
             </div>
         </div>
     );
-});
+};
 
 const AdminLoginModal: React.FC<{
     isOpen: boolean;
@@ -509,7 +509,7 @@ const App: React.FC = () => {
         }
     }, [loading]);
 
-    const handleToggleDarkMode = useCallback(() => setIsDarkMode(prev => !prev), []);
+    const handleToggleDarkMode = () => setIsDarkMode(prev => !prev);
 
     const showNotification = useCallback((message: string, type: 'success' | 'error' = 'success') => {
         const newNotification = { id: Date.now(), message, type };
@@ -521,8 +521,8 @@ const App: React.FC = () => {
     };
 
     // Função para enviar alerta por e-mail
-    const sendAlertEmail = useCallback(async (name: string, matricula: string, turno: string) => {
-         if (isDemoModeRef.current) {
+    const sendAlertEmail = async (name: string, matricula: string, turno: string) => {
+         if (isDemoMode) {
             console.log(`[DEMO] Email alert triggered for ${name}`);
             return;
         }
@@ -656,7 +656,7 @@ const App: React.FC = () => {
             console.error("Erro ao enviar e-mail via EmailJS:", error);
             // Não mostramos erro visual para o usuário final para não gerar pânico, apenas logamos
         }
-    }, [showNotification]);
+    };
 
     useEffect(() => {
         let unsubscribeEmployees = () => {};
@@ -770,9 +770,14 @@ const App: React.FC = () => {
         const scalableContainer = scalableContainerRef.current;
         if (!viewport || !scalableContainer) return;
 
-        const fitScale = viewport.clientWidth / scalableContainer.offsetWidth;
-        // Always attempt to fit the width initially, regardless of device type
-        setScale(fitScale > 1 ? 1 : fitScale, 0, 0);
+        const isMobileView = ('ontouchstart' in window || navigator.maxTouchPoints > 0) || window.innerWidth < 1366; 
+
+        if (isMobileView) {
+            const fitScale = viewport.clientWidth / scalableContainer.offsetWidth;
+            setScale(fitScale, 0, 0);
+        } else {
+            setScale(1.0, 0, 0);
+        }
     }, [setScale]);
 
 
@@ -876,7 +881,7 @@ const App: React.FC = () => {
 
     }, [initializeScale, setScale]);
 
-    const handleEnterDemoMode = useCallback(() => {
+    const handleEnterDemoMode = () => {
         isDemoModeRef.current = true;
         
         const firstNames = ["João", "Maria", "Pedro", "Ana", "Carlos", "Fernanda", "Lucas", "Juliana", "Marcos", "Beatriz", "Rafael", "Camila", "Gustavo", "Larissa", "Bruno"];
@@ -913,10 +918,10 @@ const App: React.FC = () => {
         setActiveModal(ModalType.None);
         setLoading(false);
         showNotification('Modo de Demonstração Ativado! Dados fictícios carregados.', 'success');
-    }, [showNotification]);
+    };
 
-    const processStatusUpdate = useCallback(async (id: string, type: StatusType, currentEmployees: Employee[]) => {
-        const employee = currentEmployees.find(e => e.id === id);
+    const processStatusUpdate = async (id: string, type: StatusType) => {
+        const employee = employees.find(e => e.id === id);
         if (!employee) return;
 
         const isChecking = !(employee as any)[type];
@@ -957,7 +962,7 @@ const App: React.FC = () => {
             }
         }
         
-        if (isDemoModeRef.current) {
+        if (isDemoMode) {
             const finalStates = {
                 absent: updatedData.absent !== undefined ? updatedData.absent : employee.absent,
                 assDss: updatedData.assDss !== undefined ? updatedData.assDss : employee.assDss,
@@ -1006,15 +1011,15 @@ const App: React.FC = () => {
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
             showNotification(`Falha ao atualizar status: ${message}`, 'error');
         }
-    }, [isAdmin, showNotification, sendAlertEmail]);
+    };
 
-    const handleTimeUpdate = useCallback(async (id: string, newDate: Date) => {
+    const handleTimeUpdate = async (id: string, newDate: Date) => {
         if (!isAdmin) {
             showNotification('Apenas administradores podem editar o horário.', 'error');
             return;
         }
 
-        if (isDemoModeRef.current) {
+        if (isDemoMode) {
             const newTimeStr = `${newDate.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit', year: 'numeric'})} ${newDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
             setEmployees(prev => prev.map(e => e.id === id ? { ...e, time: newTimeStr } : e));
             showNotification('Horário atualizado com sucesso (DEMO)!', 'success');
@@ -1037,41 +1042,32 @@ const App: React.FC = () => {
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
             showNotification(`Falha ao atualizar horário: ${message}`, 'error');
         }
-    }, [isAdmin, showNotification]);
+    };
 
-    const handleStatusChange = useCallback((id: string, type: StatusType) => {
-        // We need to access the current state of employees to check status
-        setEmployees(currentEmployees => {
-            const employee = currentEmployees.find(e => e.id === id);
-            if (!employee) return currentEmployees;
+    const handleStatusChange = (id: string, type: StatusType) => {
+        const employee = employees.find(e => e.id === id);
+        if (!employee) return;
 
-            const isChecking = !(employee as any)[type];
+        const isChecking = !(employee as any)[type];
 
-            if (type === 'mal' && isChecking) {
-                setPendingEmployeeId(id);
-                setActiveModal(ModalType.ConfirmMal);
-                return currentEmployees;
-            }
+        if (type === 'mal' && isChecking) {
+            setPendingEmployeeId(id);
+            setActiveModal(ModalType.ConfirmMal);
+            return;
+        }
 
-            if (type === 'absent' && isChecking) {
-                setPendingEmployeeId(id);
-                setActiveModal(ModalType.ConfirmAbsent);
-                return currentEmployees;
-            }
+        if (type === 'absent' && isChecking) {
+            setPendingEmployeeId(id);
+            setActiveModal(ModalType.ConfirmAbsent);
+            return;
+        }
 
-            // If no confirmation needed, process update immediately
-            // Note: Since we are inside setEmployees updater, we shouldn't trigger side effects (like async DB calls) directly here.
-            // But for this legacy structure refactor, we will call the async function and return state as is, 
-            // relying on the async function to trigger the DB update which will then trigger the onSnapshot listener to update state.
-            processStatusUpdate(id, type, currentEmployees);
-            
-            return currentEmployees;
-        });
-    }, [processStatusUpdate]);
+        processStatusUpdate(id, type);
+    };
 
     const handleConfirmMal = () => {
         if (pendingEmployeeId) {
-            processStatusUpdate(pendingEmployeeId, 'mal', employees);
+            processStatusUpdate(pendingEmployeeId, 'mal');
             setPendingEmployeeId(null);
             setActiveModal(ModalType.None);
         }
@@ -1079,22 +1075,22 @@ const App: React.FC = () => {
 
     const handleConfirmAbsent = () => {
         if (pendingEmployeeId) {
-            processStatusUpdate(pendingEmployeeId, 'absent', employees);
+            processStatusUpdate(pendingEmployeeId, 'absent');
             setPendingEmployeeId(null);
             setActiveModal(ModalType.None);
         }
     };
     
-    const processToggleSpecialTeam = useCallback(async (id: string, currentEmployees: Employee[]) => {
+    const processToggleSpecialTeam = async (id: string) => {
         setTogglingSpecialTeamId(id);
-        const employee = currentEmployees.find(e => e.id === id);
+        const employee = employees.find(e => e.id === id);
         if (!employee) {
             setTogglingSpecialTeamId(null);
             return;
         }
         const newTurno = employee.turno === '6H' ? '7H' : '6H';
 
-        if (isDemoModeRef.current) {
+        if (isDemoMode) {
              setTimeout(() => {
                  setEmployees(prev => prev.map(e => e.id === id ? { ...e, turno: newTurno } : e));
                  showNotification(`${employee.name} foi movido para o turno ${newTurno} (DEMO).`, 'success');
@@ -1121,26 +1117,26 @@ const App: React.FC = () => {
         } finally {
             setTogglingSpecialTeamId(null);
         }
-    }, [showNotification]);
+    };
 
-    const handleToggleSpecialTeam = useCallback((id: string) => {
+    const handleToggleSpecialTeam = (id: string) => {
         setPendingEmployeeId(id);
         setActiveModal(ModalType.ConfirmTurno);
-    }, []);
+    };
 
     const handleConfirmTurno = () => {
         if (pendingEmployeeId) {
-            processToggleSpecialTeam(pendingEmployeeId, employees);
+            processToggleSpecialTeam(pendingEmployeeId);
             setPendingEmployeeId(null);
             setActiveModal(ModalType.None);
         }
     };
 
-    const processDeleteUser = useCallback(async (employeeId: string, currentEmployees: Employee[]) => {
-        const employeeToDelete = currentEmployees.find(e => e.id === employeeId);
+    const processDeleteUser = async (employeeId: string) => {
+        const employeeToDelete = employees.find(e => e.id === employeeId);
         if (!employeeToDelete) return;
 
-        if (isDemoModeRef.current) {
+        if (isDemoMode) {
             setEmployees(prev => prev.filter(e => e.id !== employeeId));
             showNotification(`Usuário ${employeeToDelete.name} deletado com sucesso (DEMO)!`, 'success');
             return;
@@ -1158,57 +1154,43 @@ const App: React.FC = () => {
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
             showNotification(`Falha ao deletar: ${message}`, 'error');
         }
-    }, [showNotification]);
+    };
 
-    const handleDeleteUser = useCallback((employeeId: string) => {
+    const handleDeleteUser = (employeeId: string) => {
         if (!isAdmin) {
             showNotification('Apenas administradores podem deletar usuários.', 'error');
             return;
         }
-        // Access state inside the callback to avoid stale closures if not included in deps, 
-        // but here we are setting state for modal so we just need the ID.
-        // Validation check inside setPending would need employees, but we can do a simple check or skip it.
-        // For strictness, let's use the functional update pattern just to peek at state if needed, or rely on the modal to confirm.
+        const employeeToDelete = employees.find(e => e.id === employeeId);
+        if (!employeeToDelete) {
+             showNotification('Usuário não encontrado.', 'error');
+            return;
+        }
+
         setPendingEmployeeId(employeeId);
         setActiveModal(ModalType.ConfirmDelete);
-    }, [isAdmin, showNotification]);
+    };
 
     const handleConfirmDelete = () => {
         if (pendingEmployeeId) {
-            processDeleteUser(pendingEmployeeId, employees);
+            processDeleteUser(pendingEmployeeId);
             setPendingEmployeeId(null);
             setActiveModal(ModalType.None);
         }
     };
 
-    const handleManualRegister = useCallback(async (turno: '7H-19H' | '6H') => {
-        // Need to access current input states values. 
-        // Since we can't easily pass them into this callback without re-creating it on every keystroke,
-        // we will use refs or just accept that this function recreates on keystroke.
-        // However, since it's passed to components, we want it stable.
-        // TRADEOFF: We will let it recreate, but ManualRegisterSection is Memoized.
-        // To make it truly stable, we'd need refs for the inputs, but controlled components are used.
-        // We'll leave this as is, but optimize the child components to not re-render if function changes but their props don't.
-        // Actually, passing stable values is better.
-        // Let's rely on the fact that `ManualRegisterSection` is memoized and it consumes these values.
-    }, []); 
-    
-    // We will define the actual function implementation inline in the render for the button click 
-    // OR just define it here with dependencies.
-    // The issue: if we depend on [mainMatricula], it updates on every keystroke.
-    // Solution: The button click handler is passed down.
-    const onManualRegister7H = useCallback(async () => {
-         const matricula = mainMatricula;
-         const rawSubject = mainSubject;
-         const subject = rawSubject ? rawSubject.toUpperCase() : '';
+    const handleManualRegister = async (turno: '7H-19H' | '6H') => {
+        const matricula = turno === '7H-19H' ? mainMatricula : specialMatricula;
+        const rawSubject = turno === '7H-19H' ? mainSubject : specialSubject;
+        const subject = rawSubject ? rawSubject.toUpperCase() : '';
 
         if (!matricula) {
             showNotification('Por favor, insira uma matrícula.', 'error');
             return;
         }
         
-        if (isDemoModeRef.current) {
-            showNotification(`Registro para turno 7H-19H salvo com sucesso (DEMO).`, 'success');
+        if (isDemoMode) {
+            showNotification(`Registro para turno ${turno} salvo com sucesso (DEMO).`, 'success');
             return;
         }
 
@@ -1220,11 +1202,11 @@ const App: React.FC = () => {
         const registrationData = {
             matricula,
             assunto: subject || 'Não informado',
-            TURNO: '7H-19H',
+            TURNO: turno,
         };
 
         try {
-            const q = query(collection(db, 'registrosDSS'), where("TURNO", "==", '7H-19H'));
+            const q = query(collection(db, 'registrosDSS'), where("TURNO", "==", turno));
             const querySnapshot = await getDocs(q);
 
             if (!querySnapshot.empty) {
@@ -1233,59 +1215,15 @@ const App: React.FC = () => {
             } else {
                 await addDoc(collection(db, 'registrosDSS'), registrationData);
             }
-            showNotification(`Registro para turno 7H-19H salvo com sucesso.`, 'success');
+            showNotification(`Registro para turno ${turno} salvo com sucesso.`, 'success');
         } catch (error) {
             console.error("Error saving manual registration:", error);
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
             showNotification(`Falha ao salvar registro: ${message}`, 'error');
         }
-    }, [mainMatricula, mainSubject, showNotification]);
-
-    const onManualRegister6H = useCallback(async () => {
-         const matricula = specialMatricula;
-         const rawSubject = specialSubject;
-         const subject = rawSubject ? rawSubject.toUpperCase() : '';
-
-        if (!matricula) {
-            showNotification('Por favor, insira uma matrícula.', 'error');
-            return;
-        }
-        
-        if (isDemoModeRef.current) {
-            showNotification(`Registro para turno 6H salvo com sucesso (DEMO).`, 'success');
-            return;
-        }
-
-        if (!db) {
-            showNotification("A conexão com o banco de dados não está disponível.", "error");
-            return;
-        }
-
-        const registrationData = {
-            matricula,
-            assunto: subject || 'Não informado',
-            TURNO: '6H',
-        };
-
-        try {
-            const q = query(collection(db, 'registrosDSS'), where("TURNO", "==", '6H'));
-            const querySnapshot = await getDocs(q);
-
-            if (!querySnapshot.empty) {
-                const docRef = doc(db, 'registrosDSS', querySnapshot.docs[0].id);
-                await updateDoc(docRef, registrationData);
-            } else {
-                await addDoc(collection(db, 'registrosDSS'), registrationData);
-            }
-            showNotification(`Registro para turno 6H salvo com sucesso.`, 'success');
-        } catch (error) {
-            console.error("Error saving manual registration:", error);
-            const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
-            showNotification(`Falha ao salvar registro: ${message}`, 'error');
-        }
-    }, [specialMatricula, specialSubject, showNotification]);
+    };
     
-    const handleAdminLogin = useCallback(async (email: string) => {
+    const handleAdminLogin = async (email: string) => {
         const normalizedEmail = email.trim().toLowerCase();
         
         const checkAndTriggerAdminTutorial = () => {
@@ -1306,7 +1244,7 @@ const App: React.FC = () => {
              return;
         }
 
-        if (isDemoModeRef.current) {
+        if (isDemoMode) {
             setIsAdmin(true);
             setActiveModal(ModalType.AdminOptions);
             showNotification('Acesso Admin (DEMO) concedido.', 'success');
@@ -1338,9 +1276,9 @@ const App: React.FC = () => {
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
             showNotification(`Erro no login: ${message}`, 'error');
         }
-    }, [showNotification]);
+    };
     
-    const handleAddUser = useCallback(async (name: string, matricula: string) => {
+    const handleAddUser = async (name: string, matricula: string) => {
         if (!isAdmin) {
             showNotification('Apenas administradores podem adicionar usuários.', 'error');
             return;
@@ -1348,7 +1286,7 @@ const App: React.FC = () => {
         
         const finalName = name.toUpperCase();
 
-        if (isDemoModeRef.current) {
+        if (isDemoMode) {
              const newUser: Employee = {
                 id: `demo-new-${Date.now()}`,
                 name: finalName,
@@ -1372,12 +1310,12 @@ const App: React.FC = () => {
         }
         
         try {
-            // Check if matricula exists in current list (optimization to avoid DB query if we have the list)
-            // But state inside callback might be stale? We don't have employees in deps.
-            // Safe to query DB or use functional update.
-            // Let's just go straight to DB for safety or rely on Firestore rules.
-            // For this UI feedback, we can optimistically assume it's OK or use a quick check if we had the list.
-            
+            if (matricula) {
+                const existingUser = employees.find(e => e.matricula === matricula);
+                if(existingUser) {
+                    throw new Error('Matrícula já existe.');
+                }
+            }
             await addDoc(collection(db, 'turma b'), {
                 name: finalName,
                 matricula,
@@ -1394,15 +1332,15 @@ const App: React.FC = () => {
             const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro.';
             showNotification(errorMessage, 'error');
         }
-    }, [isAdmin, showNotification]);
+    };
 
-    const handleClearData = useCallback(async () => {
+    const handleClearData = async () => {
         if (!isAdmin) {
             showNotification('Apenas administradores podem limpar os dados.', 'error');
             return;
         }
 
-        if (isDemoModeRef.current) {
+        if (isDemoMode) {
              setEmployees(prev => prev.map(e => ({
                 ...e,
                 assDss: false,
@@ -1452,13 +1390,13 @@ const App: React.FC = () => {
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
             showNotification(`Falha ao limpar dados: ${message}`, 'error');
         }
-    }, [isAdmin, showNotification]);
+    };
 
-    const handleReorganize = useCallback(() => {
+    const handleReorganize = () => {
         setEmployees(prev => [...prev].sort((a,b) => a.name.localeCompare(b.name)));
         setActiveModal(ModalType.None);
         showNotification('Painel reorganizado alfabeticamente!', 'success');
-    }, [showNotification]);
+    };
 
     const stats = useMemo(() => ({
         bem: employees.filter(e => e.bem).length,
@@ -1485,7 +1423,7 @@ const App: React.FC = () => {
     };
 
     // --- NEW TUTORIAL ZOOM LOGIC ---
-    const handleTutorialStepChange = useCallback((step: TutorialStep) => {
+    const handleTutorialStepChange = (step: TutorialStep) => {
         const isMobile = window.innerWidth < 1024; 
         if (!isMobile) return;
 
@@ -1531,7 +1469,7 @@ const App: React.FC = () => {
             newScale = Math.min(Math.max(newScale, 0.3), 1.1);
             setScale(newScale);
         }
-    }, [setScale]);
+    }
 
     return (
         <div className="bg-light-bg-secondary dark:bg-dark-bg min-h-screen text-light-text dark:text-dark-text transition-colors">
@@ -1560,7 +1498,7 @@ const App: React.FC = () => {
                                     matricula={mainMatricula}
                                     onSubjectChange={setMainSubject}
                                     onMatriculaChange={setMainMatricula}
-                                    onRegister={onManualRegister7H}
+                                    onRegister={() => handleManualRegister('7H-19H')}
                                     employees={employees}
                                 />
                                 <div className="flex gap-8">
@@ -1599,7 +1537,7 @@ const App: React.FC = () => {
                                 matricula={specialMatricula}
                                 onSubjectChange={setSpecialSubject}
                                 onMatriculaChange={setSpecialMatricula}
-                                onRegister={onManualRegister6H}
+                                onRegister={() => handleManualRegister('6H')}
                                 employees={employees}
                             />
                         </div>
