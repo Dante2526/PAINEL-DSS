@@ -383,9 +383,9 @@ const ReportModal: React.FC<{
 
             let section = `STATUS: "ASS.DSS + ESTOU BEM"\n`;
             section += bem.length > 0 ? bem.map(e => `${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
-            section += `\nSTATUS "ESTOU MAL"\n`;
+            section += `\n\n"ESTOU MAL"\n`;
             section += mal.length > 0 ? mal.map(e => `${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
-            section += `\nPENDENTES / AUSENTES\n`;
+            section += `\n\nPENDENTES / AUSENTES\n`;
             section += pendingAbsent.length > 0 ? pendingAbsent.map(e => `${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
             
             return section;
