@@ -11,6 +11,13 @@ export interface Employee {
   turno: string;
 }
 
+export interface Administrator {
+  id: string;
+  name: string;
+  matricula: string;
+  email: string;
+}
+
 export interface ManualRegistration {
   id: string;
   matricula: string;

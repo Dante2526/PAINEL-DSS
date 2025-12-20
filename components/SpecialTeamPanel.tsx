@@ -1,6 +1,6 @@
 
 import React, { useMemo } from 'react';
-import { Employee, StatusType } from '../types';
+import { Employee, Administrator, StatusType } from '../types';
 import EmployeeCard from './EmployeeCard';
 import { SubjectIcon, UserIcon } from './icons';
 
@@ -19,6 +19,7 @@ interface SpecialTeamPanelProps {
     onRegister: () => void;
     onTimeChange?: (id: string, newDate: Date) => void;
     employees: Employee[]; // Add access to full list for lookup
+    administrators: Administrator[]; // Access to admin list for lookup
 }
 
 const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = ({ 
@@ -34,18 +35,24 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = ({
     onMatriculaChange,
     onRegister,
     onTimeChange,
-    employees
+    employees,
+    administrators
 }) => {
     const handleMatriculaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         onMatriculaChange(e.target.value.replace(/[^0-9]/g, ''));
     };
     
-    // Find name based on matricula from full list
+    // Find name based on matricula from administrators list first, then employees list
     const foundName = useMemo(() => {
         if (!matricula) return '';
+        // Prioritize administrators collection for manual registry
+        const admin = administrators.find(a => a.matricula === matricula);
+        if (admin) return admin.name;
+        
+        // Fallback to employees list
         const employee = employees.find(e => e.matricula === matricula);
         return employee ? employee.name : '';
-    }, [matricula, employees]);
+    }, [matricula, employees, administrators]);
 
     const firstEmployee = specialTeam[0];
     const remainingEmployees = specialTeam.slice(1);
@@ -87,7 +94,7 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = ({
                                     type="text" 
                                     value={foundName} 
                                     readOnly
-                                    placeholder={matricula ? "Colaborador não encontrado" : "Nome do Colaborador"}
+                                    placeholder={matricula ? "Não encontrado" : "Nome do Responsável"}
                                     className="w-full px-4 py-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-medium border-2 border-l-0 border-gray-200 dark:border-gray-600 rounded-r-lg outline-none pointer-events-none truncate"
                                 />
                             </div>

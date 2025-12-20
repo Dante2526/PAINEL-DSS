@@ -8,7 +8,7 @@ import Notification from './components/Notification';
 import Footer from './components/Footer';
 import InteractiveTutorial, { TutorialStep } from './components/InteractiveTutorial';
 import { SubjectIcon, UserIcon, EraserIcon, FileTextIcon, SortIcon, UserPlusIcon, ShiftIcon, AbsentIcon, TrashIcon, ExchangeIcon, MousePointerIcon } from './components/icons';
-import { Employee, StatusType, ModalType, ManualRegistration } from './types';
+import { Employee, StatusType, ModalType, ManualRegistration, Administrator } from './types';
 import type { NotificationData } from './components/Notification';
 import { db, auth, isConfigured } from './firebase';
 import { FALLBACK_LOGO } from './components/logoConstants';
@@ -129,13 +129,19 @@ const ManualRegisterSection: React.FC<{
     onMatriculaChange: (v: string) => void;
     onRegister: () => void;
     employees: Employee[];
-}> = ({ subject, matricula, onSubjectChange, onMatriculaChange, onRegister, employees }) => {
-    // Logic to find name
+    administrators: Administrator[];
+}> = ({ subject, matricula, onSubjectChange, onMatriculaChange, onRegister, employees, administrators }) => {
+    // Logic to find name based on matricula from administrators list first, then employees list
     const foundName = useMemo(() => {
         if (!matricula) return '';
+        // Check administrators first
+        const admin = administrators.find(a => a.matricula === matricula);
+        if (admin) return admin.name;
+        
+        // Fallback to employees
         const employee = employees.find(e => e.matricula === matricula);
         return employee ? employee.name : '';
-    }, [matricula, employees]);
+    }, [matricula, employees, administrators]);
 
     const handleMatriculaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         onMatriculaChange(e.target.value.replace(/[^0-9]/g, ''));
@@ -427,6 +433,7 @@ const ReportModal: React.FC<{
 
 const App: React.FC = () => {
     const [employees, setEmployees] = useState<Employee[]>([]);
+    const [administrators, setAdministrators] = useState<Administrator[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeModal, setActiveModal] = useState<ModalType>(ModalType.None);
     const [notifications, setNotifications] = useState<NotificationData[]>([]);
@@ -660,6 +667,7 @@ const App: React.FC = () => {
 
     useEffect(() => {
         let unsubscribeEmployees = () => {};
+        let unsubscribeAdministrators = () => {};
         let unsubscribeRegistrations = () => {};
 
         const signInAndSetupListeners = async () => {
@@ -703,6 +711,25 @@ const App: React.FC = () => {
                     }
                     setLoading(false);
                 });
+
+                // Listener for administrators (used for name lookup)
+                const administratorsQuery = query(collection(db, 'administrators'));
+                unsubscribeAdministrators = onSnapshot(administratorsQuery, (querySnapshot) => {
+                    if (isDemoModeRef.current) return;
+
+                    const adminsData: Administrator[] = querySnapshot.docs.map(doc => {
+                         const data = doc.data();
+                         return {
+                             id: doc.id,
+                             name: data.name || 'Admin',
+                             matricula: data.matricula || '',
+                             email: data.email || ''
+                         };
+                    });
+                    setAdministrators(adminsData);
+                }, (error) => {
+                    console.error("Error listening to admin updates:", error);
+                });
                 
                 // Listener for manual registrations to persist fields
                 const registrationsQuery = query(collection(db, 'registrosDSS'));
@@ -740,6 +767,7 @@ const App: React.FC = () => {
 
         return () => {
             unsubscribeEmployees();
+            unsubscribeAdministrators();
             unsubscribeRegistrations();
         };
     }, [showNotification]);
@@ -912,7 +940,13 @@ const App: React.FC = () => {
             };
         }).sort((a,b) => a.name.localeCompare(b.name));
         
+        // Mock admins for demo
+        const mockAdmins: Administrator[] = [
+            { id: 'admin1', name: 'Admin Demo User', matricula: '9999', email: 'admin@demo.com' }
+        ];
+
         setEmployees(mockEmployees);
+        setAdministrators(mockAdmins);
         setIsDemoMode(true);
         setIsAdmin(true); 
         setActiveModal(ModalType.None);
@@ -1500,6 +1534,7 @@ const App: React.FC = () => {
                                     onMatriculaChange={setMainMatricula}
                                     onRegister={() => handleManualRegister('7H-19H')}
                                     employees={employees}
+                                    administrators={administrators}
                                 />
                                 <div className="flex gap-8">
                                     <div className="flex flex-col gap-6 w-[870px]">
@@ -1539,6 +1574,7 @@ const App: React.FC = () => {
                                 onMatriculaChange={setSpecialMatricula}
                                 onRegister={() => handleManualRegister('6H')}
                                 employees={employees}
+                                administrators={administrators}
                             />
                         </div>
                         <Footer />
