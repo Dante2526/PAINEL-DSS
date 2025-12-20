@@ -42,6 +42,13 @@ const EMAILJS_PUBLIC_KEY = "Ef-7IoF9U9NQ_iV8X";
 
 const tutorialSteps: TutorialStep[] = [
     {
+        targetId: 'app-header', // Mantido para referência interna, mas visualmente ignorado devido ao noHighlight
+        title: 'Controle de Zoom',
+        content: 'O painel se adapta a você! Use o movimento de pinça (dois dedos na tela) para dar zoom e ajustar o tamanho ideal para sua visualização.',
+        disableHorizontalScroll: true,
+        noHighlight: true // Define que este passo é uma instrução geral sem foco específico
+    },
+    {
         targetId: 'tutorial-manual-register-bar',
         title: 'Registro Manual',
         content: 'Use esta barra superior para registrar o Assunto do DSS do dia e a matrícula do responsável. O nome aparecerá automaticamente ao lado.'

@@ -9,6 +9,7 @@ export interface TutorialStep {
     position?: 'top' | 'bottom' | 'left' | 'right';
     scrollTargetId?: string;
     disableHorizontalScroll?: boolean;
+    noHighlight?: boolean; // Nova propriedade para indicar que não deve haver holofote
 }
 
 interface InteractiveTutorialProps {
@@ -48,6 +49,14 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
 
     const measurePosition = useCallback(() => {
         const step = steps[currentStepIndex];
+        
+        // Se o passo for configurado para não ter destaque, forçamos null no targetRect
+        // Isso fará com que o card fique centralizado e o overlay cubra tudo
+        if (step.noHighlight) {
+            setTargetRect(null);
+            return;
+        }
+
         const element = document.getElementById(step.targetId);
         
         if (element) {
@@ -83,6 +92,13 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
 
         if (onStepChange) {
             onStepChange(step);
+        }
+
+        // Se não tiver destaque, não precisamos rolar a tela, apenas medir (que retornará null)
+        if (step.noHighlight) {
+            measurePosition();
+            setIsTransitioning(false);
+            return;
         }
 
         // Increased delay to 60ms to ensure App.tsx setScale and layout reflow completes 
@@ -222,6 +238,7 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
             width: '400px'
         };
     } else {
+        // Centralizado se não houver targetRect
         tooltipStyle = {
             top: '50%',
             left: '50%',
@@ -229,6 +246,11 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
             position: 'fixed',
             width: '400px'
         };
+        
+        // Se for o passo de zoom sem highlight, empurramos o card um pouco para baixo para caber a animação
+        if (step.noHighlight && step.targetId === 'app-header') {
+            tooltipStyle.marginTop = '80px';
+        }
     }
 
     return createPortal(
@@ -262,6 +284,49 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
                 />
             )}
 
+            {/* PINCH ZOOM ANIMATION - DIAGONAL SPREAD (ROTATED) */}
+            {step.targetId === 'app-header' && step.noHighlight && (
+                <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-[1002]" style={{ top: '-80px' }}>
+                    <div 
+                        className="relative w-48 h-24 flex items-center justify-center opacity-100" 
+                        style={{ transform: 'rotate(-45deg)' }}
+                    >
+                        {/* Connecting Line (Grows from center) */}
+                        <div 
+                            className="absolute h-1 bg-white/50 rounded-full top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+                            style={{
+                                animation: 'zoom-line-horizontal 2.5s infinite ease-out'
+                            }}
+                        />
+                        
+                        {/* Finger 1 (Left - Moves Left/Bottom-Left) */}
+                        <div 
+                            className="absolute w-12 h-12 rounded-full border-4 border-white bg-white/20 backdrop-blur-sm shadow-xl z-10"
+                            style={{
+                                animation: 'zoom-finger-left 2.5s infinite ease-out',
+                                left: '50%',
+                                top: '50%',
+                                marginTop: '-24px', // half height to center
+                                marginLeft: '-24px' // half width to center
+                            }}
+                        />
+                        
+                        {/* Finger 2 (Right - Moves Right/Top-Right) */}
+                        <div 
+                            className="absolute w-12 h-12 rounded-full border-4 border-white bg-white/20 backdrop-blur-sm shadow-xl z-10"
+                            style={{
+                                animation: 'zoom-finger-right 2.5s infinite ease-out',
+                                left: '50%',
+                                top: '50%',
+                                marginTop: '-24px', // half height to center
+                                marginLeft: '-24px' // half width to center
+                            }}
+                        />
+                    </div>
+                </div>
+            )}
+
+
             {/* Tooltip Card */}
             <div 
                 className="bg-white dark:bg-gray-800 text-slate-800 dark:text-white p-6 rounded-2xl shadow-2xl transition-all duration-500 ease-out flex flex-col gap-4 border border-gray-200 dark:border-gray-700 z-[1001]"
@@ -277,7 +342,8 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
                     <p className="text-sm leading-relaxed text-slate-600 dark:text-gray-300">
                         {step.content}
                     </p>
-                    {!targetRect && !isTransitioning && (
+                    {/* Exibe aviso apenas se NÃO estivermos no modo "sem highlight" (pois no sem highlight é intencional não ter foco) */}
+                    {!targetRect && !isTransitioning && !step.noHighlight && (
                         <p className="text-xs text-orange mt-2 italic">
                             (Elemento não visível no momento)
                         </p>
@@ -309,6 +375,31 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
                     </div>
                 </div>
             </div>
+
+            {/* Styles for the custom pinch animation */}
+            <style>{`
+                @keyframes zoom-line-horizontal {
+                    0% { width: 0px; opacity: 0; }
+                    15% { width: 0px; opacity: 1; }
+                    60% { width: 100px; opacity: 1; }
+                    80% { width: 100px; opacity: 0; }
+                    100% { width: 100px; opacity: 0; }
+                }
+                @keyframes zoom-finger-left {
+                    0% { transform: translateX(-10px); opacity: 0; }
+                    15% { transform: translateX(-10px); opacity: 1; }
+                    60% { transform: translateX(-60px); opacity: 1; }
+                    80% { transform: translateX(-60px); opacity: 0; }
+                    100% { transform: translateX(-60px); opacity: 0; }
+                }
+                @keyframes zoom-finger-right {
+                    0% { transform: translateX(10px); opacity: 0; }
+                    15% { transform: translateX(10px); opacity: 1; }
+                    60% { transform: translateX(60px); opacity: 1; }
+                    80% { transform: translateX(60px); opacity: 0; }
+                    100% { transform: translateX(60px); opacity: 0; }
+                }
+            `}</style>
         </div>,
         document.body
     );
