@@ -27,15 +27,15 @@ const StatCard: React.FC<{ label: string; value: number; colorClass: string }> =
 const Header: React.FC<HeaderProps> = ({ stats, loading, onAdminClick, onHelpClick, isDarkMode, onToggleDarkMode }) => {
     return (
         <header id="app-header" className="bg-light-card dark:bg-dark-card rounded-3xl p-6 md:p-10 mb-8 shadow-lg flex justify-between items-center w-full transition-colors">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-6">
                 {loading ? (
-                    <div className="w-10 h-10 border-4 border-primary-light border-t-primary rounded-full animate-spin"></div>
+                    <div className="w-14 h-14 border-4 border-primary-light border-t-primary rounded-full animate-spin"></div>
                 ) : (
-                    <ShieldLogo className="h-16 w-16" />
+                    <ShieldLogo className="h-20 w-20 md:h-24 md:w-24" />
                 )}
-                <div>
-                    <h1 className="text-3xl font-bold text-light-text dark:text-dark-text">Painel de Acompanhamento DSS</h1>
-                    <p className="text-light-text-secondary dark:text-dark-text-secondary">Diálogo de Saúde e Segurança - Monitoramento em tempo real</p>
+                <div className="flex flex-col gap-1">
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-light-text dark:text-dark-text tracking-tight">Painel de Acompanhamento DSS</h1>
+                    <p className="text-lg md:text-xl font-medium text-light-text-secondary dark:text-dark-text-secondary">Diálogo de Saúde e Segurança - Monitoramento em tempo real</p>
                 </div>
             </div>
             <div id="tutorial-header-actions" className="flex flex-col items-end gap-5">
