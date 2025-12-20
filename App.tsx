@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Header from './components/Header';
 import EmployeeCard from './components/EmployeeCard';
@@ -1169,9 +1170,12 @@ const App: React.FC = () => {
             let newTime = employee.time;
              if (finalStates.absent) {
                 newTime = null;
-            } else if (finalStates.bem || finalStates.mal || finalStates.assDss) {
-                const date = new Date();
-                newTime = `${date.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit', year: 'numeric'})} ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+            } else if (finalStates.assDss) {
+                // Se já tem horário, não atualiza. Se não tem, cria um novo.
+                if (!newTime) {
+                     const date = new Date();
+                     newTime = `${date.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit', year: 'numeric'})} ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+                }
             } else {
                 newTime = null;
             }
@@ -1195,8 +1199,12 @@ const App: React.FC = () => {
             
             if (finalStates.absent) {
                 updatedData.time = null;
-            } else if (finalStates.bem || finalStates.mal || finalStates.assDss) {
-                updatedData.time = serverTimestamp();
+            } else if (finalStates.assDss) {
+                // Se já tem horário (employee.time), NÃO atualiza (mantém o original).
+                // Se não tem horário, cria um novo timestamp.
+                if (!employee.time) {
+                    updatedData.time = serverTimestamp();
+                }
             } else {
                 updatedData.time = null;
             }
