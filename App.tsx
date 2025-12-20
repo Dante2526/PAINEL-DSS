@@ -957,8 +957,14 @@ const App: React.FC = () => {
         const isMobileView = ('ontouchstart' in window || navigator.maxTouchPoints > 0) || window.innerWidth < 1366; 
 
         if (isMobileView) {
-            const fitScale = viewport.clientWidth / scalableContainer.offsetWidth;
-            setScale(fitScale, 0, 0);
+            // Updated: Calculate scale to fit roughly one column (920px with margins) 
+            // instead of fitting the entire wide container, so it starts "zoomed in" and readable.
+            const oneColumnScale = viewport.clientWidth / 920;
+            
+            // Ensure reasonable limits for the initial zoom (0.3 to 1.0)
+            const finalScale = Math.min(Math.max(oneColumnScale, 0.3), 1.0);
+            
+            setScale(finalScale, 0, 0);
         } else {
             setScale(1.0, 0, 0);
         }
