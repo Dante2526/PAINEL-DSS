@@ -86,19 +86,13 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
         // Removed delay almost entirely to start tracking immediately with the scroll
         const timer = setTimeout(() => {
             const element = document.getElementById(step.targetId);
-            const scrollElement = step.scrollTargetId ? document.getElementById(step.scrollTargetId) : element;
             
             if (element) {
-                // 1. Trigger Smooth Scroll
-                // Use scrollTargetId if available to center the view on a container (e.g. the card)
-                // while keeping the spotlight on the specific target (e.g. the button).
-                if (scrollElement) {
-                    scrollElement.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
-                } else {
-                    element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
-                }
+                // NOTE: We do NOT call scrollIntoView here anymore.
+                // The parent component (App.tsx) now handles the zoom and centering logic explicitly
+                // via the onStepChange prop to ensure smooth scaling transitions.
                 
-                // 2. Start a Tracking Loop
+                // Start a Tracking Loop
                 // Since we removed CSS transition on top/left, this loop will make the spotlight
                 // stick perfectly to the element as it moves across the screen.
                 const startTime = performance.now();

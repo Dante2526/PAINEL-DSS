@@ -1443,9 +1443,6 @@ const App: React.FC = () => {
 
     // --- NEW TUTORIAL ZOOM LOGIC ---
     const handleTutorialStepChange = (step: TutorialStep) => {
-        const isMobile = window.innerWidth < 1024; 
-        if (!isMobile) return;
-
         let targetIdForZoom = step.targetId;
         
         // Group context for card interactions
@@ -1457,37 +1454,51 @@ const App: React.FC = () => {
         if (step.targetId === 'tutorial-return-turn-btn') {
             targetIdForZoom = 'tutorial-special-demo-area';
         }
-        
-        // CRITICAL FIX: Explicitly handle header steps (7, 8, 9)
-        if (['tutorial-stats', 'tutorial-dark-mode', 'tutorial-admin-btn'].includes(step.targetId)) {
-            targetIdForZoom = 'tutorial-header-actions';
-            
-            const element = document.getElementById(targetIdForZoom);
-            if (element) {
-                const margin = 32;
-                const availableWidth = window.innerWidth - margin;
-                const elementWidth = element.offsetWidth; 
-                let newScale = availableWidth / elementWidth;
-                newScale = Math.min(Math.max(newScale, 0.3), 1.1);
-                
-                // Force scroll to top (0,0) and set scale simultaneously
-                setScale(newScale, 0, 0);
-                return; // Early return to avoid double logic
-            }
-        }
 
         const element = document.getElementById(targetIdForZoom);
-        if (!element) return;
+        const container = scalableContainerRef.current;
+        const viewport = viewportRef.current;
+
+        if (!element || !container || !viewport) return;
         
+        // Calculate the ideal scale to fit the element horizontally with some margin
         const margin = 32;
         const availableWidth = window.innerWidth - margin;
         const elementWidth = element.offsetWidth; 
         
+        let newScale = 1;
         if (elementWidth > 0) {
-            let newScale = availableWidth / elementWidth;
-            newScale = Math.min(Math.max(newScale, 0.3), 1.1);
-            setScale(newScale);
+            newScale = availableWidth / elementWidth;
+            newScale = Math.min(Math.max(newScale, 0.5), 1.5); // Constraint zoom level
         }
+
+        // --- MATH FOR CENTERING ---
+        const containerRect = container.getBoundingClientRect();
+        const elementRect = element.getBoundingClientRect();
+        const currentScale = scaleStateRef.current.currentScale;
+
+        // 1. Get element position relative to the container (removing current scale influence)
+        // relativeLeft = (elementScreenX - containerScreenX) / currentScale
+        const relativeLeft = (elementRect.left - containerRect.left) / currentScale;
+        const relativeTop = (elementRect.top - containerRect.top) / currentScale;
+
+        // 2. Get unscaled dimensions of element
+        const unscaledW = elementRect.width / currentScale;
+        const unscaledH = elementRect.height / currentScale;
+
+        // 3. Calculate the center point of the element at the NEW scale
+        const centerX_NewScale = (relativeLeft + unscaledW / 2) * newScale;
+        const centerY_NewScale = (relativeTop + unscaledH / 2) * newScale;
+
+        // 4. Calculate viewport scroll positions to center that point
+        const viewportW = viewport.clientWidth;
+        const viewportH = viewport.clientHeight;
+
+        const scrollX = centerX_NewScale - (viewportW / 2);
+        const scrollY = centerY_NewScale - (viewportH / 2);
+
+        // Apply
+        setScale(newScale, scrollX, scrollY);
     }
 
     // IF LOADING IS TRUE, SHOW THE SPLASH SCREEN INSTEAD OF THE APP STRUCTURE
