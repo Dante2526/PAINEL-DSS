@@ -75,9 +75,9 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = ({
                                 autoCapitalize="characters"
                             />
                         </div>
-                        {/* Modified Matricula Field with Split View */}
-                        <div className="relative flex items-stretch">
-                            <div className="relative w-[40%]">
+                        {/* Modified Matricula Field with Split View - Width Reduced to 50% and Centered */}
+                        <div className="relative flex items-stretch w-[50%] mx-auto">
+                            <div className="relative w-[40%] focus-within:z-10">
                                 <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 <input 
                                     type="text" 
@@ -95,7 +95,7 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = ({
                                     value={foundName} 
                                     readOnly
                                     placeholder={matricula ? "Não encontrado" : "Nome do Responsável"}
-                                    className="w-full px-4 py-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-medium border-2 border-l-0 border-gray-200 dark:border-gray-600 rounded-r-lg outline-none pointer-events-none truncate"
+                                    className="w-full px-4 py-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-medium border-2 border-l-0 border-gray-200 dark:border-gray-600 rounded-r-lg outline-none pointer-events-none truncate text-center"
                                 />
                             </div>
                         </div>
@@ -103,7 +103,7 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = ({
 
                     <button
                         onClick={onRegister}
-                        className="w-full py-4 text-center font-bold text-white bg-gradient-to-r from-primary to-primary-dark rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 mb-8"
+                        className="w-[50%] mx-auto block py-4 text-center font-bold text-white bg-gradient-to-r from-primary to-primary-dark rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 mb-8"
                     >
                         REGISTRAR
                     </button>

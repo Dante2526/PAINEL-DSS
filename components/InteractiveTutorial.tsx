@@ -24,7 +24,8 @@ const InteractiveTutorial: React.FC<InteractiveTutorialProps> = ({ isOpen, onClo
     const [isMobile, setIsMobile] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false);
     
-    const requestRef = useRef<number>();
+    // Initialized with null to satisfy TypeScript requirements in some environments
+    const requestRef = useRef<number | null>(null);
     
     useEffect(() => {
         if (isOpen) {

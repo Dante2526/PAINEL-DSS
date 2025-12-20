@@ -179,7 +179,7 @@ const ManualRegisterSection: React.FC<{
                         value={foundName}
                         readOnly
                         placeholder="Nome do Responsável"
-                        className="w-full px-4 py-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-bold border-2 border-gray-200 dark:border-gray-600 rounded-xl outline-none pointer-events-none truncate"
+                        className="w-full px-4 py-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-bold border-2 border-gray-200 dark:border-gray-600 rounded-xl outline-none pointer-events-none truncate text-center"
                     />
                 </div>
                 <button
