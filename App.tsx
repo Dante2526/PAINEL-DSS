@@ -262,7 +262,7 @@ const AdminOptionsModal: React.FC<{
 
                  <button 
                     id="admin-report-btn"
-                    onClick={() => { onSendReport(); onClose(); }}
+                    onClick={onSendReport}
                     className="p-4 bg-blue-500 text-white rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-blue-600 transition shadow-lg"
                 >
                     <FileTextIcon className="w-8 h-8" />
@@ -280,7 +280,7 @@ const AdminOptionsModal: React.FC<{
                 
                 <button 
                     id="admin-adduser-btn"
-                    onClick={() => { onAddUser(); onClose(); }}
+                    onClick={onAddUser}
                     className="p-4 bg-green-500 text-white rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-green-600 transition shadow-lg"
                 >
                     <UserPlusIcon className="w-8 h-8" />
