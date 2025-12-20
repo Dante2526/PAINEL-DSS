@@ -629,9 +629,13 @@ const App: React.FC = () => {
         if (isDarkMode) {
             document.documentElement.classList.add('dark');
             localStorage.setItem('theme', 'dark');
+            // FIX: Set body background to match theme to prevent white flashes during overscroll/bounce
+            document.body.style.backgroundColor = '#1A202C';
         } else {
             document.documentElement.classList.remove('dark');
             localStorage.setItem('theme', 'light');
+            // FIX: Set body background to match theme (light-bg-secondary color)
+            document.body.style.backgroundColor = '#e8ecf1';
         }
     }, [isDarkMode]);
 

@@ -1,13 +1,25 @@
 
 
 /* === GENERAL STYLES === */
-body {
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
     overflow: hidden; /* Prevent the main page from scrolling */
+    overscroll-behavior: none; /* PREVENTS THE WHITE GLOW/BOUNCE EFFECT */
+    background-color: #1A202C; /* Default to dark to prevent white flashes */
+    -webkit-overflow-scrolling: touch;
 }
 
 .viewport {
-    overflow: auto; /* Allow this container to have scrollbars */
+    width: 100%;
+    height: 100%;
+    overflow-y: auto; /* Allow vertical scrolling */
+    overflow-x: hidden;
     cursor: grab;
+    overscroll-behavior: none; /* PREVENTS THE WHITE GLOW/BOUNCE EFFECT INSIDE CONTAINER */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 .viewport:active {
@@ -17,6 +29,7 @@ body {
 .scalable-container {
     transform-origin: 0 0; /* Anchor scaling to the top-left corner */
     will-change: transform; /* Hint to the browser for performance optimization */
+    min-height: 100%; /* Ensure it covers height */
 }
 
 /* Prevent zoom on double tap and ensure inputs behave well on touch */
