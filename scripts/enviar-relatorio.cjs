@@ -81,7 +81,6 @@ async function gerarRelatorio() {
   }
 
   // --- 3. MONTAR O CORPO DO E-MAIL ---
-  // ABANDONAMOS O <pre>. Agora usamos HTML semântico.
   let htmlBody = `<div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6;">`;
   
   const totalPresentes = cat_7H_EstouBem.length + cat_7H_EstouMal.length + cat_6H_EstouBem.length + cat_6H_EstouMal.length;
@@ -152,6 +151,7 @@ async function gerarRelatorio() {
   }
   
   // --- REGISTROS DE ASSUNTO DSS (SEPARADOS) ---
+  // AQUI FOI FEITA A ALTERAÇÃO PARA INCLUIR O NOME
   htmlBody += `<br><h2>REGISTROS DSS (TURNO 7H)</h2>`;
   htmlBody += `<hr>`;
   if (registros7H.length === 0) {
@@ -159,7 +159,8 @@ async function gerarRelatorio() {
   } else {
     htmlBody += `<ul>`;
     registros7H.forEach(reg => {
-      htmlBody += `<li><strong>Assunto:</strong> ${limparTexto(reg.assunto)} (Matrícula: ${reg.matricula})</li>`;
+      const nomeFunc = reg.name ? limparTexto(reg.name) : 'Sem Nome';
+      htmlBody += `<li><strong>Assunto:</strong> ${limparTexto(reg.assunto)} - <strong>${nomeFunc}</strong> (Matrícula: ${reg.matricula})</li>`;
     });
     htmlBody += `</ul>`;
   }
@@ -171,7 +172,8 @@ async function gerarRelatorio() {
   } else {
     htmlBody += `<ul>`;
     registros6H.forEach(reg => {
-      htmlBody += `<li><strong>Assunto:</strong> ${limparTexto(reg.assunto)} (Matrícula: ${reg.matricula})</li>`;
+      const nomeFunc = reg.name ? limparTexto(reg.name) : 'Sem Nome';
+      htmlBody += `<li><strong>Assunto:</strong> ${limparTexto(reg.assunto)} - <strong>${nomeFunc}</strong> (Matrícula: ${reg.matricula})</li>`;
     });
     htmlBody += `</ul>`;
   }
