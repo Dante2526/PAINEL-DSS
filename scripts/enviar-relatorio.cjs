@@ -151,7 +151,6 @@ async function gerarRelatorio() {
   }
   
   // --- REGISTROS DE ASSUNTO DSS (SEPARADOS) ---
-  // AQUI FOI FEITA A ALTERAÇÃO PARA INCLUIR O NOME
   htmlBody += `<br><h2>REGISTROS DSS (TURNO 7H)</h2>`;
   htmlBody += `<hr>`;
   if (registros7H.length === 0) {
@@ -160,7 +159,8 @@ async function gerarRelatorio() {
     htmlBody += `<ul>`;
     registros7H.forEach(reg => {
       const nomeFunc = reg.name ? limparTexto(reg.name) : 'Sem Nome';
-      htmlBody += `<li><strong>Assunto:</strong> ${limparTexto(reg.assunto)} - <strong>${nomeFunc}</strong> (Matrícula: ${reg.matricula})</li>`;
+      // ALTERADO AQUI: <br> em vez de traço
+      htmlBody += `<li><strong>Assunto:</strong> ${limparTexto(reg.assunto)}<br><strong>${nomeFunc}</strong> (Matrícula: ${reg.matricula})</li>`;
     });
     htmlBody += `</ul>`;
   }
@@ -173,7 +173,8 @@ async function gerarRelatorio() {
     htmlBody += `<ul>`;
     registros6H.forEach(reg => {
       const nomeFunc = reg.name ? limparTexto(reg.name) : 'Sem Nome';
-      htmlBody += `<li><strong>Assunto:</strong> ${limparTexto(reg.assunto)} - <strong>${nomeFunc}</strong> (Matrícula: ${reg.matricula})</li>`;
+      // ALTERADO AQUI: <br> em vez de traço
+      htmlBody += `<li><strong>Assunto:</strong> ${limparTexto(reg.assunto)}<br><strong>${nomeFunc}</strong> (Matrícula: ${reg.matricula})</li>`;
     });
     htmlBody += `</ul>`;
   }
