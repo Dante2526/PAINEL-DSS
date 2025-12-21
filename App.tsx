@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Header from './components/Header';
 import EmployeeCard from './components/EmployeeCard';
@@ -1671,7 +1672,7 @@ const App: React.FC = () => {
 
     return (
         <div className="bg-light-bg-secondary dark:bg-dark-bg min-h-screen text-light-text dark:text-dark-text transition-colors">
-            <div ref={viewportRef} className="viewport fixed inset-0">
+            <div ref={viewportRef} className={`viewport fixed inset-0 bg-light-bg-secondary dark:bg-dark-bg`}>
                 <div ref={contentWrapperRef} className="origin-top-left">
                     <div ref={scalableContainerRef} className="scalable-container w-fit origin-top-left p-8">
                         <Header

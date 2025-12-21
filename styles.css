@@ -21,6 +21,9 @@ html, body {
     cursor: grab;
     overscroll-behavior: none; /* PREVENTS THE WHITE GLOW/BOUNCE EFFECT INSIDE CONTAINER */
     -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    /* FIX: Force GPU layer and set background to prevent black voids during scroll lag */
+    transform: translateZ(0);
+    will-change: scroll-position;
 }
 
 .viewport:active {
@@ -29,8 +32,22 @@ html, body {
 
 .scalable-container {
     transform-origin: 0 0; /* Anchor scaling to the top-left corner */
-    will-change: transform; /* Hint to the browser for performance optimization */
+    /* FIX: Optimize compositing for mobile to prevent tearing/black screens */
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    transform: translate3d(0, 0, 0);
+    perspective: 1000px;
     min-height: 100%; /* Ensure it covers height */
+}
+
+/* FIX: New class to isolate card rendering performance */
+.card-optimized {
+    /* content-visibility: auto tells the browser to lazy-render the element */
+    content-visibility: auto; 
+    contain-intrinsic-size: 1px 300px; /* Estimate height to prevent scrollbar jumping */
+    contain: layout paint style; /* Isolate the card so it doesn't trigger full page reflows */
+    transform: translateZ(0); /* Promote to own layer */
 }
 
 /* Prevent zoom on double tap and ensure inputs behave well on touch */

@@ -1,5 +1,6 @@
 
-import React, { useState } from 'react';
+
+import React, { useState, memo } from 'react';
 import { Employee, StatusType } from '../types';
 import { ShiftIcon, AbsentIcon, TrashIcon } from './icons';
 import { formatTimestamp } from '../services/employeeService';
@@ -42,7 +43,7 @@ const CheckboxItem: React.FC<CheckboxItemProps> = ({ label, icon, type, checked,
 );
 
 
-const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, onToggleSpecialTeam, isTogglingSpecialTeam, isAdmin, onDelete, onTimeChange, domId, specialTurnBtnId }) => {
+const EmployeeCard: React.FC<EmployeeCardProps> = memo(({ employee, onStatusChange, onToggleSpecialTeam, isTogglingSpecialTeam, isAdmin, onDelete, onTimeChange, domId, specialTurnBtnId }) => {
     const [isEditingTime, setIsEditingTime] = useState(false);
     const [editTimeValue, setEditTimeValue] = useState('');
 
@@ -129,7 +130,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, o
     };
 
     return (
-        <div id={domId} className="w-full bg-light-card dark:bg-dark-card rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+        <div id={domId} className="w-full bg-light-card dark:bg-dark-card rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden card-optimized">
             {/* Header compactado para ganhar espaço horizontal */}
             <div className={`px-5 py-4 flex items-center text-white ${getHeaderClass()}`}>
                 <div className="w-12 h-12 bg-white/25 rounded-full flex items-center justify-center text-xl mr-3 flex-shrink-0">👤</div>
@@ -258,6 +259,6 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, o
             </div>
         </div>
     );
-};
+});
 
 export default EmployeeCard;
