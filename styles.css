@@ -21,8 +21,7 @@ html, body {
     cursor: grab;
     overscroll-behavior: none; /* PREVENTS THE WHITE GLOW/BOUNCE EFFECT INSIDE CONTAINER */
     -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-    /* FIX: Force GPU layer and set background to prevent black voids during scroll lag */
-    transform: translateZ(0);
+    /* Remove translateZ from viewport to reduce memory usage */
     will-change: scroll-position;
 }
 
@@ -32,22 +31,21 @@ html, body {
 
 .scalable-container {
     transform-origin: 0 0; /* Anchor scaling to the top-left corner */
-    /* FIX: Optimize compositing for mobile to prevent tearing/black screens */
-    will-change: transform;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    transform: translate3d(0, 0, 0);
-    perspective: 1000px;
+    /* Simplificado para evitar erros de renderização */
+    transform-style: flat;
     min-height: 100%; /* Ensure it covers height */
+    width: fit-content;
 }
 
-/* FIX: New class to isolate card rendering performance */
+/* FIX: Stabilized card rendering */
 .card-optimized {
-    /* content-visibility: auto tells the browser to lazy-render the element */
-    content-visibility: auto; 
-    contain-intrinsic-size: 1px 300px; /* Estimate height to prevent scrollbar jumping */
-    contain: layout paint style; /* Isolate the card so it doesn't trigger full page reflows */
-    transform: translateZ(0); /* Promote to own layer */
+    /* REMOVED content-visibility: auto; - Caused rendering voids on mobile */
+    /* REMOVED transform: translateZ(0); - Caused excessive VRAM usage */
+    
+    /* Keep basic containment for layout calculation speed, but lighter */
+    contain: layout style; 
+    position: relative;
+    /* Only animate opacity/transform when interacted with, not always */
 }
 
 /* Prevent zoom on double tap and ensure inputs behave well on touch */

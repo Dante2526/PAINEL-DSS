@@ -1674,7 +1674,7 @@ const App: React.FC = () => {
         <div className="bg-light-bg-secondary dark:bg-dark-bg min-h-screen text-light-text dark:text-dark-text transition-colors">
             <div ref={viewportRef} className={`viewport fixed inset-0 bg-light-bg-secondary dark:bg-dark-bg`}>
                 <div ref={contentWrapperRef} className="origin-top-left">
-                    <div ref={scalableContainerRef} className="scalable-container w-fit origin-top-left p-8">
+                    <div ref={scalableContainerRef} className="scalable-container w-fit origin-top-left p-8 bg-light-bg-secondary dark:bg-dark-bg">
                         <Header
                             stats={stats}
                             loading={loading}
