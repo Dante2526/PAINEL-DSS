@@ -38,7 +38,7 @@ async function gerarRelatorio() {
   const registros7H = [];
   const registros6H = [];
   
-  // MAPA DE NOMES: Guarda (Matrícula -> Nome) de TODOS (Turma B + Admins)
+  // MAPA DE NOMES
   const mapaNomes = {}; 
 
   let totalFuncionarios = 0;
@@ -51,6 +51,8 @@ async function gerarRelatorio() {
     
     empSnapshot.forEach(doc => {
       const emp = doc.data();
+      // !!! SEGURANÇA: GUARDA O ID DO DOCUMENTO PARA RASTREIO !!!
+      emp.docId = doc.id; 
       
       // 1. Guardar nome no mapa (Matrícula -> Nome)
       if (emp.matricula && emp.name) {
@@ -74,29 +76,24 @@ async function gerarRelatorio() {
     return "<h1>Erro ao ler o banco de dados 'turma b'.</h1>";
   }
 
-  // B) Ler dados de 'administrators' (PARA PEGAR NOMES DE CHEFES/ADMINS)
+  // B) Ler dados de 'administrators'
   try {
     const adminRef = db.collection('administrators');
     const adminSnapshot = await adminRef.get();
-    
     adminSnapshot.forEach(doc => {
       const adm = doc.data();
-      // Se tiver matrícula e nome, adiciona ao mapa também
       if (adm.matricula && adm.name) {
         mapaNomes[adm.matricula] = limparTexto(adm.name);
       }
     });
-    console.log(`Lidos ${adminSnapshot.size} administradores para o mapa de nomes.`);
   } catch (error) {
     console.error("Erro ao ler 'administrators':", error);
-    // Não paramos o script por erro aqui, apenas segue sem nomes de admins
   }
 
   // C) Ler dados dos 'registrosDSS'
   try {
     const regRef = db.collection('registrosDSS');
     const regSnapshot = await regRef.get();
-    
     regSnapshot.forEach(doc => {
       const reg = doc.data();
       if (reg.TURNO === "6H") registros6H.push(reg);
@@ -104,6 +101,15 @@ async function gerarRelatorio() {
     });
   } catch (error) {
     console.error("Erro ao ler 'registrosDSS':", error);
+  }
+
+  // --- FUNÇÃO AUXILIAR PARA FORMATAR A LINHA DO FUNCIONÁRIO ---
+  // Se faltar dado, ele mostra o ID do documento para você achar no Firebase
+  function formatarLinhaFuncionario(emp) {
+    const nome = emp.name ? limparTexto(emp.name) : `<strong style="color:red;">NOME VAZIO (ID: ${emp.docId})</strong>`;
+    const matricula = emp.matricula ? emp.matricula : `<strong style="color:red;">MATRÍCULA VAZIA (ID: ${emp.docId})</strong>`;
+    
+    return `<li>${nome} (Matrícula: ${matricula})</li>`;
   }
 
   // --- 3. MONTAR O CORPO DO E-MAIL ---
@@ -127,7 +133,7 @@ async function gerarRelatorio() {
   if (cat_7H_EstouBem.length === 0) htmlBody += `Nenhum`;
   else {
     htmlBody += `<ul>`;
-    cat_7H_EstouBem.forEach(emp => { htmlBody += `<li>${limparTexto(emp.name)} (Matrícula: ${emp.matricula})</li>`; });
+    cat_7H_EstouBem.forEach(emp => { htmlBody += formatarLinhaFuncionario(emp); });
     htmlBody += `</ul>`;
   }
   
@@ -135,7 +141,7 @@ async function gerarRelatorio() {
   if (cat_7H_EstouMal.length === 0) htmlBody += `Nenhum`;
   else {
     htmlBody += `<ul>`;
-    cat_7H_EstouMal.forEach(emp => { htmlBody += `<li>${limparTexto(emp.name)} (Matrícula: ${emp.matricula})</li>`; });
+    cat_7H_EstouMal.forEach(emp => { htmlBody += formatarLinhaFuncionario(emp); });
     htmlBody += `</ul>`;
   }
 
@@ -143,7 +149,7 @@ async function gerarRelatorio() {
   if (cat_7H_Ausentes.length === 0) htmlBody += `Nenhum`;
   else {
     htmlBody += `<ul>`;
-    cat_7H_Ausentes.forEach(emp => { htmlBody += `<li>${limparTexto(emp.name)} (Matrícula: ${emp.matricula})</li>`; });
+    cat_7H_Ausentes.forEach(emp => { htmlBody += formatarLinhaFuncionario(emp); });
     htmlBody += `</ul>`;
   }
 
@@ -154,7 +160,7 @@ async function gerarRelatorio() {
   if (cat_6H_EstouBem.length === 0) htmlBody += `Nenhum`;
   else {
     htmlBody += `<ul>`;
-    cat_6H_EstouBem.forEach(emp => { htmlBody += `<li>${limparTexto(emp.name)} (Matrícula: ${emp.matricula})</li>`; });
+    cat_6H_EstouBem.forEach(emp => { htmlBody += formatarLinhaFuncionario(emp); });
     htmlBody += `</ul>`;
   }
   
@@ -162,7 +168,7 @@ async function gerarRelatorio() {
   if (cat_6H_EstouMal.length === 0) htmlBody += `Nenhum`;
   else {
     htmlBody += `<ul>`;
-    cat_6H_EstouMal.forEach(emp => { htmlBody += `<li>${limparTexto(emp.name)} (Matrícula: ${emp.matricula})</li>`; });
+    cat_6H_EstouMal.forEach(emp => { htmlBody += formatarLinhaFuncionario(emp); });
     htmlBody += `</ul>`;
   }
 
@@ -170,7 +176,7 @@ async function gerarRelatorio() {
   if (cat_6H_Ausentes.length === 0) htmlBody += `Nenhum`;
   else {
     htmlBody += `<ul>`;
-    cat_6H_Ausentes.forEach(emp => { htmlBody += `<li>${limparTexto(emp.name)} (Matrícula: ${emp.matricula})</li>`; });
+    cat_6H_Ausentes.forEach(emp => { htmlBody += formatarLinhaFuncionario(emp); });
     htmlBody += `</ul>`;
   }
   
@@ -182,7 +188,6 @@ async function gerarRelatorio() {
   } else {
     htmlBody += `<ul>`;
     registros7H.forEach(reg => {
-      // Pega o nome do mapa ou avisa se não achou
       const nomeFunc = mapaNomes[reg.matricula] || "Nome não encontrado (Verifique cadastro)";
       htmlBody += `<li><strong>${nomeFunc}</strong> (Matrícula: ${reg.matricula})<br><em>Assunto: ${limparTexto(reg.assunto)}</em></li>`;
     });
@@ -219,7 +224,7 @@ async function enviarEmail(htmlRelatorio) {
     from: EMAIL_USER,
     to: EMAIL_TO,
     subject: novoAssunto, 
-    html: htmlRelatorio, // O novo corpo de e-mail em HTML
+    html: htmlRelatorio, 
   };
   try {
     await transporter.sendMail(mailOptions);
@@ -230,7 +235,7 @@ async function enviarEmail(htmlRelatorio) {
   }
 }
 
-// --- 5. FUNÇÃO PRINCIPAL (Ler e Enviar) ---
+// --- 5. FUNÇÃO PRINCIPAL ---
 async function main() {
   console.log("Iniciando script de relatório...");
   try {
