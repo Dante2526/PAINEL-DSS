@@ -51,8 +51,7 @@ async function gerarRelatorio() {
     
     empSnapshot.forEach(doc => {
       const emp = doc.data();
-      // !!! SEGURANÇA: GUARDA O ID DO DOCUMENTO PARA RASTREIO !!!
-      emp.docId = doc.id; 
+      emp.docId = doc.id; // Guarda o ID para rastreio de erros
       
       // 1. Guardar nome no mapa (Matrícula -> Nome)
       if (emp.matricula && emp.name) {
@@ -103,23 +102,22 @@ async function gerarRelatorio() {
     console.error("Erro ao ler 'registrosDSS':", error);
   }
 
-  // --- FUNÇÃO AUXILIAR PARA FORMATAR A LINHA DO FUNCIONÁRIO ---
-  // Se faltar dado, ele mostra o ID do documento para você achar no Firebase
+  // --- FUNÇÃO AUXILIAR PARA FORMATAR LINHA ---
   function formatarLinhaFuncionario(emp) {
     const nome = emp.name ? limparTexto(emp.name) : `<strong style="color:red;">NOME VAZIO (ID: ${emp.docId})</strong>`;
     const matricula = emp.matricula ? emp.matricula : `<strong style="color:red;">MATRÍCULA VAZIA (ID: ${emp.docId})</strong>`;
-    
     return `<li>${nome} (Matrícula: ${matricula})</li>`;
   }
 
   // --- 3. MONTAR O CORPO DO E-MAIL ---
+  // AQUI É O AJUSTE VISUAL: padding-left: 20px em todas as listas <ul>
   let htmlBody = `<div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6;">`;
   const totalPresentes = cat_7H_EstouBem.length + cat_7H_EstouMal.length + cat_6H_EstouBem.length + cat_6H_EstouMal.length;
   const totalAusentes = cat_7H_Ausentes.length + cat_6H_Ausentes.length;
   
   htmlBody += `<h2>RESUMO GERAL</h2>`;
   htmlBody += `<hr>`;
-  htmlBody += `<ul>`;
+  htmlBody += `<ul style="padding-left: 20px;">`; // <--- AQUI
   htmlBody += `<li><strong>Total de Funcionários (Turma B):</strong> ${totalFuncionarios}</li>`;
   htmlBody += `<li><strong>Presentes (DSS + Bem/Mal):</strong> ${totalPresentes}</li>`;
   htmlBody += `<li><strong>Pendentes / Ausentes:</strong> ${totalAusentes}</li>`;
@@ -132,7 +130,7 @@ async function gerarRelatorio() {
   htmlBody += `<h3>STATUS: "ASS.DSS + ESTOU BEM"</h3>`;
   if (cat_7H_EstouBem.length === 0) htmlBody += `Nenhum`;
   else {
-    htmlBody += `<ul>`;
+    htmlBody += `<ul style="padding-left: 20px;">`; // <--- AQUI
     cat_7H_EstouBem.forEach(emp => { htmlBody += formatarLinhaFuncionario(emp); });
     htmlBody += `</ul>`;
   }
@@ -140,7 +138,7 @@ async function gerarRelatorio() {
   htmlBody += `<h3>STATUS "ESTOU MAL"</h3>`;
   if (cat_7H_EstouMal.length === 0) htmlBody += `Nenhum`;
   else {
-    htmlBody += `<ul>`;
+    htmlBody += `<ul style="padding-left: 20px;">`; // <--- AQUI
     cat_7H_EstouMal.forEach(emp => { htmlBody += formatarLinhaFuncionario(emp); });
     htmlBody += `</ul>`;
   }
@@ -148,7 +146,7 @@ async function gerarRelatorio() {
   htmlBody += `<h3>PENDENTES / AUSENTES</h3>`;
   if (cat_7H_Ausentes.length === 0) htmlBody += `Nenhum`;
   else {
-    htmlBody += `<ul>`;
+    htmlBody += `<ul style="padding-left: 20px;">`; // <--- AQUI
     cat_7H_Ausentes.forEach(emp => { htmlBody += formatarLinhaFuncionario(emp); });
     htmlBody += `</ul>`;
   }
@@ -159,7 +157,7 @@ async function gerarRelatorio() {
   htmlBody += `<h3>STATUS: "ASS.DSS + ESTOU BEM"</h3>`;
   if (cat_6H_EstouBem.length === 0) htmlBody += `Nenhum`;
   else {
-    htmlBody += `<ul>`;
+    htmlBody += `<ul style="padding-left: 20px;">`; // <--- AQUI
     cat_6H_EstouBem.forEach(emp => { htmlBody += formatarLinhaFuncionario(emp); });
     htmlBody += `</ul>`;
   }
@@ -167,7 +165,7 @@ async function gerarRelatorio() {
   htmlBody += `<h3>STATUS "ESTOU MAL"</h3>`;
   if (cat_6H_EstouMal.length === 0) htmlBody += `Nenhum`;
   else {
-    htmlBody += `<ul>`;
+    htmlBody += `<ul style="padding-left: 20px;">`; // <--- AQUI
     cat_6H_EstouMal.forEach(emp => { htmlBody += formatarLinhaFuncionario(emp); });
     htmlBody += `</ul>`;
   }
@@ -175,7 +173,7 @@ async function gerarRelatorio() {
   htmlBody += `<h3>PENDENTES / AUSENTES</h3>`;
   if (cat_6H_Ausentes.length === 0) htmlBody += `Nenhum`;
   else {
-    htmlBody += `<ul>`;
+    htmlBody += `<ul style="padding-left: 20px;">`; // <--- AQUI
     cat_6H_Ausentes.forEach(emp => { htmlBody += formatarLinhaFuncionario(emp); });
     htmlBody += `</ul>`;
   }
@@ -186,7 +184,7 @@ async function gerarRelatorio() {
   if (registros7H.length === 0) {
     htmlBody += `Nenhum registro de assunto encontrado para 7H.`;
   } else {
-    htmlBody += `<ul>`;
+    htmlBody += `<ul style="padding-left: 20px;">`; // <--- AQUI
     registros7H.forEach(reg => {
       const nomeFunc = mapaNomes[reg.matricula] || "Nome não encontrado (Verifique cadastro)";
       htmlBody += `<li><strong>${nomeFunc}</strong> (Matrícula: ${reg.matricula})<br><em>Assunto: ${limparTexto(reg.assunto)}</em></li>`;
@@ -199,7 +197,7 @@ async function gerarRelatorio() {
   if (registros6H.length === 0) {
     htmlBody += `Nenhum registro de assunto encontrado para 6H.`;
   } else {
-    htmlBody += `<ul>`;
+    htmlBody += `<ul style="padding-left: 20px;">`; // <--- AQUI
     registros6H.forEach(reg => {
       const nomeFunc = mapaNomes[reg.matricula] || "Nome não encontrado (Verifique cadastro)";
       htmlBody += `<li><strong>${nomeFunc}</strong> (Matrícula: ${reg.matricula})<br><em>Assunto: ${limparTexto(reg.assunto)}</em></li>`;
@@ -207,7 +205,7 @@ async function gerarRelatorio() {
     htmlBody += `</ul>`;
   }
 
-  htmlBody += `</div>`; // Fecha o <div> principal
+  htmlBody += `</div>`;
   return htmlBody;
 }
 
