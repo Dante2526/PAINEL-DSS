@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Header from './components/Header';
 import EmployeeCard from './components/EmployeeCard';
@@ -8,7 +9,7 @@ import Modal from './components/Modal';
 import Notification from './components/Notification';
 import Footer from './components/Footer';
 import InteractiveTutorial, { TutorialStep } from './components/InteractiveTutorial';
-import { SubjectIcon, UserIcon, EraserIcon, FileTextIcon, SortIcon, UserPlusIcon, ShiftIcon, AbsentIcon, TrashIcon, ExchangeIcon, MousePointerIcon } from './components/icons';
+import { SubjectIcon, UserIcon, EraserIcon, FileTextIcon, SortIcon, UserPlusIcon, ShiftIcon, AbsentIcon, TrashIcon, ExchangeIcon, MousePointerIcon, InfoIcon } from './components/icons';
 import { Employee, StatusType, ModalType, ManualRegistration, Administrator } from './types';
 import type { NotificationData } from './components/Notification';
 import { db, auth, isConfigured } from './firebase';
@@ -1394,6 +1395,13 @@ const App: React.FC = () => {
             return;
         }
         
+        // --- 8 DIGIT VALIDATION ---
+        if (matricula.length !== 8) {
+            setActiveModal(ModalType.InvalidMatricula);
+            return;
+        }
+        // --------------------------
+
         // Find the responsible name to persist it
         const admin = administrators.find(a => a.matricula === matricula);
         const emp = employees.find(e => e.matricula === matricula);
@@ -1793,6 +1801,58 @@ const App: React.FC = () => {
                 scale={modalScale}
                 onStepChange={handleTutorialStepChange}
             />
+
+            {/* --- INVALID MATRICULA MODAL --- */}
+            {activeModal === ModalType.InvalidMatricula && (
+                <div 
+                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
+                    onClick={() => setActiveModal(ModalType.None)}
+                >
+                    <div 
+                        className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center relative mx-4"
+                        style={{ 
+                            transform: `scale(${modalScale})`, 
+                            animation: 'fade-in-scale 0.3s forwards ease-out' 
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button 
+                            onClick={() => setActiveModal(ModalType.None)} 
+                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10"
+                        >
+                            &times;
+                        </button>
+                        
+                        <h2 className="text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6">FORMATO DE MATRÍCULA</h2>
+
+                        <div className="space-y-6 text-center p-2 flex flex-col items-center">
+                            <div className="mx-auto w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-2 text-primary">
+                                <InfoIcon className="w-8 h-8" />
+                            </div>
+                            
+                            <div className="text-lg text-light-text dark:text-dark-text font-medium flex flex-col items-center gap-2">
+                                <span>Toda matrícula tem <strong>8 dígitos</strong>.</span>
+                            </div>
+
+                            <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl w-full border border-gray-200 dark:border-gray-600">
+                                <p className="text-sm text-light-text-secondary dark:text-gray-300">
+                                    <span className="block font-bold mb-2 text-primary dark:text-blue-400 uppercase text-xs tracking-wider">Aviso</span>
+                                    Se você é da <strong className="text-light-text dark:text-white">Velha Guarda</strong>, adicione <strong className="text-light-text dark:text-white bg-yellow-200 dark:bg-yellow-800 px-1 rounded text-black dark:text-white">01</strong> na frente dos demais números para completar os 8 dígitos.
+                                </p>
+                            </div>
+
+                            <div className="w-full">
+                                <button 
+                                    onClick={() => setActiveModal(ModalType.None)} 
+                                    className="w-full py-4 font-bold text-white bg-primary rounded-lg hover:bg-primary-dark shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
+                                >
+                                    ENTENDI
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
             
             {activeModal === ModalType.ConfirmMal && (
                 <div 

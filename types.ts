@@ -38,5 +38,6 @@ export enum ModalType {
   ConfirmTurno, // Added for Turno confirmation
   ConfirmAbsent, // Added for Absent confirmation
   ConfirmDelete, // Added for Delete confirmation
+  InvalidMatricula, // Added for 8-digit validation warning
   Tutorial, 
 }
