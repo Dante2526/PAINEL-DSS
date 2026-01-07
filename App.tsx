@@ -6,6 +6,8 @@
 
 
 
+
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Header from './components/Header';
 import EmployeeCard from './components/EmployeeCard';
@@ -33,7 +35,8 @@ import {
     Timestamp,
     where,
     getDocs,
-    deleteDoc
+    deleteDoc,
+    setDoc
 } from 'firebase/firestore';
 import { signInAnonymously } from 'firebase/auth';
 import emailjs from '@emailjs/browser';
@@ -1429,23 +1432,21 @@ const App: React.FC = () => {
         }
 
         const registrationCollectionName = selectedTurma === 'A' ? 'registrosDSS A' : 'registrosDSS B';
+        const docId = `registro_${turno}`; // Creates a predictable ID like "registro_7H" or "registro_6H"
+        const docRef = doc(db, registrationCollectionName, docId);
+
         const registrationData = {
             matricula,
             name: resolvedName,
             assunto: subject || 'Não informado',
-            TURNO: turno,
+            TURNO: turno, // Explicitly using the '7H' or '6H' parameter
         };
 
         try {
-            const q = query(collection(db, registrationCollectionName), where("TURNO", "==", turno));
-            const querySnapshot = await getDocs(q);
-
-            if (!querySnapshot.empty) {
-                const docRef = doc(db, registrationCollectionName, querySnapshot.docs[0].id);
-                await updateDoc(docRef, registrationData);
-            } else {
-                await addDoc(collection(db, registrationCollectionName), registrationData);
-            }
+            // setDoc will create the document if it doesn't exist, or overwrite it if it does.
+            // This simplifies the logic from query/update/add to a single operation.
+            await setDoc(docRef, registrationData);
+            
             showNotification(`Registro para turno ${turno} salvo com sucesso.`, 'success');
         } catch (error) {
             console.error("Error saving manual registration:", error);
