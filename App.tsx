@@ -8,6 +8,8 @@
 
 
 
+
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Header from './components/Header';
 import EmployeeCard from './components/EmployeeCard';
@@ -1443,7 +1445,7 @@ const App: React.FC = () => {
         };
 
         try {
-            // setDoc will create the document if it doesn't exist, or overwrite it if it does.
+            // setDoc will create the document if it doesn't exist, or completely overwrite it if it does.
             // This simplifies the logic from query/update/add to a single operation.
             await setDoc(docRef, registrationData);
             
