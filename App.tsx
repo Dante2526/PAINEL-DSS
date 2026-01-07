@@ -10,6 +10,8 @@
 
 
 
+
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Header from './components/Header';
 import EmployeeCard from './components/EmployeeCard';
@@ -588,7 +590,13 @@ const ReportModal: React.FC<{
 };
 
 const App: React.FC = () => {
-    const [selectedTurma, setSelectedTurma] = useState<'A' | 'B' | null>(null);
+    const [selectedTurma, setSelectedTurma] = useState<'A' | 'B' | null>(() => {
+        const savedTurma = localStorage.getItem('selectedTurma');
+        if (savedTurma === 'A' || savedTurma === 'B') {
+            return savedTurma;
+        }
+        return null;
+    });
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [administrators, setAdministrators] = useState<Administrator[]>([]);
     const [loading, setLoading] = useState(true);
@@ -1637,12 +1645,14 @@ const App: React.FC = () => {
     };
 
     const handleSelectTurma = (turma: 'A' | 'B') => {
+        localStorage.setItem('selectedTurma', turma);
         setLoading(true);
         setEmployees([]); // Limpa dados antigos para evitar exibir dados da turma errada
         setSelectedTurma(turma);
     };
 
     const handleReturnToSelection = () => {
+        localStorage.removeItem('selectedTurma');
         setSelectedTurma(null);
         setEmployees([]);
         setIsAdmin(false); // Reseta o estado de admin ao trocar de turma
