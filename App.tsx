@@ -895,8 +895,9 @@ const App: React.FC = () => {
                     console.error("Error listening to admin updates:", error);
                 });
                 
-                // Acessa os registros de DSS, que também são compartilhados.
-                const registrationsQuery = query(collection(db, 'registrosDSS'));
+                const registrationCollectionName = selectedTurma === 'A' ? 'registrosDSS A' : 'registrosDSS B';
+                // Acessa os registros de DSS, agora específicos da turma.
+                const registrationsQuery = query(collection(db, registrationCollectionName));
                 unsubscribeRegistrations = onSnapshot(registrationsQuery, (querySnapshot) => {
                     if (isDemoModeRef.current) return;
                     
@@ -1395,6 +1396,8 @@ const App: React.FC = () => {
     };
 
     const handleManualRegister = async (turno: '7H-19H' | '6H') => {
+        if (!selectedTurma) return;
+
         const matricula = turno === '7H-19H' ? mainMatricula : specialMatricula;
         const rawSubject = turno === '7H-19H' ? mainSubject : specialSubject;
         const subject = rawSubject ? rawSubject.toUpperCase() : '';
@@ -1423,6 +1426,7 @@ const App: React.FC = () => {
             return;
         }
 
+        const registrationCollectionName = selectedTurma === 'A' ? 'registrosDSS A' : 'registrosDSS B';
         const registrationData = {
             matricula,
             name: resolvedName,
@@ -1431,14 +1435,14 @@ const App: React.FC = () => {
         };
 
         try {
-            const q = query(collection(db, 'registrosDSS'), where("TURNO", "==", turno));
+            const q = query(collection(db, registrationCollectionName), where("TURNO", "==", turno));
             const querySnapshot = await getDocs(q);
 
             if (!querySnapshot.empty) {
-                const docRef = doc(db, 'registrosDSS', querySnapshot.docs[0].id);
+                const docRef = doc(db, registrationCollectionName, querySnapshot.docs[0].id);
                 await updateDoc(docRef, registrationData);
             } else {
-                await addDoc(collection(db, 'registrosDSS'), registrationData);
+                await addDoc(collection(db, registrationCollectionName), registrationData);
             }
             showNotification(`Registro para turno ${turno} salvo com sucesso.`, 'success');
         } catch (error) {
@@ -1605,7 +1609,8 @@ const App: React.FC = () => {
                 });
             });
 
-            const registrationsSnapshot = await getDocs(collection(db, 'registrosDSS'));
+            const registrationCollectionName = selectedTurma === 'A' ? 'registrosDSS A' : 'registrosDSS B';
+            const registrationsSnapshot = await getDocs(collection(db, registrationCollectionName));
             registrationsSnapshot.forEach((doc) => {
                 batch.delete(doc.ref);
             });
