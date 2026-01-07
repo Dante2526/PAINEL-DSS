@@ -475,7 +475,7 @@ const ReportModal: React.FC<{
                         <div className="absolute right-0 top-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
                             <SubjectIcon className="w-12 h-12 text-blue-600" />
                         </div>
-                        <div className="text-[10px] font-bold text-white bg-blue-500 px-2 py-0.5 rounded-full w-fit mb-2">TURNO 7H-19H</div>
+                        <div className="text-[10px] font-bold text-white bg-blue-500 px-2 py-0.5 rounded-full w-fit mb-2">TURNO 7H</div>
                         <div className="mb-2 relative z-10">
                             <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Tema DSS</span>
                             <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight">{subject7H || 'NÃO INFORMADO'}</span>
@@ -903,7 +903,7 @@ const App: React.FC = () => {
                     
                     const registrations = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() })) as ManualRegistration[];
                     
-                    const mainReg = registrations.find(r => r.TURNO === '7H-19H');
+                    const mainReg = registrations.find(r => r.TURNO === '7H');
                     const specialReg = registrations.find(r => r.TURNO === '6H');
 
                     setMainSubject(mainReg?.assunto || '');
@@ -1395,11 +1395,11 @@ const App: React.FC = () => {
         }
     };
 
-    const handleManualRegister = async (turno: '7H-19H' | '6H') => {
+    const handleManualRegister = async (turno: '7H' | '6H') => {
         if (!selectedTurma) return;
 
-        const matricula = turno === '7H-19H' ? mainMatricula : specialMatricula;
-        const rawSubject = turno === '7H-19H' ? mainSubject : specialSubject;
+        const matricula = turno === '7H' ? mainMatricula : specialMatricula;
+        const rawSubject = turno === '7H' ? mainSubject : specialSubject;
         const subject = rawSubject ? rawSubject.toUpperCase() : '';
 
         if (!matricula) {
@@ -1737,7 +1737,7 @@ const App: React.FC = () => {
                                     matricula={mainMatricula}
                                     onSubjectChange={setMainSubject}
                                     onMatriculaChange={setMainMatricula}
-                                    onRegister={() => handleManualRegister('7H-19H')}
+                                    onRegister={() => handleManualRegister('7H')}
                                     employees={employees}
                                     administrators={administrators}
                                 />
