@@ -1,6 +1,9 @@
 
 
 
+
+
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Header from './components/Header';
 import EmployeeCard from './components/EmployeeCard';
@@ -9,6 +12,7 @@ import Modal from './components/Modal';
 import Notification from './components/Notification';
 import Footer from './components/Footer';
 import InteractiveTutorial, { TutorialStep } from './components/InteractiveTutorial';
+import TurmaSelectionScreen from './components/TurmaSelectionScreen';
 import { SubjectIcon, UserIcon, EraserIcon, FileTextIcon, SortIcon, UserPlusIcon, ShiftIcon, AbsentIcon, TrashIcon, ExchangeIcon, MousePointerIcon, InfoIcon } from './components/icons';
 import { Employee, StatusType, ModalType, ManualRegistration, Administrator } from './types';
 import type { NotificationData } from './components/Notification';
@@ -577,6 +581,7 @@ const ReportModal: React.FC<{
 };
 
 const App: React.FC = () => {
+    const [selectedTurma, setSelectedTurma] = useState<'A' | 'B' | null>(null);
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [administrators, setAdministrators] = useState<Administrator[]>([]);
     const [loading, setLoading] = useState(true);
@@ -661,7 +666,7 @@ const App: React.FC = () => {
     // Effect to check if tutorial should be shown for first-time users
     useEffect(() => {
         // Wait for loading to finish so DOM elements are present
-        if (!loading) {
+        if (!loading && selectedTurma) {
             const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
             if (!hasSeenTutorial) {
                 // Short delay to ensure rendering frames are complete
@@ -671,7 +676,7 @@ const App: React.FC = () => {
                 }, 1000);
             }
         }
-    }, [loading]);
+    }, [loading, selectedTurma]);
 
     const handleToggleDarkMode = () => setIsDarkMode(prev => !prev);
 
@@ -802,10 +807,8 @@ const App: React.FC = () => {
             `;
 
             const templateParams = {
-                // O Template do EmailJS deve conter APENAS: {{{html_content}}}
                 html_content: emailContent,
-                // Assunto personalizado com Sirene e "ESTOU MAL" em maiúsculo
-                subject: `🚨 ALERTA URGENTE TURMA B: "ESTOU MAL"`,
+                subject: `🚨 ALERTA URGENTE TURMA ${selectedTurma}: "ESTOU MAL"`,
             };
 
             await emailjs.send(
@@ -818,11 +821,15 @@ const App: React.FC = () => {
             showNotification('Alerta enviado por e-mail ao setor responsável.', 'success');
         } catch (error) {
             console.error("Erro ao enviar e-mail via EmailJS:", error);
-            // Não mostramos erro visual para o usuário final para não gerar pânico, apenas logamos
         }
     };
 
     useEffect(() => {
+        if (!selectedTurma) {
+            setLoading(false);
+            return;
+        }
+
         let unsubscribeEmployees = () => {};
         let unsubscribeAdministrators = () => {};
         let unsubscribeRegistrations = () => {};
@@ -839,9 +846,9 @@ const App: React.FC = () => {
                 await signInAnonymously(auth);
                 console.log("Signed in anonymously");
 
-                // Listener for employees
-                // UPDATED: Now points to 'turma b' instead of 'employees'
-                const employeesQuery = query(collection(db, 'turma b'), orderBy("name", "asc"));
+                // Determina o nome da coleção do Firestore com base na turma selecionada ('turma a' ou 'turma b').
+                const collectionName = selectedTurma === 'A' ? 'turma a' : 'turma b';
+                const employeesQuery = query(collection(db, collectionName), orderBy("name", "asc"));
                 unsubscribeEmployees = onSnapshot(employeesQuery, (querySnapshot) => {
                     if (isDemoModeRef.current) return;
 
@@ -869,7 +876,7 @@ const App: React.FC = () => {
                     setLoading(false);
                 });
 
-                // Listener for administrators (used for name lookup)
+                // Acessa a coleção de administradores, que é compartilhada entre as turmas.
                 const administratorsQuery = query(collection(db, 'administrators'));
                 unsubscribeAdministrators = onSnapshot(administratorsQuery, (querySnapshot) => {
                     if (isDemoModeRef.current) return;
@@ -888,7 +895,7 @@ const App: React.FC = () => {
                     console.error("Error listening to admin updates:", error);
                 });
                 
-                // Listener for manual registrations to persist fields
+                // Acessa os registros de DSS, que também são compartilhados.
                 const registrationsQuery = query(collection(db, 'registrosDSS'));
                 unsubscribeRegistrations = onSnapshot(registrationsQuery, (querySnapshot) => {
                     if (isDemoModeRef.current) return;
@@ -909,7 +916,7 @@ const App: React.FC = () => {
 
 
                 if (!isDemoModeRef.current) {
-                    showNotification('Dados carregados com sucesso!', 'success');
+                    showNotification(`Dados da Turma ${selectedTurma} carregados!`, 'success');
                 }
 
             } catch (error) {
@@ -929,7 +936,7 @@ const App: React.FC = () => {
             unsubscribeAdministrators();
             unsubscribeRegistrations();
         };
-    }, [showNotification]);
+    }, [selectedTurma, showNotification]);
 
     const setScale = useCallback((newScale: number, scrollX?: number, scrollY?: number) => {
         const viewport = viewportRef.current;
@@ -960,13 +967,8 @@ const App: React.FC = () => {
         const isMobileView = ('ontouchstart' in window || navigator.maxTouchPoints > 0) || window.innerWidth < 1366; 
 
         if (isMobileView) {
-            // Updated: Calculate scale to fit roughly one column (920px with margins) 
-            // instead of fitting the entire wide container, so it starts "zoomed in" and readable.
             const oneColumnScale = viewport.clientWidth / 920;
-            
-            // Ensure reasonable limits for the initial zoom (0.3 to 1.0)
             const finalScale = Math.min(Math.max(oneColumnScale, 0.3), 1.0);
-            
             setScale(finalScale, 0, 0);
         } else {
             setScale(1.0, 0, 0);
@@ -1075,6 +1077,10 @@ const App: React.FC = () => {
     }, [initializeScale, setScale]);
 
     const handleEnterDemoMode = () => {
+        if (!selectedTurma) {
+            showNotification('Selecione uma turma antes de entrar no modo de demonstração.', 'error');
+            return;
+        }
         isDemoModeRef.current = true;
         
         const firstNames = ["João", "Maria", "Pedro", "Ana", "Carlos", "Fernanda", "Lucas", "Juliana", "Marcos", "Beatriz", "Rafael", "Camila", "Gustavo", "Larissa", "Bruno"];
@@ -1105,7 +1111,6 @@ const App: React.FC = () => {
             };
         }).sort((a,b) => a.name.localeCompare(b.name));
         
-        // Mock admins for demo
         const mockAdmins: Administrator[] = [
             { id: 'admin1', name: 'Admin Demo User', matricula: '9999', email: 'admin@demo.com' }
         ];
@@ -1120,6 +1125,7 @@ const App: React.FC = () => {
     };
 
     const processStatusUpdate = async (id: string, type: StatusType) => {
+        if (!selectedTurma) return;
         const employee = employees.find(e => e.id === id);
         if (!employee) return;
 
@@ -1173,7 +1179,6 @@ const App: React.FC = () => {
              if (finalStates.absent) {
                 newTime = null;
             } else if (finalStates.assDss) {
-                // Se já tem horário, não atualiza. Se não tem, cria um novo.
                 if (!newTime) {
                      const date = new Date();
                      newTime = `${date.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit', year: 'numeric'})} ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
@@ -1202,15 +1207,14 @@ const App: React.FC = () => {
             if (finalStates.absent) {
                 updatedData.time = null;
             } else if (finalStates.assDss) {
-                // Se já tem horário (employee.time), NÃO atualiza (mantém o original).
-                // Se não tem horário, cria um novo timestamp.
                 if (!employee.time) {
                     updatedData.time = serverTimestamp();
                 }
             } else {
                 updatedData.time = null;
             }
-            const docRef = doc(db, 'turma b', id);
+            const collectionName = selectedTurma === 'A' ? 'turma a' : 'turma b';
+            const docRef = doc(db, collectionName, id);
             await updateDoc(docRef, updatedData);
         } catch (error) {
             console.error("Error updating status:", error);
@@ -1232,13 +1236,14 @@ const App: React.FC = () => {
             return;
         }
 
-        if (!db) {
+        if (!db || !selectedTurma) {
             showNotification("A conexão com o banco de dados não está disponível.", "error");
             return;
         }
 
         try {
-            const docRef = doc(db, 'turma b', id);
+            const collectionName = selectedTurma === 'A' ? 'turma a' : 'turma b';
+            const docRef = doc(db, collectionName, id);
             await updateDoc(docRef, {
                 time: Timestamp.fromDate(newDate)
             });
@@ -1288,6 +1293,7 @@ const App: React.FC = () => {
     };
     
     const processToggleSpecialTeam = async (id: string) => {
+        if (!selectedTurma) return;
         setTogglingSpecialTeamId(id);
         const employee = employees.find(e => e.id === id);
         if (!employee) {
@@ -1311,7 +1317,8 @@ const App: React.FC = () => {
         }
 
         try {
-            const docRef = doc(db, 'turma b', id);
+            const collectionName = selectedTurma === 'A' ? 'turma a' : 'turma b';
+            const docRef = doc(db, collectionName, id);
             await updateDoc(docRef, { 
                 turno: newTurno
             });
@@ -1339,6 +1346,7 @@ const App: React.FC = () => {
     };
 
     const processDeleteUser = async (employeeId: string) => {
+        if (!selectedTurma) return;
         const employeeToDelete = employees.find(e => e.id === employeeId);
         if (!employeeToDelete) return;
 
@@ -1352,7 +1360,8 @@ const App: React.FC = () => {
             return;
         }
         try {
-            const docRef = doc(db, 'turma b', employeeId);
+            const collectionName = selectedTurma === 'A' ? 'turma a' : 'turma b';
+            const docRef = doc(db, collectionName, employeeId);
             await deleteDoc(docRef);
             showNotification(`Usuário ${employeeToDelete.name} deletado com sucesso!`, 'success');
         } catch (error) {
@@ -1395,22 +1404,17 @@ const App: React.FC = () => {
             return;
         }
         
-        // --- 8 DIGIT VALIDATION ---
         if (matricula.length !== 8) {
             setActiveModal(ModalType.InvalidMatricula);
             return;
         }
-        // --------------------------
 
-        // Find the responsible name to persist it
         const admin = administrators.find(a => a.matricula === matricula);
         const emp = employees.find(e => e.matricula === matricula);
         const resolvedName = admin ? admin.name : (emp ? emp.name : '');
 
         if (isDemoMode) {
             showNotification(`Registro para turno ${turno} salvo com sucesso (DEMO).`, 'success');
-            // Update local state for immediate feedback in demo mode if needed, 
-            // though report generation in demo might be static.
             return;
         }
 
@@ -1421,7 +1425,7 @@ const App: React.FC = () => {
 
         const registrationData = {
             matricula,
-            name: resolvedName, // Persist name
+            name: resolvedName,
             assunto: subject || 'Não informado',
             TURNO: turno,
         };
@@ -1500,7 +1504,7 @@ const App: React.FC = () => {
     };
     
     const handleAddUser = async (name: string, matricula: string) => {
-        if (!isAdmin) {
+        if (!isAdmin || !selectedTurma) {
             showNotification('Apenas administradores podem adicionar usuários.', 'error');
             return;
         }
@@ -1537,7 +1541,8 @@ const App: React.FC = () => {
                     throw new Error('Matrícula já existe.');
                 }
             }
-            await addDoc(collection(db, 'turma b'), {
+            const collectionName = selectedTurma === 'A' ? 'turma a' : 'turma b';
+            await addDoc(collection(db, collectionName), {
                 name: finalName,
                 matricula,
                 assDss: false,
@@ -1556,7 +1561,7 @@ const App: React.FC = () => {
     };
 
     const handleClearData = async () => {
-        if (!isAdmin) {
+        if (!isAdmin || !selectedTurma) {
             showNotification('Apenas administradores podem limpar os dados.', 'error');
             return;
         }
@@ -1588,8 +1593,8 @@ const App: React.FC = () => {
 
         try {
             const batch = writeBatch(db);
-            
-            const employeesSnapshot = await getDocs(collection(db, 'turma b'));
+            const collectionName = selectedTurma === 'A' ? 'turma a' : 'turma b';
+            const employeesSnapshot = await getDocs(collection(db, collectionName));
             employeesSnapshot.forEach((doc) => {
                 batch.update(doc.ref, {
                     assDss: false,
@@ -1621,6 +1626,20 @@ const App: React.FC = () => {
         showNotification('Painel reorganizado alfabeticamente!', 'success');
     };
 
+    const handleSelectTurma = (turma: 'A' | 'B') => {
+        setLoading(true);
+        setEmployees([]); // Limpa dados antigos para evitar exibir dados da turma errada
+        setSelectedTurma(turma);
+    };
+
+    const handleReturnToSelection = () => {
+        setSelectedTurma(null);
+        setEmployees([]);
+        setIsAdmin(false); // Reseta o estado de admin ao trocar de turma
+        isDemoModeRef.current = false;
+        setIsDemoMode(false);
+    };
+
     const stats = useMemo(() => ({
         bem: employees.filter(e => e.bem).length,
         mal: employees.filter(e => e.mal).length,
@@ -1645,20 +1664,16 @@ const App: React.FC = () => {
         return current === '6H' ? '7H' : '6H';
     };
 
-    // --- NEW TUTORIAL ZOOM LOGIC ---
     const handleTutorialStepChange = (step: TutorialStep) => {
         const isMobile = window.innerWidth < 1024; 
         if (!isMobile) return;
 
         let targetIdForZoom = step.targetId;
         
-        // Group context for card interactions
         if (step.targetId === 'tutorial-card-actions' || step.targetId === 'tutorial-card-time') {
             targetIdForZoom = 'tutorial-first-card';
         }
         
-        // Group context for special panel interactions
-        // Also apply this zoom context to header steps (7, 8, 9) to maintain consistency with step 6 as requested
         if (step.targetId === 'tutorial-return-turn-btn' || 
             ['tutorial-stats', 'tutorial-dark-mode', 'tutorial-admin-btn'].includes(step.targetId)) {
             targetIdForZoom = 'tutorial-special-demo-area';
@@ -1678,6 +1693,16 @@ const App: React.FC = () => {
         }
     }
 
+    if (!selectedTurma) {
+        return (
+            <TurmaSelectionScreen 
+                onSelect={handleSelectTurma} 
+                isDarkMode={isDarkMode} 
+                onToggleDarkMode={handleToggleDarkMode}
+            />
+        );
+    }
+
     return (
         <div className="bg-light-bg-secondary dark:bg-dark-bg min-h-screen text-light-text dark:text-dark-text transition-colors">
             <div ref={viewportRef} className={`viewport fixed inset-0 bg-light-bg-secondary dark:bg-dark-bg`}>
@@ -1690,6 +1715,8 @@ const App: React.FC = () => {
                             onHelpClick={() => setActiveModal(ModalType.Tutorial)}
                             isDarkMode={isDarkMode}
                             onToggleDarkMode={handleToggleDarkMode}
+                            turma={selectedTurma}
+                            onReturnToSelection={handleReturnToSelection}
                         />
                         
                         {isDemoMode && (
@@ -1802,7 +1829,6 @@ const App: React.FC = () => {
                 onStepChange={handleTutorialStepChange}
             />
 
-            {/* --- INVALID MATRICULA MODAL --- */}
             {activeModal === ModalType.InvalidMatricula && (
                 <div 
                     className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"

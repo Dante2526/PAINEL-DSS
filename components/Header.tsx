@@ -1,7 +1,7 @@
 
 import React from 'react';
 import DarkModeToggle from './DarkModeToggle';
-import { AdminIcon, HelpIcon, ShieldLogo } from './icons';
+import { AdminIcon, HelpIcon, ShieldLogo, ExchangeIcon } from './icons';
 
 interface HeaderProps {
     stats: {
@@ -15,6 +15,8 @@ interface HeaderProps {
     onHelpClick: () => void;
     isDarkMode: boolean;
     onToggleDarkMode: () => void;
+    turma: 'A' | 'B';
+    onReturnToSelection: () => void;
 }
 
 const StatCard: React.FC<{ label: string; value: number; colorClass: string }> = ({ label, value, colorClass }) => (
@@ -24,7 +26,7 @@ const StatCard: React.FC<{ label: string; value: number; colorClass: string }> =
     </div>
 );
 
-const Header: React.FC<HeaderProps> = ({ stats, loading, onAdminClick, onHelpClick, isDarkMode, onToggleDarkMode }) => {
+const Header: React.FC<HeaderProps> = ({ stats, loading, onAdminClick, onHelpClick, isDarkMode, onToggleDarkMode, turma, onReturnToSelection }) => {
     return (
         <header id="app-header" className="bg-light-card dark:bg-dark-card rounded-3xl p-6 md:p-10 mb-8 shadow-lg flex justify-between items-center w-full transition-colors">
             <div className="flex items-center gap-6">
@@ -34,12 +36,22 @@ const Header: React.FC<HeaderProps> = ({ stats, loading, onAdminClick, onHelpCli
                     <ShieldLogo className="h-20 w-20 md:h-24 md:w-24" />
                 )}
                 <div className="flex flex-col gap-1">
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-light-text dark:text-dark-text tracking-tight">Painel de Acompanhamento DSS</h1>
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-light-text dark:text-dark-text tracking-tight">Painel DSS - TURMA {turma}</h1>
                     <p className="text-lg md:text-xl font-medium text-light-text-secondary dark:text-dark-text-secondary">Diálogo de Saúde e Segurança - Monitoramento em tempo real</p>
                 </div>
             </div>
             <div id="tutorial-header-actions" className="flex flex-col items-end gap-5">
                 <div className="flex items-center gap-5">
+                   <button 
+                        onClick={onReturnToSelection}
+                        className="h-[90px] flex items-center gap-3 px-8 text-base font-bold text-white bg-gradient-to-r from-teal-500 to-cyan-600 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-teal-300"
+                        aria-label="Trocar Turma"
+                        title="Voltar para seleção de turma"
+                   >
+                       <ExchangeIcon className="w-7 h-7" />
+                       <span>TROCAR TURMA</span>
+                   </button>
+                   
                    <button 
                         onClick={onHelpClick}
                         className="h-[90px] flex items-center gap-3 px-8 text-base font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-cyan-300"
