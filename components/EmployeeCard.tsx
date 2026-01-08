@@ -166,11 +166,19 @@ const EmployeeCard: React.FC<EmployeeCardProps> = memo(({ employee, onStatusChan
                                 autoFocus
                                 onKeyDown={(e) => { if (e.key === 'Enter') handleMatriculaSave(); if (e.key === 'Escape') handleMatriculaCancel(e as any); }}
                             />
-                            <button onClick={handleMatriculaSave} className="p-1.5 rounded-full bg-green-500/50 hover:bg-green-500/80 transition-colors" aria-label="Salvar matrícula">
-                                <CheckIcon className="w-4 h-4 text-white" />
+                            <button 
+                                onClick={handleMatriculaSave} 
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/90 hover:bg-white transition-all shadow-md transform hover:scale-110" 
+                                aria-label="Salvar matrícula"
+                            >
+                                <CheckIcon className="w-5 h-5 text-success" />
                             </button>
-                            <button onClick={handleMatriculaCancel} className="p-1.5 rounded-full bg-red-500/50 hover:bg-red-500/80 transition-colors" aria-label="Cancelar edição">
-                                <XIcon className="w-4 h-4 text-white" />
+                            <button 
+                                onClick={handleMatriculaCancel} 
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/90 hover:bg-white transition-all shadow-md transform hover:scale-110" 
+                                aria-label="Cancelar edição"
+                            >
+                                <XIcon className="w-5 h-5 text-danger" />
                             </button>
                         </div>
                     ) : (
