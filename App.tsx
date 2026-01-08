@@ -96,6 +96,12 @@ const tutorialSteps: TutorialStep[] = [
         scrollTargetId: 'tutorial-special-demo-area' 
     },
     {
+        targetId: 'tutorial-change-turma-btn',
+        title: 'Trocar de Turma',
+        content: 'Precisa visualizar a outra turma? Use este botão para voltar à tela de seleção a qualquer momento.',
+        disableHorizontalScroll: true
+    },
+    {
         targetId: 'tutorial-stats',
         title: 'Estatísticas em Tempo Real',
         content: 'Acompanhe quantos colaboradores estão bem, mal ou ausentes instantaneamente.',
@@ -1696,7 +1702,7 @@ const App: React.FC = () => {
         }
         
         if (step.targetId === 'tutorial-return-turn-btn' || 
-            ['tutorial-stats', 'tutorial-dark-mode', 'tutorial-admin-btn'].includes(step.targetId)) {
+            ['tutorial-stats', 'tutorial-dark-mode', 'tutorial-admin-btn', 'tutorial-change-turma-btn'].includes(step.targetId)) {
             targetIdForZoom = 'tutorial-special-demo-area';
         }
 

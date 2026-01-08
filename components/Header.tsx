@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import DarkModeToggle from './DarkModeToggle';
 import { AdminIcon, HelpIcon, ShieldLogo, ExchangeIcon } from './icons';
@@ -43,6 +44,7 @@ const Header: React.FC<HeaderProps> = ({ stats, loading, onAdminClick, onHelpCli
             <div id="tutorial-header-actions" className="flex flex-col items-end gap-5">
                 <div className="flex items-center gap-5">
                    <button 
+                        id="tutorial-change-turma-btn"
                         onClick={onReturnToSelection}
                         className="h-[90px] flex items-center gap-3 px-8 text-base font-bold text-white bg-gradient-to-r from-teal-500 to-cyan-600 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-teal-300"
                         aria-label="Trocar Turma"
