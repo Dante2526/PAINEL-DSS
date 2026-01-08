@@ -12,6 +12,7 @@
 
 
 
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Header from './components/Header';
 import EmployeeCard from './components/EmployeeCard';
@@ -1090,7 +1091,7 @@ const App: React.FC = () => {
             }
         };
 
-    }, [initializeScale, setScale]);
+    }, [initializeScale, setScale, selectedTurma]);
 
     const handleEnterDemoMode = () => {
         if (!selectedTurma) {
