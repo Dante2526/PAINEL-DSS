@@ -55,6 +55,7 @@ const Header: React.FC<HeaderProps> = ({ stats, loading, onAdminClick, onHelpCli
                    </button>
                    
                    <button 
+                        id="tutorial-help-btn"
                         onClick={onHelpClick}
                         className="h-[90px] flex items-center gap-3 px-8 text-base font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-cyan-300"
                         aria-label="Iniciar Tutorial"

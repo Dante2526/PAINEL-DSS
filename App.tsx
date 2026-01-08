@@ -114,6 +114,12 @@ const tutorialSteps: TutorialStep[] = [
         disableHorizontalScroll: true
     },
     {
+        targetId: 'tutorial-help-btn',
+        title: 'Ajuda e Tutorial',
+        content: 'Perdido? Clique neste botão a qualquer momento para rever este tutorial interativo e relembrar as funcionalidades.',
+        disableHorizontalScroll: true
+    },
+    {
         targetId: 'tutorial-admin-btn',
         title: 'Área Administrativa',
         content: 'Acesso restrito para limpar os dados diários, gerar relatórios em PDF/Texto e cadastrar novos usuários.',
@@ -125,7 +131,7 @@ const adminTutorialSteps: TutorialStep[] = [
     {
         targetId: 'admin-clear-btn',
         title: 'Limpar Status Diário',
-        content: 'O sistema realiza a limpeza automática diariamente. Use esta opção apenas caso seja realmente necessário forçar o reset de todos os status manualmente.'
+        content: 'O sistema realiza a limpeza automática diariamente. Use esta opção apenas caso seja realmente necessário forçar o reset de todos os status manually.'
     },
     {
         targetId: 'admin-report-btn',
@@ -1702,7 +1708,7 @@ const App: React.FC = () => {
         }
         
         if (step.targetId === 'tutorial-return-turn-btn' || 
-            ['tutorial-stats', 'tutorial-dark-mode', 'tutorial-admin-btn', 'tutorial-change-turma-btn'].includes(step.targetId)) {
+            ['tutorial-stats', 'tutorial-dark-mode', 'tutorial-admin-btn', 'tutorial-change-turma-btn', 'tutorial-help-btn'].includes(step.targetId)) {
             targetIdForZoom = 'tutorial-special-demo-area';
         }
 
