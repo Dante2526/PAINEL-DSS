@@ -621,3 +621,10 @@ input, textarea, button, select, a {
     transform: translateY(-3px);
     box-shadow: 0 12px 36px rgba(255, 82, 82, 0.4);
 }
+
+/* Custom rule to resize BB-8 on selection screen for mobile */
+@media (max-width: 767px) {
+    .selection-screen-toggle .bb8-toggle {
+        --toggle-size: 12px; /* Default is 16px, this makes it 25% smaller */
+    }
+}
