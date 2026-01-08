@@ -625,6 +625,6 @@ input, textarea, button, select, a {
 /* Custom rule to resize BB-8 on selection screen for mobile */
 @media (max-width: 767px) {
     .selection-screen-toggle .bb8-toggle {
-        --toggle-size: 12px; /* Default is 16px, this makes it 25% smaller */
+        --toggle-size: 10px; /* Default is 16px, this makes it smaller for mobile */
     }
 }
