@@ -2,7 +2,7 @@
 
 import React, { useState, memo } from 'react';
 import { Employee, StatusType } from '../types';
-import { ShiftIcon, AbsentIcon, TrashIcon, EditIcon } from './icons';
+import { ShiftIcon, AbsentIcon, TrashIcon, EditIcon, CheckIcon, XIcon } from './icons';
 import { formatTimestamp } from '../services/employeeService';
 
 interface EmployeeCardProps {
@@ -156,18 +156,22 @@ const EmployeeCard: React.FC<EmployeeCardProps> = memo(({ employee, onStatusChan
                     <div className="text-xl font-bold truncate" title={employee.name}>{employee.name}</div>
                     
                     {isEditingMatricula ? (
-                        <div className="flex items-center gap-1 text-sm">
+                        <div className="flex items-center gap-2 text-sm">
                             <input
                                 type="text"
                                 inputMode="numeric"
                                 value={editMatriculaValue}
                                 onChange={(e) => setEditMatriculaValue(e.target.value.replace(/[^0-9]/g, ''))}
-                                className="bg-white/20 rounded px-1 py-0 w-24 text-white placeholder-white/70 outline-none"
+                                className="bg-white/20 rounded px-2 py-1 w-24 text-white placeholder-white/70 outline-none focus:ring-2 focus:ring-white/50"
                                 autoFocus
                                 onKeyDown={(e) => { if (e.key === 'Enter') handleMatriculaSave(); if (e.key === 'Escape') handleMatriculaCancel(e as any); }}
                             />
-                            <button onClick={handleMatriculaSave} className="text-white hover:text-green-300">✓</button>
-                            <button onClick={handleMatriculaCancel} className="text-white hover:text-red-300">×</button>
+                            <button onClick={handleMatriculaSave} className="p-1.5 rounded-full bg-green-500/50 hover:bg-green-500/80 transition-colors" aria-label="Salvar matrícula">
+                                <CheckIcon className="w-4 h-4 text-white" />
+                            </button>
+                            <button onClick={handleMatriculaCancel} className="p-1.5 rounded-full bg-red-500/50 hover:bg-red-500/80 transition-colors" aria-label="Cancelar edição">
+                                <XIcon className="w-4 h-4 text-white" />
+                            </button>
                         </div>
                     ) : (
                         <div 
@@ -266,15 +270,11 @@ const EmployeeCard: React.FC<EmployeeCardProps> = memo(({ employee, onStatusChan
                                 onChange={(e) => setEditTimeValue(e.target.value)}
                                 className="border border-gray-300 rounded px-2 py-1 text-black dark:text-white bg-white dark:bg-gray-700 text-sm w-[200px]"
                              />
-                             <button onClick={handleTimeSave} className="bg-green-500 text-white rounded-full p-1 hover:bg-green-600 transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
+                             <button onClick={handleTimeSave} className="bg-green-500 text-white rounded-full p-2 hover:bg-green-600 transition shadow-md" aria-label="Salvar horário">
+                                <CheckIcon className="h-5 w-5" />
                              </button>
-                             <button onClick={handleTimeCancel} className="bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                             <button onClick={handleTimeCancel} className="bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition shadow-md" aria-label="Cancelar edição de horário">
+                                <XIcon className="h-5 w-5" />
                              </button>
                         </div>
                     ) : (
