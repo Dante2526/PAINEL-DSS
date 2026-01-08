@@ -18,6 +18,7 @@ interface SpecialTeamPanelProps {
     onMatriculaChange: (value: string) => void;
     onRegister: () => void;
     onTimeChange?: (id: string, newDate: Date) => void;
+    onMatriculaUpdate?: (id: string, newMatricula: string) => void; // Added prop
     employees: Employee[]; // Add access to full list for lookup
     administrators: Administrator[]; // Access to admin list for lookup
 }
@@ -35,6 +36,7 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = ({
     onMatriculaChange,
     onRegister,
     onTimeChange,
+    onMatriculaUpdate, // Destructure prop
     employees,
     administrators
 }) => {
@@ -119,6 +121,7 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = ({
                         isAdmin={isAdmin}
                         onDelete={onDeleteUser}
                         onTimeChange={onTimeChange}
+                        onMatriculaChange={onMatriculaUpdate} // Pass the function
                         specialTurnBtnId="tutorial-return-turn-btn"
                     />
                 )}
@@ -136,6 +139,7 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = ({
                             isAdmin={isAdmin}
                             onDelete={onDeleteUser}
                             onTimeChange={onTimeChange}
+                            onMatriculaChange={onMatriculaUpdate} // Pass the function
                         />
                     ))}
                 </div>

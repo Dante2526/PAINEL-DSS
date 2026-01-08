@@ -2,7 +2,7 @@
 
 import React, { useState, memo } from 'react';
 import { Employee, StatusType } from '../types';
-import { ShiftIcon, AbsentIcon, TrashIcon } from './icons';
+import { ShiftIcon, AbsentIcon, TrashIcon, EditIcon } from './icons';
 import { formatTimestamp } from '../services/employeeService';
 
 interface EmployeeCardProps {
@@ -13,6 +13,7 @@ interface EmployeeCardProps {
     isAdmin: boolean;
     onDelete: (id: string) => void;
     onTimeChange?: (id: string, newDate: Date) => void;
+    onMatriculaChange?: (id: string, newMatricula: string) => void; // New prop
     domId?: string; // Prop for tutorial targeting wrapper
     specialTurnBtnId?: string; // Prop specifically for the shift button tutorial
 }
@@ -43,9 +44,12 @@ const CheckboxItem: React.FC<CheckboxItemProps> = ({ label, icon, type, checked,
 );
 
 
-const EmployeeCard: React.FC<EmployeeCardProps> = memo(({ employee, onStatusChange, onToggleSpecialTeam, isTogglingSpecialTeam, isAdmin, onDelete, onTimeChange, domId, specialTurnBtnId }) => {
+const EmployeeCard: React.FC<EmployeeCardProps> = memo(({ employee, onStatusChange, onToggleSpecialTeam, isTogglingSpecialTeam, isAdmin, onDelete, onTimeChange, onMatriculaChange, domId, specialTurnBtnId }) => {
     const [isEditingTime, setIsEditingTime] = useState(false);
     const [editTimeValue, setEditTimeValue] = useState('');
+
+    const [isEditingMatricula, setIsEditingMatricula] = useState(false);
+    const [editMatriculaValue, setEditMatriculaValue] = useState(employee.matricula);
 
     const createRipple = (e: React.MouseEvent<HTMLButtonElement>) => {
         const button = e.currentTarget;
@@ -128,6 +132,20 @@ const EmployeeCard: React.FC<EmployeeCardProps> = memo(({ employee, onStatusChan
         e.stopPropagation();
         setIsEditingTime(false);
     };
+    
+    // --- Matricula Editing Handlers ---
+    const handleMatriculaSave = () => {
+        if (onMatriculaChange && editMatriculaValue.trim() !== '' && editMatriculaValue !== employee.matricula) {
+            onMatriculaChange(employee.id, editMatriculaValue);
+        }
+        setIsEditingMatricula(false);
+    };
+
+    const handleMatriculaCancel = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setEditMatriculaValue(employee.matricula);
+        setIsEditingMatricula(false);
+    };
 
     return (
         <div id={domId} className="w-full bg-light-card dark:bg-dark-card rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden card-optimized">
@@ -136,7 +154,33 @@ const EmployeeCard: React.FC<EmployeeCardProps> = memo(({ employee, onStatusChan
                 <div className="w-12 h-12 bg-white/25 rounded-full flex items-center justify-center text-xl mr-3 flex-shrink-0">👤</div>
                 <div className="flex-grow min-w-0 mr-2">
                     <div className="text-xl font-bold truncate" title={employee.name}>{employee.name}</div>
-                    <div className="text-sm opacity-90 truncate">Matrícula: {employee.matricula}</div>
+                    
+                    {isEditingMatricula ? (
+                        <div className="flex items-center gap-1 text-sm">
+                            <input
+                                type="text"
+                                inputMode="numeric"
+                                value={editMatriculaValue}
+                                onChange={(e) => setEditMatriculaValue(e.target.value.replace(/[^0-9]/g, ''))}
+                                className="bg-white/20 rounded px-1 py-0 w-24 text-white placeholder-white/70 outline-none"
+                                autoFocus
+                                onKeyDown={(e) => { if (e.key === 'Enter') handleMatriculaSave(); if (e.key === 'Escape') handleMatriculaCancel(e as any); }}
+                            />
+                            <button onClick={handleMatriculaSave} className="text-white hover:text-green-300">✓</button>
+                            <button onClick={handleMatriculaCancel} className="text-white hover:text-red-300">×</button>
+                        </div>
+                    ) : (
+                        <div 
+                            className={`relative group text-sm opacity-90 truncate flex items-center gap-1.5 ${isAdmin ? 'cursor-pointer' : ''}`}
+                            onClick={() => isAdmin && setIsEditingMatricula(true)}
+                        >
+                            <span>Matrícula: {employee.matricula}</span>
+                            {isAdmin && (
+                                <EditIcon className="w-3 h-3 text-white/70 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            )}
+                        </div>
+                    )}
+
                 </div>
                 {/* ID adicionado aqui condicionalmente para o tutorial focar nos botões deste cartão específico */}
                 <div id={domId ? "tutorial-card-actions" : undefined} className="flex gap-2 flex-shrink-0">

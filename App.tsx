@@ -13,6 +13,8 @@
 
 
 
+
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Header from './components/Header';
 import EmployeeCard from './components/EmployeeCard';
@@ -1284,6 +1286,46 @@ const App: React.FC = () => {
         }
     };
 
+    const handleMatriculaUpdate = async (id: string, newMatricula: string) => {
+        if (!isAdmin) {
+            showNotification('Apenas administradores podem editar a matrícula.', 'error');
+            return;
+        }
+
+        if (isDemoMode) {
+            setEmployees(prev => prev.map(e => e.id === id ? { ...e, matricula: newMatricula } : e));
+            showNotification('Matrícula atualizada com sucesso (DEMO)!', 'success');
+            return;
+        }
+
+        if (!db || !selectedTurma) {
+            showNotification("A conexão com o banco de dados não está disponível.", "error");
+            return;
+        }
+        
+        try {
+            const collectionName = selectedTurma === 'A' ? 'turma a' : 'turma b';
+            
+            // Check for duplicates
+            const q = query(collection(db, collectionName), where("matricula", "==", newMatricula));
+            const querySnapshot = await getDocs(q);
+            if (!querySnapshot.empty && querySnapshot.docs[0].id !== id) {
+                 showNotification('Esta matrícula já está em uso por outro funcionário.', 'error');
+                 return;
+            }
+
+            const docRef = doc(db, collectionName, id);
+            await updateDoc(docRef, {
+                matricula: newMatricula
+            });
+            showNotification('Matrícula atualizada com sucesso!', 'success');
+        } catch (error) {
+            console.error("Error updating matricula:", error);
+            const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
+            showNotification(`Falha ao atualizar matrícula: ${message}`, 'error');
+        }
+    };
+
     const handleStatusChange = (id: string, type: StatusType) => {
         const employee = employees.find(e => e.id === id);
         if (!employee) return;
@@ -1781,15 +1823,16 @@ const App: React.FC = () => {
                                                 isAdmin={isAdmin} 
                                                 onDelete={handleDeleteUser}
                                                 onTimeChange={handleTimeUpdate}
+                                                onMatriculaChange={handleMatriculaUpdate}
                                                 domId={index === 0 ? "tutorial-first-card" : undefined}
                                             />
                                         ))}
                                     </div>
                                     <div className="flex flex-col gap-6 w-[870px]">
-                                        {col2.map(emp => <EmployeeCard key={emp.id} employee={emp} onStatusChange={handleStatusChange} onToggleSpecialTeam={handleToggleSpecialTeam} isTogglingSpecialTeam={togglingSpecialTeamId === emp.id} isAdmin={isAdmin} onDelete={handleDeleteUser} onTimeChange={handleTimeUpdate} />)}
+                                        {col2.map(emp => <EmployeeCard key={emp.id} employee={emp} onStatusChange={handleStatusChange} onToggleSpecialTeam={handleToggleSpecialTeam} isTogglingSpecialTeam={togglingSpecialTeamId === emp.id} isAdmin={isAdmin} onDelete={handleDeleteUser} onTimeChange={handleTimeUpdate} onMatriculaChange={handleMatriculaUpdate} />)}
                                     </div>
                                     <div className="flex flex-col gap-6 w-[870px]">
-                                        {col3.map(emp => <EmployeeCard key={emp.id} employee={emp} onStatusChange={handleStatusChange} onToggleSpecialTeam={handleToggleSpecialTeam} isTogglingSpecialTeam={togglingSpecialTeamId === emp.id} isAdmin={isAdmin} onDelete={handleDeleteUser} onTimeChange={handleTimeUpdate} />)}
+                                        {col3.map(emp => <EmployeeCard key={emp.id} employee={emp} onStatusChange={handleStatusChange} onToggleSpecialTeam={handleToggleSpecialTeam} isTogglingSpecialTeam={togglingSpecialTeamId === emp.id} isAdmin={isAdmin} onDelete={handleDeleteUser} onTimeChange={handleTimeUpdate} onMatriculaChange={handleMatriculaUpdate} />)}
                                     </div>
                                 </div>
                         </div>
@@ -1801,6 +1844,7 @@ const App: React.FC = () => {
                                 isAdmin={isAdmin}
                                 onDeleteUser={handleDeleteUser}
                                 onTimeChange={handleTimeUpdate}
+                                onMatriculaUpdate={handleMatriculaUpdate}
                                 subject={specialSubject}
                                 matricula={specialMatricula}
                                 onSubjectChange={setSpecialSubject}
