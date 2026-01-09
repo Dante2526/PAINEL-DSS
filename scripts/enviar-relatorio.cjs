@@ -95,7 +95,7 @@ async function gerarRelatorio() {
   }
 
   // --- 3. MONTAR O CORPO DO E-MAIL ---
-  let htmlBody = `<div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6;">`;
+  let htmlBody = `<div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #000;">`;
   
   const totalPresentes = cat_7H_EstouBem.length + cat_7H_EstouMal.length + cat_6H_EstouBem.length + cat_6H_EstouMal.length;
   const totalAusentes = cat_7H_Ausentes.length + cat_6H_Ausentes.length;
@@ -164,7 +164,7 @@ async function gerarRelatorio() {
   }
   
   // --- REGISTROS DE ASSUNTO DSS (SEPARADOS) ---
-  // ALTERAÇÃO DE FORMATAÇÃO AQUI: NOME EM CIMA, ASSUNTO EM BAIXO
+  // AQUI: Mantive Itálico, mas mudei a cor para Preto Puro (#000)
   
   htmlBody += `<br><h2>REGISTROS DSS (TURNO 7H)</h2>`;
   htmlBody += `<hr>`;
@@ -174,10 +174,9 @@ async function gerarRelatorio() {
     htmlBody += `<ul>`;
     registros7H.forEach(reg => {
       const nomeFunc = reg.name ? limparTexto(reg.name) : "Nome não informado";
-      // Formatação de duas linhas: Nome (negrito) + Matricula, depois quebra de linha com o assunto em itálico
       htmlBody += `<li style="margin-bottom: 10px;">
         <strong>${nomeFunc}</strong> (Matrícula: ${reg.matricula})<br>
-        <span style="font-style: italic; color: #555;">Assunto: ${limparTexto(reg.assunto)}</span>
+        <span style="font-style: italic; color: #000;">Assunto: ${limparTexto(reg.assunto)}</span>
       </li>`;
     });
     htmlBody += `</ul>`;
@@ -191,10 +190,9 @@ async function gerarRelatorio() {
     htmlBody += `<ul>`;
     registros6H.forEach(reg => {
       const nomeFunc = reg.name ? limparTexto(reg.name) : "Nome não informado";
-      // Formatação de duas linhas para 6H também
       htmlBody += `<li style="margin-bottom: 10px;">
         <strong>${nomeFunc}</strong> (Matrícula: ${reg.matricula})<br>
-        <span style="font-style: italic; color: #555;">Assunto: ${limparTexto(reg.assunto)}</span>
+        <span style="font-style: italic; color: #000;">Assunto: ${limparTexto(reg.assunto)}</span>
       </li>`;
     });
     htmlBody += `</ul>`;
