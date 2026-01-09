@@ -164,6 +164,7 @@ async function gerarRelatorio() {
   }
   
   // --- REGISTROS DE ASSUNTO DSS (SEPARADOS) ---
+  // ALTERAÇÃO DE FORMATAÇÃO AQUI: NOME EM CIMA, ASSUNTO EM BAIXO
   
   htmlBody += `<br><h2>REGISTROS DSS (TURNO 7H)</h2>`;
   htmlBody += `<hr>`;
@@ -172,9 +173,12 @@ async function gerarRelatorio() {
   } else {
     htmlBody += `<ul>`;
     registros7H.forEach(reg => {
-      // CORREÇÃO: Lê diretamente o campo 'name' do banco
       const nomeFunc = reg.name ? limparTexto(reg.name) : "Nome não informado";
-      htmlBody += `<li><strong>Assunto:</strong> ${limparTexto(reg.assunto)} - ${nomeFunc} (Matrícula: ${reg.matricula})</li>`;
+      // Formatação de duas linhas: Nome (negrito) + Matricula, depois quebra de linha com o assunto em itálico
+      htmlBody += `<li style="margin-bottom: 10px;">
+        <strong>${nomeFunc}</strong> (Matrícula: ${reg.matricula})<br>
+        <span style="font-style: italic; color: #555;">Assunto: ${limparTexto(reg.assunto)}</span>
+      </li>`;
     });
     htmlBody += `</ul>`;
   }
@@ -186,9 +190,12 @@ async function gerarRelatorio() {
   } else {
     htmlBody += `<ul>`;
     registros6H.forEach(reg => {
-      // CORREÇÃO: Lê diretamente o campo 'name' do banco
       const nomeFunc = reg.name ? limparTexto(reg.name) : "Nome não informado";
-      htmlBody += `<li><strong>Assunto:</strong> ${limparTexto(reg.assunto)} - ${nomeFunc} (Matrícula: ${reg.matricula})</li>`;
+      // Formatação de duas linhas para 6H também
+      htmlBody += `<li style="margin-bottom: 10px;">
+        <strong>${nomeFunc}</strong> (Matrícula: ${reg.matricula})<br>
+        <span style="font-style: italic; color: #555;">Assunto: ${limparTexto(reg.assunto)}</span>
+      </li>`;
     });
     htmlBody += `</ul>`;
   }
