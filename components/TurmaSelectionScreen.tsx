@@ -12,10 +12,7 @@ interface TurmaSelectionScreenProps {
 
 const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, isDarkMode, onToggleDarkMode }) => {
     return (
-        <div className="relative bg-light-bg-secondary dark:bg-dark-bg min-h-screen text-light-text dark:text-dark-text transition-colors flex flex-col items-center p-4">
-            <div className="absolute top-4 left-4 md:top-8 md:left-8">
-                <Footer />
-            </div>
+        <div className="bg-light-bg-secondary dark:bg-dark-bg min-h-screen text-light-text dark:text-dark-text transition-colors flex flex-col items-center p-4">
             <div className="absolute top-4 right-4 md:top-8 md:right-8 selection-screen-toggle">
                 <DarkModeToggle isDarkMode={isDarkMode} onToggle={onToggleDarkMode} />
             </div>
@@ -44,6 +41,8 @@ const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, i
                 </main>
             </div>
             
+            {/* The footer is now part of the flex flow, no longer absolutely positioned */}
+            <Footer />
         </div>
     );
 };
