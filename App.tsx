@@ -1,20 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Header from './components/Header';
 import EmployeeCard from './components/EmployeeCard';
@@ -1854,9 +1837,12 @@ const App: React.FC = () => {
                                 administrators={administrators}
                             />
                         </div>
-                        <Footer />
                     </div>
                 </div>
+            </div>
+
+            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50">
+                <Footer />
             </div>
             
             <AdminLoginModal 

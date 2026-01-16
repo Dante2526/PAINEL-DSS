@@ -17,7 +17,7 @@ const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, i
                 <DarkModeToggle isDarkMode={isDarkMode} onToggle={onToggleDarkMode} />
             </div>
             
-            {/* This container grows to push the footer down, and centers the main content within the available space. */}
+            {/* Main content area, centered */}
             <div className="flex-grow flex items-center justify-center w-full">
                 <main className="flex flex-col items-center text-center">
                     <ShieldLogo className="h-28 w-28 md:h-40 md:w-40 mb-6" />
@@ -40,9 +40,11 @@ const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, i
                     </div>
                 </main>
             </div>
-            
-            {/* The footer is now part of the flex flow, no longer absolutely positioned */}
-            <Footer />
+
+            {/* Fixed footer, outside of the flex flow to ensure visibility */}
+            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-10">
+                <Footer />
+            </div>
         </div>
     );
 };
