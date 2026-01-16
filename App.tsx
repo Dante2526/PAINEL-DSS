@@ -15,6 +15,8 @@
 
 
 
+
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Header from './components/Header';
 import EmployeeCard from './components/EmployeeCard';
@@ -605,9 +607,9 @@ const ReportModal: React.FC<{
 };
 
 const App: React.FC = () => {
-    const [selectedTurma, setSelectedTurma] = useState<'A' | 'B' | null>(() => {
+    const [selectedTurma, setSelectedTurma] = useState<'A' | 'B' | 'C' | null>(() => {
         const savedTurma = localStorage.getItem('selectedTurma');
-        if (savedTurma === 'A' || savedTurma === 'B') {
+        if (savedTurma === 'A' || savedTurma === 'B' || savedTurma === 'C') {
             return savedTurma;
         }
         return null;
@@ -876,8 +878,8 @@ const App: React.FC = () => {
                 await signInAnonymously(auth);
                 console.log("Signed in anonymously");
 
-                // Determina o nome da coleção do Firestore com base na turma selecionada ('turma a' ou 'turma b').
-                const collectionName = selectedTurma === 'A' ? 'turma a' : 'turma b';
+                // Determina o nome da coleção do Firestore com base na turma selecionada ('turma a', 'turma b', etc.).
+                const collectionName = `turma ${selectedTurma.toLowerCase()}`;
                 const employeesQuery = query(collection(db, collectionName), orderBy("name", "asc"));
                 unsubscribeEmployees = onSnapshot(employeesQuery, (querySnapshot) => {
                     if (isDemoModeRef.current) return;
@@ -925,7 +927,7 @@ const App: React.FC = () => {
                     console.error("Error listening to admin updates:", error);
                 });
                 
-                const registrationCollectionName = selectedTurma === 'A' ? 'registrosDSS A' : 'registrosDSS B';
+                const registrationCollectionName = `registrosDSS ${selectedTurma}`;
                 // Acessa os registros de DSS, agora específicos da turma.
                 const registrationsQuery = query(collection(db, registrationCollectionName));
                 unsubscribeRegistrations = onSnapshot(registrationsQuery, (querySnapshot) => {
@@ -1244,7 +1246,7 @@ const App: React.FC = () => {
             } else {
                 updatedData.time = null;
             }
-            const collectionName = selectedTurma === 'A' ? 'turma a' : 'turma b';
+            const collectionName = `turma ${selectedTurma.toLowerCase()}`;
             const docRef = doc(db, collectionName, id);
             await updateDoc(docRef, updatedData);
         } catch (error) {
@@ -1273,7 +1275,7 @@ const App: React.FC = () => {
         }
 
         try {
-            const collectionName = selectedTurma === 'A' ? 'turma a' : 'turma b';
+            const collectionName = `turma ${selectedTurma.toLowerCase()}`;
             const docRef = doc(db, collectionName, id);
             await updateDoc(docRef, {
                 time: Timestamp.fromDate(newDate)
@@ -1304,7 +1306,7 @@ const App: React.FC = () => {
         }
         
         try {
-            const collectionName = selectedTurma === 'A' ? 'turma a' : 'turma b';
+            const collectionName = `turma ${selectedTurma.toLowerCase()}`;
             
             // Check for duplicates
             const q = query(collection(db, collectionName), where("matricula", "==", newMatricula));
@@ -1388,7 +1390,7 @@ const App: React.FC = () => {
         }
 
         try {
-            const collectionName = selectedTurma === 'A' ? 'turma a' : 'turma b';
+            const collectionName = `turma ${selectedTurma.toLowerCase()}`;
             const docRef = doc(db, collectionName, id);
             await updateDoc(docRef, { 
                 turno: newTurno
@@ -1431,7 +1433,7 @@ const App: React.FC = () => {
             return;
         }
         try {
-            const collectionName = selectedTurma === 'A' ? 'turma a' : 'turma b';
+            const collectionName = `turma ${selectedTurma.toLowerCase()}`;
             const docRef = doc(db, collectionName, employeeId);
             await deleteDoc(docRef);
             showNotification(`Usuário ${employeeToDelete.name} deletado com sucesso!`, 'success');
@@ -1496,7 +1498,7 @@ const App: React.FC = () => {
             return;
         }
 
-        const registrationCollectionName = selectedTurma === 'A' ? 'registrosDSS A' : 'registrosDSS B';
+        const registrationCollectionName = `registrosDSS ${selectedTurma}`;
         const docId = `registro_${turno}`; // Creates a predictable ID like "registro_7H" or "registro_6H"
         const docRef = doc(db, registrationCollectionName, docId);
 
@@ -1613,7 +1615,7 @@ const App: React.FC = () => {
                     throw new Error('Matrícula já existe.');
                 }
             }
-            const collectionName = selectedTurma === 'A' ? 'turma a' : 'turma b';
+            const collectionName = `turma ${selectedTurma.toLowerCase()}`;
             await addDoc(collection(db, collectionName), {
                 name: finalName,
                 matricula,
@@ -1665,7 +1667,7 @@ const App: React.FC = () => {
 
         try {
             const batch = writeBatch(db);
-            const collectionName = selectedTurma === 'A' ? 'turma a' : 'turma b';
+            const collectionName = `turma ${selectedTurma.toLowerCase()}`;
             const employeesSnapshot = await getDocs(collection(db, collectionName));
             employeesSnapshot.forEach((doc) => {
                 batch.update(doc.ref, {
@@ -1677,7 +1679,7 @@ const App: React.FC = () => {
                 });
             });
 
-            const registrationCollectionName = selectedTurma === 'A' ? 'registrosDSS A' : 'registrosDSS B';
+            const registrationCollectionName = `registrosDSS ${selectedTurma}`;
             const registrationsSnapshot = await getDocs(collection(db, registrationCollectionName));
             registrationsSnapshot.forEach((doc) => {
                 batch.delete(doc.ref);
@@ -1699,7 +1701,7 @@ const App: React.FC = () => {
         showNotification('Painel reorganizado alfabeticamente!', 'success');
     };
 
-    const handleSelectTurma = (turma: 'A' | 'B') => {
+    const handleSelectTurma = (turma: 'A' | 'B' | 'C') => {
         localStorage.setItem('selectedTurma', turma);
         setLoading(true);
         setEmployees([]); // Limpa dados antigos para evitar exibir dados da turma errada

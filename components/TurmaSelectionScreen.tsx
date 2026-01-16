@@ -5,7 +5,7 @@ import DarkModeToggle from './DarkModeToggle';
 import Footer from './Footer';
 
 interface TurmaSelectionScreenProps {
-    onSelect: (turma: 'A' | 'B') => void;
+    onSelect: (turma: 'A' | 'B' | 'C') => void;
     isDarkMode: boolean;
     onToggleDarkMode: () => void;
 }
@@ -36,6 +36,12 @@ const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, i
                             className="px-12 py-6 md:px-16 md:py-8 font-extrabold text-2xl md:text-3xl text-white bg-gradient-to-br from-primary to-blue-700 rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800"
                         >
                             TURMA B
+                        </button>
+                        <button 
+                            onClick={() => onSelect('C')} 
+                            className="px-12 py-6 md:px-16 md:py-8 font-extrabold text-2xl md:text-3xl text-white bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-300 dark:focus:ring-purple-800"
+                        >
+                            TURMA C
                         </button>
                     </div>
                 </main>

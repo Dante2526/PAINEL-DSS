@@ -2,30 +2,23 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Regra de segurança para a lista de administradores (MAIS ESPECÍFICA PRIMEIRO)
+    // REGRA GERAL PARA COLEÇÕES DAS TURMAS E REGISTROS
+    // Permite acesso se o nome da coleção for um dos permitidos.
+    match /{collectionId}/{docId=**} {
+      allow read, write: if request.auth != null &&
+        (collectionId == 'turma a' || 
+         collectionId == 'turma b' || 
+         collectionId == 'turma c' ||
+         collectionId == 'registrosDSS A' || 
+         collectionId == 'registrosDSS B' ||
+         collectionId == 'registrosDSS C');
+    }
+
+    // REGRA DE SEGURANÇA PARA ADMINISTRADORES
+    // Permite apenas ler a lista de admins, mas proíbe criar ou editar pelo app.
     match /administrators/{adminId} {
       allow read: if request.auth != null;
-      allow write: if false; // Proíbe que o app crie ou edite admins
-    }
-
-    // Permite acesso à coleção "turma a"
-    match /`turma a`/{doc=**} {
-      allow read, write: if request.auth != null;
-    }
-
-    // Permite acesso à coleção "turma b"
-    match /`turma b`/{doc=**} {
-      allow read, write: if request.auth != null;
-    }
-
-    // Permite acesso à coleção "registrosDSS A"
-    match /`registrosDSS A`/{doc=**} {
-      allow read, write: if request.auth != null;
-    }
-
-    // Permite acesso à coleção "registrosDSS B"
-    match /`registrosDSS B`/{doc=**} {
-      allow read, write: if request.auth != null;
+      allow write: if false;
     }
   }
 }

@@ -16,7 +16,7 @@ interface HeaderProps {
     onHelpClick: () => void;
     isDarkMode: boolean;
     onToggleDarkMode: () => void;
-    turma: 'A' | 'B';
+    turma: 'A' | 'B' | 'C';
     onReturnToSelection: () => void;
 }
 
