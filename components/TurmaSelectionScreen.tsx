@@ -23,22 +23,24 @@ const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, i
                     <h1 className="text-3xl md:text-5xl font-extrabold text-light-text dark:text-dark-text tracking-tight mb-2">Painel de Acompanhamento DSS</h1>
                     <p className="text-base md:text-xl font-medium text-light-text-secondary dark:text-dark-text-secondary mb-10">Selecione a turma para continuar</p>
                     
-                    <div className="flex flex-col md:flex-row gap-8">
-                        <button 
-                            onClick={() => onSelect('A')} 
-                            className="px-12 py-6 md:px-16 md:py-8 font-extrabold text-2xl md:text-3xl text-white bg-gradient-to-br from-green-500 to-teal-600 rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-green-300 dark:focus:ring-green-800"
-                        >
-                            TURMA A
-                        </button>
-                        <button 
-                            onClick={() => onSelect('B')} 
-                            className="px-12 py-6 md:px-16 md:py-8 font-extrabold text-2xl md:text-3xl text-white bg-gradient-to-br from-primary to-blue-700 rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800"
-                        >
-                            TURMA B
-                        </button>
+                    <div className="flex flex-col items-center gap-2 md:gap-4">
+                        <div className="flex flex-row gap-2 md:gap-4">
+                            <button 
+                                onClick={() => onSelect('A')} 
+                                className="px-8 md:px-12 py-4 font-extrabold text-lg md:text-xl text-white bg-gradient-to-br from-green-500 to-teal-600 rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-green-300 dark:focus:ring-green-800"
+                            >
+                                TURMA A
+                            </button>
+                            <button 
+                                onClick={() => onSelect('B')} 
+                                className="px-8 md:px-12 py-4 font-extrabold text-lg md:text-xl text-white bg-gradient-to-br from-primary to-blue-700 rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800"
+                            >
+                                TURMA B
+                            </button>
+                        </div>
                         <button 
                             onClick={() => onSelect('C')} 
-                            className="px-12 py-6 md:px-16 md:py-8 font-extrabold text-2xl md:text-3xl text-white bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-300 dark:focus:ring-purple-800"
+                            className="px-8 md:px-12 py-4 font-extrabold text-lg md:text-xl text-white bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-300 dark:focus:ring-purple-800"
                         >
                             TURMA C
                         </button>
