@@ -17,6 +17,8 @@
 
 
 
+
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Header from './components/Header';
 import EmployeeCard from './components/EmployeeCard';
@@ -330,18 +332,32 @@ const AdminOptionsModal: React.FC<{
 const AddUserModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
-    onAdd: (name: string, matricula: string) => void;
+    onAdd: (name: string, matricula: string, addAnother: boolean) => void;
     scale: number;
 }> = ({ isOpen, onClose, onAdd, scale }) => {
     const [name, setName] = useState('');
     const [matricula, setMatricula] = useState('');
+    const [addAnother, setAddAnother] = useState(false);
+    const nameInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        // Reset state when modal is closed to ensure it's fresh next time
+        if (!isOpen) {
+            setName('');
+            setMatricula('');
+            setAddAnother(false);
+        }
+    }, [isOpen]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (name && matricula) {
-            onAdd(name, matricula);
+            onAdd(name, matricula, addAnother);
             setName('');
             setMatricula('');
+            if (addAnother) {
+                nameInputRef.current?.focus();
+            }
         }
     };
     
@@ -355,6 +371,7 @@ const AddUserModal: React.FC<{
         <Modal isOpen={isOpen} onClose={onClose} title="Adicionar Colaborador" scale={scale}>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <input
+                    ref={nameInputRef}
                     type="text"
                     placeholder="Nome Completo"
                     value={name}
@@ -370,6 +387,18 @@ const AddUserModal: React.FC<{
                     className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
                     inputMode="numeric"
                 />
+                <div className="flex items-center justify-center gap-2 pt-2 text-sm text-light-text-secondary dark:text-dark-text-secondary">
+                  <input
+                    type="checkbox"
+                    id="add-another-user-checkbox"
+                    checked={addAnother}
+                    onChange={(e) => setAddAnother(e.target.checked)}
+                    className="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 cursor-pointer"
+                  />
+                  <label htmlFor="add-another-user-checkbox" className="cursor-pointer select-none">
+                    Continuar adicionando
+                  </label>
+                </div>
                 <button type="submit" className="w-full py-3 bg-success text-white font-bold rounded-lg hover:bg-green-600 transition shadow-lg">
                     ADICIONAR
                 </button>
@@ -1577,7 +1606,7 @@ const App: React.FC = () => {
         }
     };
     
-    const handleAddUser = async (name: string, matricula: string) => {
+    const handleAddUser = async (name: string, matricula: string, addAnother: boolean) => {
         if (!isAdmin || !selectedTurma) {
             showNotification('Apenas administradores podem adicionar usuários.', 'error');
             return;
@@ -1598,7 +1627,9 @@ const App: React.FC = () => {
                 turno: '7H'
             };
             setEmployees(prev => [...prev, newUser].sort((a,b) => a.name.localeCompare(b.name)));
-            setActiveModal(ModalType.None);
+            if (!addAnother) {
+                setActiveModal(ModalType.None);
+            }
             showNotification(`Usuário ${finalName} adicionado com sucesso (DEMO)!`, 'success');
             return;
         }
@@ -1626,7 +1657,9 @@ const App: React.FC = () => {
                 time: null,
                 turno: '7H'
             });
-            setActiveModal(ModalType.None);
+            if (!addAnother) {
+                setActiveModal(ModalType.None);
+            }
             showNotification(`Usuário ${finalName} adicionado com sucesso!`, 'success');
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro.';
