@@ -387,18 +387,22 @@ const AddUserModal: React.FC<{
                     className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
                     inputMode="numeric"
                 />
-                <div className="flex items-center justify-center gap-2 pt-2 text-sm text-light-text-secondary dark:text-dark-text-secondary">
-                  <input
-                    type="checkbox"
-                    id="add-another-user-checkbox"
-                    checked={addAnother}
-                    onChange={(e) => setAddAnother(e.target.checked)}
-                    className="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 cursor-pointer"
-                  />
-                  <label htmlFor="add-another-user-checkbox" className="cursor-pointer select-none">
-                    Continuar adicionando
-                  </label>
-                </div>
+                <label htmlFor="add-another-user-checkbox" className="flex items-center justify-center gap-4 py-2 cursor-pointer group">
+                    <span className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary group-hover:text-light-text dark:group-hover:text-dark-text transition-colors select-none">
+                        Continuar adicionando
+                    </span>
+                    <div className="relative">
+                        <input
+                            type="checkbox"
+                            id="add-another-user-checkbox"
+                            className="sr-only"
+                            checked={addAnother}
+                            onChange={(e) => setAddAnother(e.target.checked)}
+                        />
+                        <div className={`block w-14 h-8 rounded-full transition-colors duration-200 ${addAnother ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}></div>
+                        <div className={`absolute left-1 top-1 bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-200 ease-in-out ${addAnother ? 'translate-x-6' : 'translate-x-0'}`}></div>
+                    </div>
+                </label>
                 <button type="submit" className="w-full py-3 bg-success text-white font-bold rounded-lg hover:bg-green-600 transition shadow-lg">
                     ADICIONAR
                 </button>
