@@ -1,0 +1,144 @@
+name: Enviar Relatório por E-mail (Agendado 2x2 - A, B e C)
+
+on:
+  workflow_dispatch:
+    inputs:
+      turma_manual:
+        description: 'Gerar relatório de qual turma? (A, B ou C)'
+        required: true
+        default: 'A'
+  schedule:
+    - cron: '0 13 * * *' # 10h da manhã BRT (Execução para A e B)
+    - cron: '0 1 * * *'  # 22h da noite BRT (Execução para C -> 01:00 UTC do dia seguinte)
+
+jobs:
+  enviar-relatorio-job:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+        with:
+          path: .
+
+      - name: Verificar Dia de Trabalho (Ciclo 2x2 - A, B e C)
+        id: verificar-dia
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          INPUT_TURMA: ${{ github.event.inputs.turma_manual }}
+        run: |
+          # --- CASO 1: EXECUÇÃO MANUAL ---
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
+            echo "É um TESTE MANUAL para a TURMA: $INPUT_TURMA"
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "target_team=$INPUT_TURMA" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # --- CASO 2: EXECUÇÃO AGENDADA (Verifica Ciclos e Horários) ---
+          echo "É uma execução AGENDADA. Verificando horário e ciclos..."
+          
+          CURRENT_SECONDS=$(date +%s)
+          # Pega a hora atual em UTC (GitHub Actions roda em UTC)
+          # 10h BRT = 13h UTC
+          # 22h BRT = 01h UTC
+          CURRENT_HOUR_UTC=$(date +%H)
+          echo "Hora atual (UTC): $CURRENT_HOUR_UTC"
+
+          # ====================================================
+          # BLOCO MANHÃ (10h BRT / 13h UTC) -> TURMAS A e B
+          # ====================================================
+          if [ "$CURRENT_HOUR_UTC" -eq 13 ]; then
+            echo ">>> Horário de execução das Turmas A e B (10h BRT) <<<"
+
+            # >>> VERIFICAÇÃO TURMA A <<<
+            ANCHOR_A="2026-01-08"
+            ANCHOR_SECONDS_A=$(date -d "$ANCHOR_A" +%s)
+            DIFF_DAYS_A=$(((CURRENT_SECONDS - ANCHOR_SECONDS_A) / 86400))
+            CYCLE_DAY_A=$(( (DIFF_DAYS_A % 4 + 4) % 4 ))
+
+            if [[ $CYCLE_DAY_A -eq 0 || $CYCLE_DAY_A -eq 1 ]]; then
+              echo "Hoje é dia de trabalho da TURMA A."
+              echo "should_run=true" >> $GITHUB_OUTPUT
+              echo "target_team=A" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+
+            # >>> VERIFICAÇÃO TURMA B <<<
+            ANCHOR_B="2025-11-07"
+            ANCHOR_SECONDS_B=$(date -d "$ANCHOR_B" +%s)
+            DIFF_DAYS_B=$(((CURRENT_SECONDS - ANCHOR_SECONDS_B) / 86400))
+            CYCLE_DAY_B=$(( (DIFF_DAYS_B % 4 + 4) % 4 ))
+
+            if [[ $CYCLE_DAY_B -eq 0 || $CYCLE_DAY_B -eq 1 ]]; then
+              echo "Hoje é dia de trabalho da TURMA B."
+              echo "should_run=true" >> $GITHUB_OUTPUT
+              echo "target_team=B" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          fi
+
+          # ====================================================
+          # BLOCO NOITE (22h BRT / 01h UTC) -> TURMA C
+          # ====================================================
+          if [ "$CURRENT_HOUR_UTC" -eq 01 ]; then
+             echo ">>> Horário de execução da Turma C (22h BRT) <<<"
+
+             # >>> VERIFICAÇÃO TURMA C <<<
+             # Âncora: 16/01/2026
+             ANCHOR_C="2026-01-16"
+             ANCHOR_SECONDS_C=$(date -d "$ANCHOR_C" +%s)
+             
+             # Nota: Como 22h BRT já é "dia seguinte" em UTC (01h), o cálculo de date +%s
+             # já considera o dia correto para o ciclo se a âncora for baseada no inicio.
+             # Se hoje é 16/01 22h BRT -> UTC é 17/01 01h.
+             # Diferença dias (17 - 16) = 1. (Dia 2 do ciclo).
+             # Se ajustarmos a logica:
+             # Para funcionar no dia 16 e 17, o ciclo precisa retornar 0 ou 1.
+             
+             DIFF_DAYS_C=$(((CURRENT_SECONDS - ANCHOR_SECONDS_C) / 86400))
+             CYCLE_DAY_C=$(( (DIFF_DAYS_C % 4 + 4) % 4 ))
+
+             # Observação: Se rodar 17/01 UTC (16 BRT), diff=1. Se rodar 18/01 UTC (17 BRT), diff=2.
+             # Precisamos ajustar o cálculo ou a âncora pois o UTC virou o dia.
+             # Ajuste simples: Subtrair 1 dia da diferença se estivermos no horário da madrugada UTC, 
+             # ou simplesmente aceitar que a lógica roda baseada no dia UTC.
+             # Vamos usar a lógica padrão:
+             # Se for 16/01 (Trabalho) -> UTC já é 17/01. 
+             # Se usarmos ANCHOR="2026-01-16", o dia 17 é index 1 (Trabalho).
+             # Se for 17/01 (Trabalho) -> UTC já é 18/01. Index 2 (Folga - ERRADO).
+             
+             # CORREÇÃO PARA TURMA C (Devido a virada do dia UTC):
+             # Vamos considerar a âncora um dia a frente para compensar o UTC, OU subtrair segundos.
+             # Anchor C real de trabalho: 16/01.
+             # Se a gente usar Anchor C = "2026-01-17", então dia 17 UTC (que é 16 BRT) daria index 0.
+             
+             ANCHOR_C_ADJUSTED="2026-01-17" 
+             ANCHOR_SECONDS_C=$(date -d "$ANCHOR_C_ADJUSTED" +%s)
+             DIFF_DAYS_C=$(((CURRENT_SECONDS - ANCHOR_SECONDS_C) / 86400))
+             CYCLE_DAY_C=$(( (DIFF_DAYS_C % 4 + 4) % 4 ))
+
+             if [[ $CYCLE_DAY_C -eq 0 || $CYCLE_DAY_C -eq 1 ]]; then
+                echo "Hoje é dia de trabalho da TURMA C."
+                echo "should_run=true" >> $GITHUB_OUTPUT
+                echo "target_team=C" >> $GITHUB_OUTPUT
+                exit 0
+             fi
+          fi
+
+          echo "Hoje nenhuma das turmas verificadas para este horário está no ciclo de envio."
+          echo "should_run=false" >> $GITHUB_OUTPUT
+
+      - name: Instalar dependências
+        if: steps.verificar-dia.outputs.should_run == 'true'
+        run: npm install
+
+      - name: Rodar script de envio de e-mail
+        if: steps.verificar-dia.outputs.should_run == 'true'
+        run: node scripts/enviar-relatorio.cjs 
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          EMAIL_USER: ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          TARGET_TEAM: ${{ steps.verificar-dia.outputs.target_team }}
