@@ -11,7 +11,7 @@ interface TurmaSelectionScreenProps {
 
 const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, isDarkMode, onToggleDarkMode }) => {
     return (
-        <div className="bg-light-bg-secondary dark:bg-dark-bg min-h-screen text-light-text dark:text-dark-text transition-colors flex flex-col items-center p-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))]">
+        <div className="bg-light-bg-secondary dark:bg-dark-bg min-h-screen text-light-text dark:text-dark-text transition-colors flex flex-col items-center p-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))] overflow-y-auto">
             <div className="absolute top-4 right-4 md:top-8 md:right-8 selection-screen-toggle">
                 <DarkModeToggle isDarkMode={isDarkMode} onToggle={onToggleDarkMode} />
             </div>
@@ -21,7 +21,7 @@ const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, i
                 <main className="flex flex-col items-center text-center">
                     <ShieldLogo className="h-28 w-28 md:h-40 md:w-40 mb-6" />
                     <h1 className="text-3xl md:text-5xl font-extrabold text-light-text dark:text-dark-text tracking-tight mb-2">Painel de Acompanhamento DSS</h1>
-                    <p className="text-base md:text-xl font-medium text-light-text-secondary dark:text-dark-text-secondary mb-10">Selecione a turma para continuar</p>
+                    <p className="text-base md:text-xl font-medium text-light-text-secondary dark:text-dark-text-secondary mb-8">Selecione a turma para continuar</p>
                     
                     <div className="flex flex-col items-center gap-2 md:gap-4">
                         <div className="flex flex-row gap-2 md:gap-4">
