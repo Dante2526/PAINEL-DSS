@@ -44,6 +44,7 @@ const transporter = nodemailer.createTransport({
     pass: EMAIL_PASS,
   },
 });
+
 // --- FUNÇÃO DE LIMPEZA DE TEXTO ---
 function limparTexto(texto) {
   if (!texto) return '';
@@ -103,23 +104,29 @@ async function gerarRelatorio() {
   }
 
   // --- 3. MONTAR O CORPO DO E-MAIL ---
-  let htmlBody = `<div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #000;">`;
+  // Estilo padrão para listas (Alinhamento à esquerda, puxando o ponto para baixo do texto do título)
+  const ulStyle = 'style="padding-left: 20px; margin-top: 5px; margin-bottom: 10px;"';
+
+  let htmlBody = `<div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #000; text-align: left;">`;
+  
   const totalPresentes = cat_7H_EstouBem.length + cat_7H_EstouMal.length + cat_6H_EstouBem.length + cat_6H_EstouMal.length;
   const totalAusentes = cat_7H_Ausentes.length + cat_6H_Ausentes.length;
+  
   htmlBody += `<h2>RESUMO GERAL - TURMA ${TARGET_TEAM}</h2>`;
   htmlBody += `<hr>`;
-  htmlBody += `<ul>`;
+  htmlBody += `<ul ${ulStyle}>`;
   htmlBody += `<li><strong>Total de Funcionários:</strong> ${totalFuncionarios}</li>`;
   htmlBody += `<li><strong>Presentes (DSS + Bem/Mal):</strong> ${totalPresentes}</li>`;
   htmlBody += `<li><strong>Pendentes / Ausentes:</strong> ${totalAusentes}</li>`;
   htmlBody += `</ul>`;
+  
   // --- EQUIPE TURNO 7H ---
   htmlBody += `<h2>EQUIPE TURNO 7H</h2>`;
   htmlBody += `<hr>`;
   htmlBody += `<h3>STATUS: "ASS.DSS + ESTOU BEM"</h3>`;
   if (cat_7H_EstouBem.length === 0) htmlBody += `Nenhum`;
   else {
-    htmlBody += `<ul>`;
+    htmlBody += `<ul ${ulStyle}>`;
     cat_7H_EstouBem.forEach(emp => { htmlBody += `<li>${limparTexto(emp.name)} (Matrícula: ${emp.matricula})</li>`; });
     htmlBody += `</ul>`;
   }
@@ -127,7 +134,7 @@ async function gerarRelatorio() {
   htmlBody += `<h3>STATUS "ESTOU MAL"</h3>`;
   if (cat_7H_EstouMal.length === 0) htmlBody += `Nenhum`;
   else {
-    htmlBody += `<ul>`;
+    htmlBody += `<ul ${ulStyle}>`;
     cat_7H_EstouMal.forEach(emp => { htmlBody += `<li>${limparTexto(emp.name)} (Matrícula: ${emp.matricula})</li>`; });
     htmlBody += `</ul>`;
   }
@@ -135,7 +142,7 @@ async function gerarRelatorio() {
   htmlBody += `<h3>PENDENTES / AUSENTES</h3>`;
   if (cat_7H_Ausentes.length === 0) htmlBody += `Nenhum`;
   else {
-    htmlBody += `<ul>`;
+    htmlBody += `<ul ${ulStyle}>`;
     cat_7H_Ausentes.forEach(emp => { htmlBody += `<li>${limparTexto(emp.name)} (Matrícula: ${emp.matricula})</li>`; });
     htmlBody += `</ul>`;
   }
@@ -146,7 +153,7 @@ async function gerarRelatorio() {
   htmlBody += `<h3>STATUS: "ASS.DSS + ESTOU BEM"</h3>`;
   if (cat_6H_EstouBem.length === 0) htmlBody += `Nenhum`;
   else {
-    htmlBody += `<ul>`;
+    htmlBody += `<ul ${ulStyle}>`;
     cat_6H_EstouBem.forEach(emp => { htmlBody += `<li>${limparTexto(emp.name)} (Matrícula: ${emp.matricula})</li>`; });
     htmlBody += `</ul>`;
   }
@@ -154,7 +161,7 @@ async function gerarRelatorio() {
   htmlBody += `<h3>STATUS "ESTOU MAL"</h3>`;
   if (cat_6H_EstouMal.length === 0) htmlBody += `Nenhum`;
   else {
-    htmlBody += `<ul>`;
+    htmlBody += `<ul ${ulStyle}>`;
     cat_6H_EstouMal.forEach(emp => { htmlBody += `<li>${limparTexto(emp.name)} (Matrícula: ${emp.matricula})</li>`; });
     htmlBody += `</ul>`;
   }
@@ -162,7 +169,7 @@ async function gerarRelatorio() {
   htmlBody += `<h3>PENDENTES / AUSENTES</h3>`;
   if (cat_6H_Ausentes.length === 0) htmlBody += `Nenhum`;
   else {
-    htmlBody += `<ul>`;
+    htmlBody += `<ul ${ulStyle}>`;
     cat_6H_Ausentes.forEach(emp => { htmlBody += `<li>${limparTexto(emp.name)} (Matrícula: ${emp.matricula})</li>`; });
     htmlBody += `</ul>`;
   }
@@ -174,7 +181,7 @@ async function gerarRelatorio() {
   if (registros7H.length === 0) {
     htmlBody += `Nenhum registro de assunto encontrado para 7H.`;
   } else {
-    htmlBody += `<ul>`;
+    htmlBody += `<ul ${ulStyle}>`;
     registros7H.forEach(reg => {
       const nomeFunc = reg.name ? limparTexto(reg.name) : "Nome não informado";
       htmlBody += `<li style="margin-bottom: 10px;">
@@ -190,7 +197,7 @@ async function gerarRelatorio() {
   if (registros6H.length === 0) {
     htmlBody += `Nenhum registro de assunto encontrado para 6H.`;
   } else {
-    htmlBody += `<ul>`;
+    htmlBody += `<ul ${ulStyle}>`;
     registros6H.forEach(reg => {
       const nomeFunc = reg.name ? limparTexto(reg.name) : "Nome não informado";
       htmlBody += `<li style="margin-bottom: 10px;">
