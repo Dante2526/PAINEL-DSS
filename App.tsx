@@ -370,18 +370,20 @@ const AddUserModal: React.FC<{
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Adicionar Colaborador" scale={scale}>
             <form onSubmit={handleSubmit} className="space-y-4">
-                <input
-                    ref={nameInputRef}
-                    type="text"
-                    placeholder="Nome e Sobrenome"
-                    value={name}
-                    onChange={handleNameChange}
-                    className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white uppercase"
-                    autoFocus
-                />
-                <p className="text-xs text-left text-warning font-semibold px-1 !-mt-2">
-                    *Coloque apenas o primeiro nome e o último sobrenome
-                </p>
+                <div>
+                    <input
+                        ref={nameInputRef}
+                        type="text"
+                        placeholder="Nome e Sobrenome"
+                        value={name}
+                        onChange={handleNameChange}
+                        className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white uppercase"
+                        autoFocus
+                    />
+                    <p className="text-xs text-left text-warning font-semibold px-1 mt-1.5">
+                        *Coloque apenas o primeiro nome e o último sobrenome
+                    </p>
+                </div>
                  <input
                     type="text"
                     placeholder="Matrícula"
