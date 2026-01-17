@@ -26,11 +26,13 @@ jobs:
         id: verificar-dia
         env:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
+          # Pega o valor que você digitou na hora de rodar manualmente
           INPUT_TURMA: ${{ github.event.inputs.turma_manual }}
         run: |
           # --- CASO 1: EXECUÇÃO MANUAL ---
           if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
             echo "É um TESTE MANUAL para a TURMA: $INPUT_TURMA"
+            # Define que deve rodar e qual turma usar
             echo "should_run=true" >> $GITHUB_OUTPUT
             echo "target_team=$INPUT_TURMA" >> $GITHUB_OUTPUT
             exit 0
@@ -39,15 +41,20 @@ jobs:
           # --- CASO 2: EXECUÇÃO AGENDADA (Verifica Ciclos) ---
           echo "É uma execução AGENDADA. Verificando horários e ciclos..."
           CURRENT_SECONDS=$(date +%s)
-          # 1h BRT = 04h UTC (Manhã/Madrugada)
+          
+          # 1h BRT  = 04h UTC (Manhã/Madrugada)
           # 16h BRT = 19h UTC (Tarde)
           CURRENT_HOUR_UTC=$(date +%H)
+          # Remove zero à esquerda para evitar bugs
+          CURRENT_HOUR_UTC=$((10#$CURRENT_HOUR_UTC))
+          
           echo "Hora atual (UTC): $CURRENT_HOUR_UTC"
 
           # ====================================================
           # BLOCO MADRUGADA (1h BRT / 04h UTC) -> TURMAS A e B
+          # Aceita 04 ou 05 para margem de segurança
           # ====================================================
-          if [ "$CURRENT_HOUR_UTC" -eq 04 ]; then
+          if [[ "$CURRENT_HOUR_UTC" -eq 4 || "$CURRENT_HOUR_UTC" -eq 5 ]]; then
             echo ">>> Horário de limpeza das Turmas A e B (1h BRT) <<<"
           
             # >>> VERIFICAÇÃO TURMA A <<<
@@ -79,11 +86,16 @@ jobs:
 
           # ====================================================
           # BLOCO TARDE (16h BRT / 19h UTC) -> TURMA C
+          # Aceita 19 ou 20 para margem de segurança
           # ====================================================
-          if [ "$CURRENT_HOUR_UTC" -eq 19 ]; then
+          if [[ "$CURRENT_HOUR_UTC" -eq 19 || "$CURRENT_HOUR_UTC" -eq 20 ]]; then
              echo ">>> Horário de limpeza da Turma C (16h BRT) <<<"
 
              # >>> VERIFICAÇÃO TURMA C <<<
+             # Âncora: 16/01/2026.
+             # Como 16h BRT é 19h UTC, ainda estamos no mesmo dia (16), 
+             # então NÃO precisa subtrair horas. O cálculo é direto.
+             
              ANCHOR_C="2026-01-16"
              ANCHOR_SECONDS_C=$(date -d "$ANCHOR_C" +%s)
              DIFF_DAYS_C=$(((CURRENT_SECONDS - ANCHOR_SECONDS_C) / 86400))
