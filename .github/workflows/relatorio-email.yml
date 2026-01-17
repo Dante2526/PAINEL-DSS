@@ -8,8 +8,8 @@ on:
         required: true
         default: 'A'
   schedule:
-    - cron: '0 13 * * *' # 10h da manhã BRT (Execução para A e B)
-    - cron: '0 1 * * *'  # 22h da noite BRT (Execução para C -> 01:00 UTC do dia seguinte)
+    - cron: '0 13 * * *' # 10h da manhã BRT (A e B)
+    - cron: '0 1 * * *'  # 22h da noite BRT (C)
 
 jobs:
   enviar-relatorio-job:
@@ -29,91 +29,67 @@ jobs:
         run: |
           # --- CASO 1: EXECUÇÃO MANUAL ---
           if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]]; then
-            echo "É um TESTE MANUAL para a TURMA: $INPUT_TURMA"
+            echo "::notice ::Modo Manual Detectado. Turma Selecionada: $INPUT_TURMA"
             echo "should_run=true" >> $GITHUB_OUTPUT
             echo "target_team=$INPUT_TURMA" >> $GITHUB_OUTPUT
             exit 0
           fi
 
-          # --- CASO 2: EXECUÇÃO AGENDADA (Verifica Ciclos e Horários) ---
-          echo "É uma execução AGENDADA. Verificando horário e ciclos..."
+          # --- CASO 2: EXECUÇÃO AGENDADA ---
+          echo "Verificando agendamento automático..."
           
           CURRENT_SECONDS=$(date +%s)
-          # Pega a hora atual em UTC
-          # 10h BRT = 13h UTC
-          # 22h BRT = 01h UTC (Podendo ser 02h em caso de delay)
+          # Pega hora UTC. 22h BRT pode ser 01h ou 02h UTC dependendo de delay.
           CURRENT_HOUR_UTC=$(date +%H)
-          # Remove zero à esquerda para evitar erro de octal no bash
-          CURRENT_HOUR_UTC=$((10#$CURRENT_HOUR_UTC))
+          CURRENT_HOUR_UTC=$((10#$CURRENT_HOUR_UTC)) # Remove zero à esquerda
           
           echo "Hora atual (UTC): $CURRENT_HOUR_UTC"
 
-          # ====================================================
-          # BLOCO MANHÃ (10h BRT / 13h UTC) -> TURMAS A e B
-          # ====================================================
+          # BLOCO MANHÃ (10h BRT / 13h-14h UTC) -> A e B
           if [[ "$CURRENT_HOUR_UTC" -eq 13 || "$CURRENT_HOUR_UTC" -eq 14 ]]; then
-            echo ">>> Horário de execução das Turmas A e B (Manhã) <<<"
-
-            # >>> VERIFICAÇÃO TURMA A <<<
+            # Lógica Turma A
             ANCHOR_A="2026-01-08"
-            ANCHOR_SECONDS_A=$(date -d "$ANCHOR_A" +%s)
-            DIFF_DAYS_A=$(((CURRENT_SECONDS - ANCHOR_SECONDS_A) / 86400))
-            CYCLE_DAY_A=$(( (DIFF_DAYS_A % 4 + 4) % 4 ))
-
-            if [[ $CYCLE_DAY_A -eq 0 || $CYCLE_DAY_A -eq 1 ]]; then
-              echo "Hoje é dia de trabalho da TURMA A."
-              echo "should_run=true" >> $GITHUB_OUTPUT
-              echo "target_team=A" >> $GITHUB_OUTPUT
-              exit 0
+            SEC_A=$(date -d "$ANCHOR_A" +%s)
+            DIFF_A=$(((CURRENT_SECONDS - SEC_A) / 86400))
+            CYCLE_A=$(( (DIFF_A % 4 + 4) % 4 ))
+            
+            if [[ $CYCLE_A -eq 0 || $CYCLE_A -eq 1 ]]; then
+               echo "should_run=true" >> $GITHUB_OUTPUT
+               echo "target_team=A" >> $GITHUB_OUTPUT
+               exit 0
             fi
 
-            # >>> VERIFICAÇÃO TURMA B <<<
+            # Lógica Turma B
             ANCHOR_B="2025-11-07"
-            ANCHOR_SECONDS_B=$(date -d "$ANCHOR_B" +%s)
-            DIFF_DAYS_B=$(((CURRENT_SECONDS - ANCHOR_SECONDS_B) / 86400))
-            CYCLE_DAY_B=$(( (DIFF_DAYS_B % 4 + 4) % 4 ))
-
-            if [[ $CYCLE_DAY_B -eq 0 || $CYCLE_DAY_B -eq 1 ]]; then
-              echo "Hoje é dia de trabalho da TURMA B."
-              echo "should_run=true" >> $GITHUB_OUTPUT
-              echo "target_team=B" >> $GITHUB_OUTPUT
-              exit 0
+            SEC_B=$(date -d "$ANCHOR_B" +%s)
+            DIFF_B=$(((CURRENT_SECONDS - SEC_B) / 86400))
+            CYCLE_B=$(( (DIFF_B % 4 + 4) % 4 ))
+            
+            if [[ $CYCLE_B -eq 0 || $CYCLE_B -eq 1 ]]; then
+               echo "should_run=true" >> $GITHUB_OUTPUT
+               echo "target_team=B" >> $GITHUB_OUTPUT
+               exit 0
             fi
           fi
 
-          # ====================================================
-          # BLOCO NOITE (22h BRT / 01h UTC) -> TURMA C
-          # Aceita 01 ou 02 (madrugada UTC)
-          # ====================================================
+          # BLOCO NOITE (22h BRT / 01h-02h UTC) -> Turma C
           if [[ "$CURRENT_HOUR_UTC" -eq 1 || "$CURRENT_HOUR_UTC" -eq 2 ]]; then
-             echo ">>> Horário de execução da Turma C (Noite) <<<"
-
-             # >>> TRUQUE DO FUSO HORÁRIO <<<
-             # Subtraímos 3 horas (10800 segundos) do tempo atual.
-             # Isso faz com que 01:00 UTC (do dia 17) vire 22:00 BRT (do dia 16) para a conta.
-             # Assim podemos usar a Data Original (16/01) sem problemas.
-             
+             # Ajuste de Fuso (-3h) para manter data 16/01
              SECONDS_BRT=$((CURRENT_SECONDS - 10800))
-
-             # >>> VERIFICAÇÃO TURMA C (Mantendo a data real 16/01) <<<
-             ANCHOR_C="2026-01-16"
-             ANCHOR_SECONDS_C=$(date -d "$ANCHOR_C" +%s)
              
-             # Usamos SECONDS_BRT ao invés de CURRENT_SECONDS
-             DIFF_DAYS_C=$(((SECONDS_BRT - ANCHOR_SECONDS_C) / 86400))
-             CYCLE_DAY_C=$(( (DIFF_DAYS_C % 4 + 4) % 4 ))
+             ANCHOR_C="2026-01-16"
+             SEC_C=$(date -d "$ANCHOR_C" +%s)
+             DIFF_C=$(((SECONDS_BRT - SEC_C) / 86400))
+             CYCLE_C=$(( (DIFF_C % 4 + 4) % 4 ))
 
-             echo "Calculo com Fuso Ajustado (BRT): Diff Days: $DIFF_DAYS_C | Cycle Day: $CYCLE_DAY_C"
-
-             if [[ $CYCLE_DAY_C -eq 0 || $CYCLE_DAY_C -eq 1 ]]; then
-                echo "Hoje é dia de trabalho da TURMA C."
+             if [[ $CYCLE_C -eq 0 || $CYCLE_C -eq 1 ]]; then
                 echo "should_run=true" >> $GITHUB_OUTPUT
                 echo "target_team=C" >> $GITHUB_OUTPUT
                 exit 0
              fi
           fi
 
-          echo "Hoje nenhuma das turmas verificadas para este horário está no ciclo de envio."
+          echo "Nenhuma turma no ciclo de hoje/horário."
           echo "should_run=false" >> $GITHUB_OUTPUT
 
       - name: Instalar dependências
@@ -128,4 +104,5 @@ jobs:
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          # Esta linha abaixo é a mais importante para o manual funcionar:
           TARGET_TEAM: ${{ steps.verificar-dia.outputs.target_team }}
