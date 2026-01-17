@@ -2,6 +2,7 @@ const admin = require('firebase-admin');
 
 // Pega o JSON de dentro do Secret do GitHub
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+
 // Pega a variável que diz qual turma está rodando hoje (A, B ou C)
 // Se não for definida, paramos o script por segurança.
 const TARGET_TEAM = process.env.TARGET_TEAM; 
@@ -11,9 +12,11 @@ admin.initializeApp({
 });
 
 const db = admin.firestore();
+
 // --- DEFINIÇÃO DOS NOMES DAS COLEÇÕES ---
 let colEmployeesName = '';
 let colRegistrosName = '';
+
 if (TARGET_TEAM === 'A') {
   colEmployeesName = 'turma a';      
   colRegistrosName = 'registrosDSS A';
