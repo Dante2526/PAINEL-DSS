@@ -19,7 +19,6 @@ if (!TARGET_TEAM || (TARGET_TEAM !== 'A' && TARGET_TEAM !== 'B' && TARGET_TEAM !
 // Definição das coleções baseado na Turma
 let colEmployeesName = '';
 let colRegistrosName = '';
-
 if (TARGET_TEAM === 'A') {
     colEmployeesName = 'turma a';
     colRegistrosName = 'registrosDSS A';
@@ -36,7 +35,6 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
 const db = admin.firestore();
-
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -54,14 +52,21 @@ function limparTexto(texto) {
 // --- 2. FUNÇÃO DE LER OS DADOS (O Relatório) ---
 async function gerarRelatorio() {
   console.log("Iniciando geração do relatório...");
-  // Arrays para funcionários
-  const cat_7H_EstouBem = [], cat_7H_EstouMal = [], cat_7H_Ausentes = [];
-  const cat_6H_EstouBem = [], cat_6H_EstouMal = [], cat_6H_Ausentes = [];
+  
+  // Arrays para funcionários - TURNO 7H
+  const cat_7H_EstouBem = [], cat_7H_EstouMal = [];
+  const cat_7H_Ausentes = [], cat_7H_Pendentes = [];
+
+  // Arrays para funcionários - TURNO 6H
+  const cat_6H_EstouBem = [], cat_6H_EstouMal = [];
+  const cat_6H_Ausentes = [], cat_6H_Pendentes = [];
+
   // Arrays para os registros DSS
   const registros7H = [];
   const registros6H = [];
   
   let totalFuncionarios = 0;
+
   // A) Ler dados dos 'employees' (agora turma a, b ou c)
   try {
     const empRef = db.collection(colEmployeesName);
@@ -71,17 +76,25 @@ async function gerarRelatorio() {
     empSnapshot.forEach(doc => {
       const emp = doc.data();
 
-      // Lógica de separação por status
-      if (emp.mal === true) {
+      // 1. Verifica se está marcado explicitamente como AUSENTE
+      if (emp.ausente === true) {
+        if (emp.turno === "6H") cat_6H_Ausentes.push(emp);
+        else cat_7H_Ausentes.push(emp);
+      
+      // 2. Verifica se está MAL
+      } else if (emp.mal === true) {
         if (emp.turno === "6H") cat_6H_EstouMal.push(emp);
         else cat_7H_EstouMal.push(emp);
+
+      // 3. Verifica se ASSINOU e está BEM
       } else if (emp.assDss === true && emp.bem === true) {
         if (emp.turno === "6H") cat_6H_EstouBem.push(emp);
         else cat_7H_EstouBem.push(emp);
   
+      // 4. Se não fez nada disso, é PENDENTE
       } else {
-        if (emp.turno === "6H") cat_6H_Ausentes.push(emp);
-        else cat_7H_Ausentes.push(emp);
+        if (emp.turno === "6H") cat_6H_Pendentes.push(emp);
+        else cat_7H_Pendentes.push(emp);
       }
     });
   } catch (error) {
@@ -106,23 +119,28 @@ async function gerarRelatorio() {
   // --- 3. MONTAR O CORPO DO E-MAIL ---
   // Estilo padrão para listas (Alinhamento à esquerda)
   const ulStyle = 'style="padding-left: 20px; margin-top: 5px; margin-bottom: 10px;"';
-
   let htmlBody = `<div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #000; text-align: left;">`;
   
   const totalPresentes = cat_7H_EstouBem.length + cat_7H_EstouMal.length + cat_6H_EstouBem.length + cat_6H_EstouMal.length;
-  const totalAusentes = cat_7H_Ausentes.length + cat_6H_Ausentes.length;
-  
+  const totalAusentesDeclarados = cat_7H_Ausentes.length + cat_6H_Ausentes.length;
+  const totalPendentes = cat_7H_Pendentes.length + cat_6H_Pendentes.length;
+
   htmlBody += `<h2>RESUMO GERAL - TURMA ${TARGET_TEAM}</h2>`;
   htmlBody += `<hr>`;
   htmlBody += `<ul ${ulStyle}>`;
   htmlBody += `<li><strong>Total de Funcionários:</strong> ${totalFuncionarios}</li>`;
   htmlBody += `<li><strong>Presentes (DSS + Bem/Mal):</strong> ${totalPresentes}</li>`;
-  htmlBody += `<li><strong>Pendentes / Ausentes:</strong> ${totalAusentes}</li>`;
+  htmlBody += `<li><strong>Pendentes (Sem resposta):</strong> ${totalPendentes}</li>`;
+  htmlBody += `<li><strong>Ausentes (Declarados):</strong> ${totalAusentesDeclarados}</li>`;
   htmlBody += `</ul>`;
-  
-  // --- EQUIPE TURNO 7H ---
+
+  // ==========================
+  // EQUIPE TURNO 7H
+  // ==========================
   htmlBody += `<h2>EQUIPE TURNO 7H</h2>`;
   htmlBody += `<hr>`;
+  
+  // STATUS BEM
   htmlBody += `<h3>STATUS: "ASS.DSS + ESTOU BEM"</h3>`;
   if (cat_7H_EstouBem.length === 0) htmlBody += `Nenhum`;
   else {
@@ -131,6 +149,7 @@ async function gerarRelatorio() {
     htmlBody += `</ul>`;
   }
   
+  // STATUS MAL
   htmlBody += `<h3>STATUS "ESTOU MAL"</h3>`;
   if (cat_7H_EstouMal.length === 0) htmlBody += `Nenhum`;
   else {
@@ -139,7 +158,17 @@ async function gerarRelatorio() {
     htmlBody += `</ul>`;
   }
 
-  htmlBody += `<h3>PENDENTES / AUSENTES</h3>`;
+  // STATUS PENDENTES
+  htmlBody += `<h3>PENDENTES (Ainda não responderam)</h3>`;
+  if (cat_7H_Pendentes.length === 0) htmlBody += `Nenhum`;
+  else {
+    htmlBody += `<ul ${ulStyle}>`;
+    cat_7H_Pendentes.forEach(emp => { htmlBody += `<li>${limparTexto(emp.name)} (Matrícula: ${emp.matricula})</li>`; });
+    htmlBody += `</ul>`;
+  }
+
+  // STATUS AUSENTES
+  htmlBody += `<h3>AUSENTES (Declarados)</h3>`;
   if (cat_7H_Ausentes.length === 0) htmlBody += `Nenhum`;
   else {
     htmlBody += `<ul ${ulStyle}>`;
@@ -147,9 +176,13 @@ async function gerarRelatorio() {
     htmlBody += `</ul>`;
   }
 
-  // --- EQUIPE TURNO 6H ---
+  // ==========================
+  // EQUIPE TURNO 6H
+  // ==========================
   htmlBody += `<br><h2>EQUIPE TURNO 6H</h2>`;
   htmlBody += `<hr>`;
+  
+  // STATUS BEM
   htmlBody += `<h3>STATUS: "ASS.DSS + ESTOU BEM"</h3>`;
   if (cat_6H_EstouBem.length === 0) htmlBody += `Nenhum`;
   else {
@@ -158,6 +191,7 @@ async function gerarRelatorio() {
     htmlBody += `</ul>`;
   }
   
+  // STATUS MAL
   htmlBody += `<h3>STATUS "ESTOU MAL"</h3>`;
   if (cat_6H_EstouMal.length === 0) htmlBody += `Nenhum`;
   else {
@@ -166,7 +200,17 @@ async function gerarRelatorio() {
     htmlBody += `</ul>`;
   }
 
-  htmlBody += `<h3>PENDENTES / AUSENTES</h3>`;
+  // STATUS PENDENTES
+  htmlBody += `<h3>PENDENTES (Ainda não responderam)</h3>`;
+  if (cat_6H_Pendentes.length === 0) htmlBody += `Nenhum`;
+  else {
+    htmlBody += `<ul ${ulStyle}>`;
+    cat_6H_Pendentes.forEach(emp => { htmlBody += `<li>${limparTexto(emp.name)} (Matrícula: ${emp.matricula})</li>`; });
+    htmlBody += `</ul>`;
+  }
+
+  // STATUS AUSENTES
+  htmlBody += `<h3>AUSENTES (Declarados)</h3>`;
   if (cat_6H_Ausentes.length === 0) htmlBody += `Nenhum`;
   else {
     htmlBody += `<ul ${ulStyle}>`;
