@@ -77,7 +77,8 @@ async function gerarRelatorio() {
       const emp = doc.data();
 
       // 1. Verifica se está marcado explicitamente como AUSENTE
-      if (emp.ausente === true) {
+      // CORREÇÃO: Verifica 'absent' (conforme seu banco) OU 'ausente' (caso legado)
+      if (emp.absent === true || emp.ausente === true) {
         if (emp.turno === "6H") cat_6H_Ausentes.push(emp);
         else cat_7H_Ausentes.push(emp);
       
