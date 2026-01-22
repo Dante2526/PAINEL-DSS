@@ -130,8 +130,8 @@ async function gerarRelatorio() {
   htmlBody += `<ul ${ulStyle}>`;
   htmlBody += `<li><strong>Total de Funcionários:</strong> ${totalFuncionarios}</li>`;
   htmlBody += `<li><strong>Presentes (DSS + Bem/Mal):</strong> ${totalPresentes}</li>`;
-  htmlBody += `<li><strong>Pendentes (Sem resposta):</strong> ${totalPendentes}</li>`;
-  htmlBody += `<li><strong>Ausentes (Declarados):</strong> ${totalAusentesDeclarados}</li>`;
+  htmlBody += `<li><strong>Pendentes:</strong> ${totalPendentes}</li>`;
+  htmlBody += `<li><strong>Ausentes:</strong> ${totalAusentesDeclarados}</li>`;
   htmlBody += `</ul>`;
 
   // ==========================
@@ -159,7 +159,7 @@ async function gerarRelatorio() {
   }
 
   // STATUS PENDENTES
-  htmlBody += `<h3>PENDENTES (Ainda não responderam)</h3>`;
+  htmlBody += `<h3>PENDENTES</h3>`;
   if (cat_7H_Pendentes.length === 0) htmlBody += `Nenhum`;
   else {
     htmlBody += `<ul ${ulStyle}>`;
@@ -168,7 +168,7 @@ async function gerarRelatorio() {
   }
 
   // STATUS AUSENTES
-  htmlBody += `<h3>AUSENTES (Declarados)</h3>`;
+  htmlBody += `<h3>AUSENTES</h3>`;
   if (cat_7H_Ausentes.length === 0) htmlBody += `Nenhum`;
   else {
     htmlBody += `<ul ${ulStyle}>`;
@@ -201,7 +201,7 @@ async function gerarRelatorio() {
   }
 
   // STATUS PENDENTES
-  htmlBody += `<h3>PENDENTES (Ainda não responderam)</h3>`;
+  htmlBody += `<h3>PENDENTES</h3>`;
   if (cat_6H_Pendentes.length === 0) htmlBody += `Nenhum`;
   else {
     htmlBody += `<ul ${ulStyle}>`;
@@ -210,7 +210,7 @@ async function gerarRelatorio() {
   }
 
   // STATUS AUSENTES
-  htmlBody += `<h3>AUSENTES (Declarados)</h3>`;
+  htmlBody += `<h3>AUSENTES</h3>`;
   if (cat_6H_Ausentes.length === 0) htmlBody += `Nenhum`;
   else {
     htmlBody += `<ul ${ulStyle}>`;
