@@ -245,40 +245,6 @@ const AdminLoginModal: React.FC<{
     );
 };
 
-const DemoPasswordModal: React.FC<{
-    isOpen: boolean;
-    onClose: () => void;
-    onConfirm: (password: string) => void;
-    scale: number;
-}> = ({ isOpen, onClose, onConfirm, scale }) => {
-    const [password, setPassword] = useState('');
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        onConfirm(password);
-    };
-
-    if (!isOpen) return null;
-
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Senha de Demonstração" scale={scale}>
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <input
-                    type="password"
-                    placeholder="Digite a senha"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
-                    autoFocus
-                />
-                <button type="submit" className="w-full py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition">
-                    ATIVAR MODO DEMO
-                </button>
-            </form>
-        </Modal>
-    );
-};
-
 const AdminOptionsModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
@@ -331,7 +297,7 @@ const AdminOptionsModal: React.FC<{
 
                 <button 
                     id="admin-demo-btn"
-                    onClick={() => { onEnterDemo(); onClose(); }}
+                    onClick={onEnterDemo}
                     className="col-span-2 p-4 bg-gray-700 text-white rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-gray-800 transition shadow-lg mt-2 border border-gray-500"
                 >
                     <MousePointerIcon className="w-6 h-6" />
@@ -653,6 +619,41 @@ const ReportModal: React.FC<{
                     BAIXAR
                 </button>
             </div>
+        </Modal>
+    );
+};
+
+const DemoPasswordModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: (password: string) => void;
+    scale: number;
+}> = ({ isOpen, onClose, onConfirm, scale }) => {
+    const [password, setPassword] = useState('');
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        onConfirm(password);
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title="Senha de Demonstração" scale={scale}>
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <input
+                    type="password"
+                    placeholder="Digite a senha"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
+                    autoFocus
+                    inputMode="numeric"
+                />
+                <button type="submit" className="w-full py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition">
+                    ENTRAR
+                </button>
+            </form>
         </Modal>
     );
 };
@@ -1160,6 +1161,15 @@ const App: React.FC = () => {
 
     }, [initializeScale, setScale, selectedTurma]);
 
+    const handleConfirmDemoPassword = (password: string) => {
+        if (password === '40402020') {
+            handleEnterDemoMode();
+        } else {
+            showNotification('Senha incorreta.', 'error');
+            setActiveModal(ModalType.AdminOptions);
+        }
+    };
+    
     const handleEnterDemoMode = () => {
         if (!selectedTurma) {
             showNotification('Selecione uma turma antes de entrar no modo de demonstração.', 'error');
@@ -1206,14 +1216,6 @@ const App: React.FC = () => {
         setActiveModal(ModalType.None);
         setLoading(false);
         showNotification('Modo de Demonstração Ativado! Dados fictícios carregados.', 'success');
-    };
-
-    const handleDemoPasswordConfirm = (password: string) => {
-        if (password === '40402020') {
-            handleEnterDemoMode();
-        } else {
-            showNotification('Senha incorreta.', 'error');
-        }
     };
 
     const processStatusUpdate = async (id: string, type: StatusType) => {
@@ -1943,7 +1945,7 @@ const App: React.FC = () => {
             <DemoPasswordModal
                 isOpen={activeModal === ModalType.DemoPassword}
                 onClose={() => setActiveModal(ModalType.None)}
-                onConfirm={handleDemoPasswordConfirm}
+                onConfirm={handleConfirmDemoPassword}
                 scale={modalScale}
             />
             <AddUserModal isOpen={activeModal === ModalType.AddUser} onClose={() => setActiveModal(ModalType.None)} onAdd={handleAddUser} scale={modalScale} />
