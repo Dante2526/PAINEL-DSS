@@ -9,9 +9,11 @@ service cloud.firestore {
         (collectionId == 'turma a' || 
          collectionId == 'turma b' || 
          collectionId == 'turma c' ||
+         collectionId == 'turma d' ||
          collectionId == 'registrosDSS A' || 
          collectionId == 'registrosDSS B' ||
-         collectionId == 'registrosDSS C');
+         collectionId == 'registrosDSS C' ||
+         collectionId == 'registrosDSS D');
     }
 
     // REGRA DE SEGURANÇA PARA ADMINISTRADORES

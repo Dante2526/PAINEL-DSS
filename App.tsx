@@ -624,10 +624,10 @@ const ReportModal: React.FC<{
 };
 
 const App: React.FC = () => {
-    const [selectedTurma, setSelectedTurma] = useState<'A' | 'B' | 'C' | null>(() => {
+    const [selectedTurma, setSelectedTurma] = useState<'A' | 'B' | 'C' | 'D' | null>(() => {
         const savedTurma = localStorage.getItem('selectedTurma');
-        if (savedTurma === 'A' || savedTurma === 'B' || savedTurma === 'C') {
-            return savedTurma;
+        if (savedTurma === 'A' || savedTurma === 'B' || savedTurma === 'C' || savedTurma === 'D') {
+            return savedTurma as 'A' | 'B' | 'C' | 'D';
         }
         return null;
     });
@@ -1722,7 +1722,7 @@ const App: React.FC = () => {
         showNotification('Painel reorganizado alfabeticamente!', 'success');
     };
 
-    const handleSelectTurma = (turma: 'A' | 'B' | 'C') => {
+    const handleSelectTurma = (turma: 'A' | 'B' | 'C' | 'D') => {
         localStorage.setItem('selectedTurma', turma);
         setLoading(true);
         setEmployees([]); // Limpa dados antigos para evitar exibir dados da turma errada
