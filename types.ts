@@ -1,4 +1,5 @@
 
+
 export interface Employee {
   id: string;
   name: string;
@@ -39,5 +40,6 @@ export enum ModalType {
   ConfirmAbsent, // Added for Absent confirmation
   ConfirmDelete, // Added for Delete confirmation
   InvalidMatricula, // Added for 8-digit validation warning
-  Tutorial, 
+  Tutorial,
+  DemoPassword,
 }

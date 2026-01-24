@@ -245,6 +245,40 @@ const AdminLoginModal: React.FC<{
     );
 };
 
+const DemoPasswordModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: (password: string) => void;
+    scale: number;
+}> = ({ isOpen, onClose, onConfirm, scale }) => {
+    const [password, setPassword] = useState('');
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        onConfirm(password);
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title="Senha de Demonstração" scale={scale}>
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <input
+                    type="password"
+                    placeholder="Digite a senha"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
+                    autoFocus
+                />
+                <button type="submit" className="w-full py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition">
+                    ATIVAR MODO DEMO
+                </button>
+            </form>
+        </Modal>
+    );
+};
+
 const AdminOptionsModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
@@ -1174,6 +1208,14 @@ const App: React.FC = () => {
         showNotification('Modo de Demonstração Ativado! Dados fictícios carregados.', 'success');
     };
 
+    const handleDemoPasswordConfirm = (password: string) => {
+        if (password === '40402020') {
+            handleEnterDemoMode();
+        } else {
+            showNotification('Senha incorreta.', 'error');
+        }
+    };
+
     const processStatusUpdate = async (id: string, type: StatusType) => {
         if (!selectedTurma) return;
         const employee = employees.find(e => e.id === id);
@@ -1895,7 +1937,13 @@ const App: React.FC = () => {
                 onReorganize={handleReorganize} 
                 onAddUser={() => setActiveModal(ModalType.AddUser)}
                 onSendReport={() => setActiveModal(ModalType.Report)}
-                onEnterDemo={handleEnterDemoMode}
+                onEnterDemo={() => setActiveModal(ModalType.DemoPassword)}
+                scale={modalScale}
+            />
+            <DemoPasswordModal
+                isOpen={activeModal === ModalType.DemoPassword}
+                onClose={() => setActiveModal(ModalType.None)}
+                onConfirm={handleDemoPasswordConfirm}
                 scale={modalScale}
             />
             <AddUserModal isOpen={activeModal === ModalType.AddUser} onClose={() => setActiveModal(ModalType.None)} onAdd={handleAddUser} scale={modalScale} />
