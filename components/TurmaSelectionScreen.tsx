@@ -32,7 +32,7 @@ const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, i
                         </button>
                         <button 
                             onClick={() => onSelect('B')} 
-                            className="px-8 md:px-12 py-4 font-extrabold text-lg md:text-xl text-white bg-gradient-to-br from-primary to-blue-700 rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800"
+                            className="px-8 md:px-12 py-4 font-extrabold text-lg md:text-xl text-white bg-gradient-to-br from-cyan-400 to-blue-600 rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-cyan-300 dark:focus:ring-cyan-800"
                         >
                             TURMA B
                         </button>
