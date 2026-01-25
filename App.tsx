@@ -700,6 +700,8 @@ const App: React.FC = () => {
     // State for safety confirmation (Generic for Mal, Absent, Turno, Delete)
     const [pendingEmployeeId, setPendingEmployeeId] = useState<string | null>(null);
 
+    const [isAdminTutorialOpen, setIsAdminTutorialOpen] = useState(false);
+
     // Demo Mode State
     const [isDemoMode, setIsDemoMode] = useState(false);
     const isDemoModeRef = useRef(false);
@@ -1596,13 +1598,12 @@ const App: React.FC = () => {
 
         const processLogin = (isDemo = false) => {
             setIsAdmin(true);
+            setActiveModal(ModalType.AdminOptions);
             showNotification(isDemo ? 'Acesso Admin (DEMO) concedido.' : 'Login de administrador bem-sucedido!', 'success');
             
             if (isFirstAdminLogin) {
                 localStorage.setItem('hasSeenAdminTutorial', 'true');
-                setActiveModal(ModalType.AdminTutorial);
-            } else {
-                setActiveModal(ModalType.AdminOptions);
+                setIsAdminTutorialOpen(true);
             }
         };
 
@@ -1948,7 +1949,7 @@ const App: React.FC = () => {
                 onAddUser={() => setActiveModal(ModalType.AddUser)}
                 onSendReport={() => setActiveModal(ModalType.Report)}
                 onEnterDemo={() => setActiveModal(ModalType.DemoPassword)}
-                onStartAdminTutorial={() => setActiveModal(ModalType.AdminTutorial)}
+                onStartAdminTutorial={() => setIsAdminTutorialOpen(true)}
                 scale={modalScale}
             />
             <DemoPasswordModal
@@ -1981,14 +1982,8 @@ const App: React.FC = () => {
             />
 
             <InteractiveTutorial
-                isOpen={activeModal === ModalType.AdminTutorial}
-                onClose={() => {
-                    if (isAdmin) {
-                        setActiveModal(ModalType.AdminOptions);
-                    } else {
-                        setActiveModal(ModalType.None);
-                    }
-                }}
+                isOpen={isAdminTutorialOpen}
+                onClose={() => setIsAdminTutorialOpen(false)}
                 steps={adminTutorialSteps}
                 scale={modalScale}
                 onStepChange={handleTutorialStepChange}

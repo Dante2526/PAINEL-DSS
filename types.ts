@@ -41,6 +41,5 @@ export enum ModalType {
   ConfirmDelete, // Added for Delete confirmation
   InvalidMatricula, // Added for 8-digit validation warning
   Tutorial,
-  AdminTutorial,
   DemoPassword,
 }
