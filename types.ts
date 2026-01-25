@@ -13,7 +13,7 @@ export interface Employee {
 }
 
 export interface Administrator {
-  id: string;
+  id:string;
   name: string;
   matricula: string;
   email: string;
@@ -41,5 +41,6 @@ export enum ModalType {
   ConfirmDelete, // Added for Delete confirmation
   InvalidMatricula, // Added for 8-digit validation warning
   Tutorial,
+  AdminTutorial,
   DemoPassword,
 }

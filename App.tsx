@@ -7,7 +7,7 @@ import Notification from './components/Notification';
 import Footer from './components/Footer';
 import InteractiveTutorial, { TutorialStep } from './components/InteractiveTutorial';
 import TurmaSelectionScreen from './components/TurmaSelectionScreen';
-import { SubjectIcon, UserIcon, EraserIcon, FileTextIcon, SortIcon, UserPlusIcon, ShiftIcon, AbsentIcon, TrashIcon, ExchangeIcon, MousePointerIcon, InfoIcon } from './components/icons';
+import { SubjectIcon, UserIcon, EraserIcon, FileTextIcon, SortIcon, UserPlusIcon, ShiftIcon, AbsentIcon, TrashIcon, ExchangeIcon, MousePointerIcon, InfoIcon, HelpIcon } from './components/icons';
 import { Employee, StatusType, ModalType, ManualRegistration, Administrator } from './types';
 import type { NotificationData } from './components/Notification';
 import { db, auth, isConfigured } from './firebase';
@@ -253,56 +253,65 @@ const AdminOptionsModal: React.FC<{
     onAddUser: () => void;
     onSendReport: () => void;
     onEnterDemo: () => void;
+    onStartAdminTutorial: () => void;
     scale: number;
-}> = ({ isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onEnterDemo, scale }) => {
+}> = ({ isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onEnterDemo, onStartAdminTutorial, scale }) => {
     if (!isOpen) return null;
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Painel do Administrador" scale={scale}>
-            <div className="grid grid-cols-2 gap-4">
-                <button 
-                    id="admin-clear-btn"
-                    onClick={onClear} 
-                    className="p-4 bg-orange text-white rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-orange-600 transition shadow-lg"
-                >
-                    <EraserIcon className="w-8 h-8" />
-                    <span className="font-bold text-sm">LIMPAR TUDO</span>
-                </button>
-
-                 <button 
-                    id="admin-report-btn"
-                    onClick={onSendReport}
-                    className="p-4 bg-blue-500 text-white rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-blue-600 transition shadow-lg"
-                >
-                    <FileTextIcon className="w-8 h-8" />
-                    <span className="font-bold text-sm">RELATÓRIO</span>
-                </button>
-
-                 <button 
-                    id="admin-reorganize-btn"
-                    onClick={onReorganize}
-                    className="p-4 bg-purple-500 text-white rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-purple-600 transition shadow-lg"
-                >
-                    <SortIcon className="w-8 h-8" />
-                    <span className="font-bold text-sm">REORGANIZAR</span>
-                </button>
-                
-                <button 
-                    id="admin-adduser-btn"
-                    onClick={onAddUser}
-                    className="p-4 bg-green-500 text-white rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-green-600 transition shadow-lg"
-                >
-                    <UserPlusIcon className="w-8 h-8" />
-                    <span className="font-bold text-sm">ADD USUÁRIO</span>
-                </button>
-
-                <button 
-                    id="admin-demo-btn"
-                    onClick={onEnterDemo}
-                    className="col-span-2 p-4 bg-gray-700 text-white rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-gray-800 transition shadow-lg mt-2 border border-gray-500"
-                >
-                    <MousePointerIcon className="w-6 h-6" />
-                    <span className="font-bold text-sm">MODO DEMONSTRAÇÃO</span>
-                </button>
+            <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-2 gap-4">
+                    <button 
+                        id="admin-clear-btn"
+                        onClick={onClear} 
+                        className="p-4 bg-orange text-white rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-orange-600 transition shadow-lg"
+                    >
+                        <EraserIcon className="w-8 h-8" />
+                        <span className="font-bold text-sm">LIMPAR TUDO</span>
+                    </button>
+                    <button 
+                        id="admin-report-btn"
+                        onClick={onSendReport}
+                        className="p-4 bg-blue-500 text-white rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-blue-600 transition shadow-lg"
+                    >
+                        <FileTextIcon className="w-8 h-8" />
+                        <span className="font-bold text-sm">RELATÓRIO</span>
+                    </button>
+                    <button 
+                        id="admin-reorganize-btn"
+                        onClick={onReorganize}
+                        className="p-4 bg-purple-500 text-white rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-purple-600 transition shadow-lg"
+                    >
+                        <SortIcon className="w-8 h-8" />
+                        <span className="font-bold text-sm">REORGANIZAR</span>
+                    </button>
+                    <button 
+                        id="admin-adduser-btn"
+                        onClick={onAddUser}
+                        className="p-4 bg-green-500 text-white rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-green-600 transition shadow-lg"
+                    >
+                        <UserPlusIcon className="w-8 h-8" />
+                        <span className="font-bold text-sm">ADD USUÁRIO</span>
+                    </button>
+                </div>
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-2 flex flex-col gap-3">
+                     <button 
+                        id="admin-tutorial-btn"
+                        onClick={onStartAdminTutorial}
+                        className="w-full p-3 bg-cyan-500 text-white rounded-xl flex items-center justify-center gap-2 hover:bg-cyan-600 transition shadow-lg"
+                    >
+                        <HelpIcon className="w-6 h-6" />
+                        <span className="font-bold text-sm">AJUDA / TUTORIAL</span>
+                    </button>
+                    <button 
+                        id="admin-demo-btn"
+                        onClick={onEnterDemo}
+                        className="w-full p-3 bg-gray-700 text-white rounded-xl flex items-center justify-center gap-2 hover:bg-gray-800 transition shadow-lg border border-gray-500"
+                    >
+                        <MousePointerIcon className="w-5 h-5" />
+                        <span className="font-bold text-sm">MODO DEMONSTRAÇÃO</span>
+                    </button>
+                </div>
             </div>
         </Modal>
     );
@@ -690,9 +699,6 @@ const App: React.FC = () => {
 
     // State for safety confirmation (Generic for Mal, Absent, Turno, Delete)
     const [pendingEmployeeId, setPendingEmployeeId] = useState<string | null>(null);
-
-    // Admin Tutorial State
-    const [isAdminTutorialOpen, setIsAdminTutorialOpen] = useState(false);
 
     // Demo Mode State
     const [isDemoMode, setIsDemoMode] = useState(false);
@@ -1586,29 +1592,27 @@ const App: React.FC = () => {
     const handleAdminLogin = async (email: string) => {
         const normalizedEmail = email.trim().toLowerCase();
         
-        const checkAndTriggerAdminTutorial = () => {
-             const hasSeenAdmin = localStorage.getItem('hasSeenAdminTutorial');
-             if (!hasSeenAdmin) {
-                 setTimeout(() => {
-                     setIsAdminTutorialOpen(true);
-                     localStorage.setItem('hasSeenAdminTutorial', 'true');
-                 }, 500); 
-             }
+        const isFirstAdminLogin = !localStorage.getItem('hasSeenAdminTutorial');
+
+        const processLogin = (isDemo = false) => {
+            setIsAdmin(true);
+            showNotification(isDemo ? 'Acesso Admin (DEMO) concedido.' : 'Login de administrador bem-sucedido!', 'success');
+            
+            if (isFirstAdminLogin) {
+                localStorage.setItem('hasSeenAdminTutorial', 'true');
+                setActiveModal(ModalType.AdminTutorial);
+            } else {
+                setActiveModal(ModalType.AdminOptions);
+            }
         };
 
         if (normalizedEmail === 'naylanmoreira350@gmail.com') {
-             setIsAdmin(true);
-             setActiveModal(ModalType.AdminOptions);
-             showNotification('Login de administrador bem-sucedido!', 'success');
-             checkAndTriggerAdminTutorial();
+             processLogin();
              return;
         }
 
         if (isDemoMode) {
-            setIsAdmin(true);
-            setActiveModal(ModalType.AdminOptions);
-            showNotification('Acesso Admin (DEMO) concedido.', 'success');
-            checkAndTriggerAdminTutorial();
+            processLogin(true);
             return;
         }
 
@@ -1624,10 +1628,7 @@ const App: React.FC = () => {
             const q = query(collection(db, 'administrators'), where("email", "==", normalizedEmail));
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {
-                setIsAdmin(true);
-                setActiveModal(ModalType.AdminOptions);
-                showNotification('Login de administrador bem-sucedido!', 'success');
-                checkAndTriggerAdminTutorial();
+                processLogin();
             } else {
                 showNotification('Credenciais de administrador inválidas.', 'error');
             }
@@ -1782,6 +1783,13 @@ const App: React.FC = () => {
         setIsDemoMode(false);
     };
 
+    const handleHelpClick = () => {
+        localStorage.removeItem('hasSeenTutorial');
+        localStorage.removeItem('hasSeenAdminTutorial');
+        showNotification('Tutoriais redefinidos. Eles serão exibidos na próxima vez.', 'success');
+        setActiveModal(ModalType.Tutorial);
+    };
+
     const stats = useMemo(() => ({
         bem: employees.filter(e => e.bem).length,
         mal: employees.filter(e => e.mal).length,
@@ -1854,7 +1862,7 @@ const App: React.FC = () => {
                             stats={stats}
                             loading={loading}
                             onAdminClick={() => setActiveModal(ModalType.AdminLogin)}
-                            onHelpClick={() => setActiveModal(ModalType.Tutorial)}
+                            onHelpClick={handleHelpClick}
                             isDarkMode={isDarkMode}
                             onToggleDarkMode={handleToggleDarkMode}
                             turma={selectedTurma}
@@ -1940,6 +1948,7 @@ const App: React.FC = () => {
                 onAddUser={() => setActiveModal(ModalType.AddUser)}
                 onSendReport={() => setActiveModal(ModalType.Report)}
                 onEnterDemo={() => setActiveModal(ModalType.DemoPassword)}
+                onStartAdminTutorial={() => setActiveModal(ModalType.AdminTutorial)}
                 scale={modalScale}
             />
             <DemoPasswordModal
@@ -1972,8 +1981,14 @@ const App: React.FC = () => {
             />
 
             <InteractiveTutorial
-                isOpen={isAdminTutorialOpen}
-                onClose={() => setIsAdminTutorialOpen(false)}
+                isOpen={activeModal === ModalType.AdminTutorial}
+                onClose={() => {
+                    if (isAdmin) {
+                        setActiveModal(ModalType.AdminOptions);
+                    } else {
+                        setActiveModal(ModalType.None);
+                    }
+                }}
                 steps={adminTutorialSteps}
                 scale={modalScale}
                 onStepChange={handleTutorialStepChange}
