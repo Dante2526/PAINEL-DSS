@@ -116,7 +116,7 @@ const adminTutorialSteps: TutorialStep[] = [
     {
         targetId: 'admin-clear-btn',
         title: 'Limpar Status Diário',
-        content: 'O sistema realiza a limpeza automática diariamente. Use esta opção apenas caso seja realmente necessário forçar o reset de todos os status manually.'
+        content: 'O sistema realiza a limpeza automática diariamente. Use esta opção apenas caso seja realmente necessário forçar o reset de todos os status manualmente.'
     },
     {
         targetId: 'admin-report-btn',
