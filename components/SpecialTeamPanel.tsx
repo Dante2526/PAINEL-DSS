@@ -19,7 +19,7 @@ interface SpecialTeamPanelProps {
     onRegister: () => void;
     onTimeChange?: (id: string, newDate: Date) => void;
     onMatriculaUpdate?: (id: string, newMatricula: string) => void; // Added prop
-    employees: Employee[]; // Add access to full list for lookup
+    employeesForLookup: (Pick<Employee, 'name' | 'matricula'>)[];
     administrators: Administrator[]; // Access to admin list for lookup
 }
 
@@ -37,24 +37,24 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = ({
     onRegister,
     onTimeChange,
     onMatriculaUpdate, // Destructure prop
-    employees,
+    employeesForLookup,
     administrators
 }) => {
     const handleMatriculaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         onMatriculaChange(e.target.value.replace(/[^0-9]/g, ''));
     };
     
-    // Find name based on matricula from administrators list first, then employees list
+    // Find name based on matricula from administrators list first, then all employees from all turmas
     const foundName = useMemo(() => {
         if (!matricula) return '';
         // Prioritize administrators collection for manual registry
         const admin = administrators.find(a => a.matricula === matricula);
         if (admin) return admin.name;
         
-        // Fallback to employees list
-        const employee = employees.find(e => e.matricula === matricula);
+        // Fallback to the global employee lookup list
+        const employee = employeesForLookup.find(e => e.matricula === matricula);
         return employee ? employee.name : '';
-    }, [matricula, employees, administrators]);
+    }, [matricula, employeesForLookup, administrators]);
 
     const firstEmployee = specialTeam[0];
     const remainingEmployees = specialTeam.slice(1);

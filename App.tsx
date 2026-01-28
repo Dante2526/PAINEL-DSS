@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Header from './components/Header';
 import EmployeeCard from './components/EmployeeCard';
@@ -146,17 +147,17 @@ const ManualRegisterSection: React.FC<{
     onSubjectChange: (v: string) => void;
     onMatriculaChange: (v: string) => void;
     onRegister: () => void;
-    employees: Employee[];
+    employeesForLookup: (Pick<Employee, 'name' | 'matricula'>)[];
     administrators: Administrator[];
-}> = ({ subject, matricula, onSubjectChange, onMatriculaChange, onRegister, employees, administrators }) => {
+}> = ({ subject, matricula, onSubjectChange, onMatriculaChange, onRegister, employeesForLookup, administrators }) => {
     const foundName = useMemo(() => {
         if (!matricula) return '';
         const admin = administrators.find(a => a.matricula === matricula);
         if (admin) return admin.name;
         
-        const employee = employees.find(e => e.matricula === matricula);
+        const employee = employeesForLookup.find(e => e.matricula === matricula);
         return employee ? employee.name : '';
-    }, [matricula, employees, administrators]);
+    }, [matricula, employeesForLookup, administrators]);
 
     const handleMatriculaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         onMatriculaChange(e.target.value.replace(/[^0-9]/g, ''));
@@ -677,6 +678,7 @@ const App: React.FC = () => {
     });
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [administrators, setAdministrators] = useState<Administrator[]>([]);
+    const [allEmployeesForLookup, setAllEmployeesForLookup] = useState<(Pick<Employee, 'name' | 'matricula'>)[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeModal, setActiveModal] = useState<ModalType>(ModalType.None);
     const [notifications, setNotifications] = useState<NotificationData[]>([]);
@@ -938,6 +940,33 @@ const App: React.FC = () => {
                 await signInAnonymously(auth);
                 console.log("Signed in anonymously");
 
+                // Fetch all employees for name lookup if the list is empty
+                if (allEmployeesForLookup.length === 0 && db && isConfigured) {
+                    try {
+                        const turmas = ['a', 'b', 'c', 'd'];
+                        const promises = turmas.map(turma => {
+                            const collectionName = `turma ${turma}`;
+                            return getDocs(query(collection(db, collectionName)));
+                        });
+        
+                        const snapshots = await Promise.all(promises);
+                        const allEmps: Pick<Employee, 'name' | 'matricula'>[] = [];
+                        snapshots.forEach(snapshot => {
+                            snapshot.docs.forEach(doc => {
+                                const data = doc.data();
+                                if (data.name && data.matricula) {
+                                    allEmps.push({ name: data.name, matricula: data.matricula });
+                                }
+                            });
+                        });
+        
+                        const uniqueEmps = Array.from(new Map(allEmps.map(item => [item.matricula, item])).values());
+                        setAllEmployeesForLookup(uniqueEmps);
+                    } catch (error) {
+                        console.error("Failed to fetch all employees for lookup:", error);
+                    }
+                }
+
                 // Determina o nome da coleção do Firestore com base na turma selecionada ('turma a', 'turma b', etc.).
                 const collectionName = `turma ${selectedTurma.toLowerCase()}`;
                 const employeesQuery = query(collection(db, collectionName), orderBy("name", "asc"));
@@ -1029,7 +1058,7 @@ const App: React.FC = () => {
             unsubscribeAdministrators();
             unsubscribeRegistrations();
         };
-    }, [selectedTurma, showNotification]);
+    }, [selectedTurma, showNotification, allEmployeesForLookup.length]);
 
     const setScale = useCallback((newScale: number, scrollX?: number, scrollY?: number) => {
         const viewport = viewportRef.current;
@@ -1554,7 +1583,7 @@ const App: React.FC = () => {
         }
 
         const admin = administrators.find(a => a.matricula === matricula);
-        const emp = employees.find(e => e.matricula === matricula);
+        const emp = allEmployeesForLookup.find(e => e.matricula === matricula);
         const resolvedName = admin ? admin.name : (emp ? emp.name : '');
 
         if (isDemoMode) {
@@ -1884,7 +1913,7 @@ const App: React.FC = () => {
                                     onSubjectChange={setMainSubject}
                                     onMatriculaChange={setMainMatricula}
                                     onRegister={() => handleManualRegister('7H')}
-                                    employees={employees}
+                                    employeesForLookup={allEmployeesForLookup}
                                     administrators={administrators}
                                 />
                                 <div className="flex gap-8">
@@ -1926,7 +1955,7 @@ const App: React.FC = () => {
                                 onSubjectChange={setSpecialSubject}
                                 onMatriculaChange={setSpecialMatricula}
                                 onRegister={() => handleManualRegister('6H')}
-                                employees={employees}
+                                employeesForLookup={allEmployeesForLookup}
                                 administrators={administrators}
                             />
                         </div>
