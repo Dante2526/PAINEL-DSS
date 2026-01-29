@@ -2015,11 +2015,23 @@ const App: React.FC = () => {
             
             const employeeData = docSnap.data();
             const employeeName = employeeData.name || 'O colaborador';
+
+            // Limpa o status diário ao importar, mantendo apenas os dados essenciais.
+            const cleanedEmployeeData = {
+                name: employeeData.name,
+                matricula: employeeData.matricula,
+                turno: '7H', // Define o turno padrão para a nova turma
+                assDss: false,
+                bem: false,
+                mal: false,
+                absent: false,
+                time: null,
+            };
     
             const batch = writeBatch(db);
             
             const newDocRef = doc(collection(db, destinationCollectionName));
-            batch.set(newDocRef, employeeData);
+            batch.set(newDocRef, cleanedEmployeeData);
             
             batch.delete(sourceDocRef);
             
