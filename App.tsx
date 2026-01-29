@@ -27,7 +27,8 @@ import {
     where,
     getDocs,
     deleteDoc,
-    setDoc
+    setDoc,
+    getDoc
 } from 'firebase/firestore';
 import { signInAnonymously } from 'firebase/auth';
 import emailjs from '@emailjs/browser';
@@ -253,47 +254,59 @@ const AdminOptionsModal: React.FC<{
     onReorganize: () => void;
     onAddUser: () => void;
     onSendReport: () => void;
+    onMoveUser: () => void;
     onEnterDemo: () => void;
     onStartAdminTutorial: () => void;
     scale: number;
-}> = ({ isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onEnterDemo, onStartAdminTutorial, scale }) => {
+}> = ({ isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onMoveUser, onEnterDemo, onStartAdminTutorial, scale }) => {
     if (!isOpen) return null;
+    
+    const AdminButton: React.FC<{ id: string; onClick: () => void; className: string; icon: React.ReactNode; label: string }> = ({ id, onClick, className, icon, label }) => (
+        <button id={id} onClick={onClick} className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 transition shadow-lg ${className}`}>
+            {icon}
+            <span className="font-bold text-xs uppercase tracking-wider">{label}</span>
+        </button>
+    );
+
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Painel do Administrador" scale={scale}>
+        <Modal isOpen={isOpen} onClose={onClose} title="Painel do Administrador" scale={scale} size="md">
             <div className="flex flex-col gap-4">
-                <div className="grid grid-cols-2 gap-4">
-                    <button 
+                <div className="grid grid-cols-3 gap-3">
+                    <AdminButton
                         id="admin-clear-btn"
-                        onClick={onClear} 
-                        className="p-4 bg-orange text-white rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-orange-600 transition shadow-lg"
-                    >
-                        <EraserIcon className="w-8 h-8" />
-                        <span className="font-bold text-sm">LIMPAR TUDO</span>
-                    </button>
-                    <button 
+                        onClick={onClear}
+                        className="bg-orange text-white hover:bg-orange-600"
+                        icon={<EraserIcon className="w-7 h-7" />}
+                        label="Limpar Tudo"
+                    />
+                    <AdminButton
                         id="admin-report-btn"
                         onClick={onSendReport}
-                        className="p-4 bg-blue-500 text-white rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-blue-600 transition shadow-lg"
-                    >
-                        <FileTextIcon className="w-8 h-8" />
-                        <span className="font-bold text-sm">RELATÓRIO</span>
-                    </button>
-                    <button 
-                        id="admin-reorganize-btn"
-                        onClick={onReorganize}
-                        className="p-4 bg-purple-500 text-white rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-purple-600 transition shadow-lg"
-                    >
-                        <SortIcon className="w-8 h-8" />
-                        <span className="font-bold text-sm">REORGANIZAR</span>
-                    </button>
-                    <button 
+                        className="bg-blue-500 text-white hover:bg-blue-600"
+                        icon={<FileTextIcon className="w-7 h-7" />}
+                        label="Relatório"
+                    />
+                    <AdminButton
                         id="admin-adduser-btn"
                         onClick={onAddUser}
-                        className="p-4 bg-green-500 text-white rounded-xl flex flex-col items-center justify-center gap-2 hover:bg-green-600 transition shadow-lg"
-                    >
-                        <UserPlusIcon className="w-8 h-8" />
-                        <span className="font-bold text-sm">ADD USUÁRIO</span>
-                    </button>
+                        className="bg-green-500 text-white hover:bg-green-600"
+                        icon={<UserPlusIcon className="w-7 h-7" />}
+                        label="Add Usuário"
+                    />
+                    <AdminButton
+                        id="admin-reorganize-btn"
+                        onClick={onReorganize}
+                        className="bg-purple-500 text-white hover:bg-purple-600"
+                        icon={<SortIcon className="w-7 h-7" />}
+                        label="Reorganizar"
+                    />
+                    <AdminButton
+                        id="admin-move-user-btn"
+                        onClick={onMoveUser}
+                        className="bg-teal-500 text-white hover:bg-teal-600"
+                        icon={<ExchangeIcon className="w-7 h-7" />}
+                        label="Mover Turma"
+                    />
                 </div>
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-2 flex flex-col gap-3">
                      <button 
@@ -667,6 +680,80 @@ const DemoPasswordModal: React.FC<{
         </Modal>
     );
 };
+
+const MoveEmployeeModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    onMove: (employeeId: string, destinationTurma: 'A' | 'B' | 'C' | 'D') => void;
+    employees: Employee[];
+    currentTurma: 'A' | 'B' | 'C' | 'D';
+    scale: number;
+}> = ({ isOpen, onClose, onMove, employees, currentTurma, scale }) => {
+    const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
+    const [destinationTurma, setDestinationTurma] = useState<'A' | 'B' | 'C' | 'D' | ''>('');
+
+    useEffect(() => {
+        if (isOpen) {
+            setSelectedEmployeeId('');
+            setDestinationTurma('');
+        }
+    }, [isOpen]);
+    
+    const turmas: ('A' | 'B' | 'C' | 'D')[] = ['A', 'B', 'C', 'D'];
+    const availableTurmas = turmas.filter(t => t !== currentTurma);
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (selectedEmployeeId && destinationTurma) {
+            onMove(selectedEmployeeId, destinationTurma as 'A' | 'B' | 'C' | 'D');
+        }
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title="Mover Colaborador" scale={scale}>
+            <form onSubmit={handleSubmit} className="space-y-4 text-left">
+                <div>
+                    <label htmlFor="employee-select" className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Colaborador</label>
+                    <select
+                        id="employee-select"
+                        value={selectedEmployeeId}
+                        onChange={(e) => setSelectedEmployeeId(e.target.value)}
+                        className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
+                        required
+                    >
+                        <option value="" disabled>Selecione um colaborador</option>
+                        {employees.map(emp => (
+                            <option key={emp.id} value={emp.id}>{emp.name}</option>
+                        ))}
+                    </select>
+                </div>
+                <div>
+                    <label htmlFor="turma-select" className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Mover para a Turma</label>
+                    <select
+                        id="turma-select"
+                        value={destinationTurma}
+                        onChange={(e) => setDestinationTurma(e.target.value as 'A' | 'B' | 'C' | 'D')}
+                        className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
+                        required
+                    >
+                        <option value="" disabled>Selecione a turma de destino</option>
+                        {availableTurmas.map(turma => (
+                            <option key={turma} value={turma}>{turma}</option>
+                        ))}
+                    </select>
+                </div>
+                <div className="pt-2">
+                    <button type="submit" className="w-full py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition shadow-lg">
+                        MOVER
+                    </button>
+                </div>
+            </form>
+        </Modal>
+    );
+};
+
 
 const App: React.FC = () => {
     const [selectedTurma, setSelectedTurma] = useState<'A' | 'B' | 'C' | 'D' | null>(() => {
@@ -1797,6 +1884,65 @@ const App: React.FC = () => {
         showNotification('Painel reorganizado alfabeticamente!', 'success');
     };
 
+    const handleMoveEmployee = async (employeeId: string, destinationTurma: 'A' | 'B' | 'C' | 'D') => {
+        if (!isAdmin || !selectedTurma) {
+            showNotification('Ação não permitida.', 'error');
+            return;
+        }
+        if (destinationTurma === selectedTurma) {
+            showNotification('A turma de destino deve ser diferente da atual.', 'error');
+            return;
+        }
+    
+        const employeeToMove = employees.find(e => e.id === employeeId);
+        if (!employeeToMove) {
+            showNotification('Funcionário não encontrado.', 'error');
+            return;
+        }
+    
+        if (isDemoMode) {
+            setEmployees(prev => prev.filter(e => e.id !== employeeId));
+            showNotification(`${employeeToMove.name} movido para a Turma ${destinationTurma} (DEMO).`, 'success');
+            setActiveModal(ModalType.None);
+            return;
+        }
+    
+        if (!db) {
+            showNotification("A conexão com o banco de dados não está disponível.", "error");
+            return;
+        }
+    
+        const sourceCollectionName = `turma ${selectedTurma.toLowerCase()}`;
+        const destinationCollectionName = `turma ${destinationTurma.toLowerCase()}`;
+        const sourceDocRef = doc(db, sourceCollectionName, employeeId);
+    
+        try {
+            const docSnap = await getDoc(sourceDocRef);
+            if (!docSnap.exists()) {
+                throw new Error("Documento do funcionário não encontrado na turma de origem.");
+            }
+            
+            const employeeData = docSnap.data();
+    
+            const batch = writeBatch(db);
+            
+            const newDocRef = doc(collection(db, destinationCollectionName));
+            batch.set(newDocRef, employeeData);
+            
+            batch.delete(sourceDocRef);
+            
+            await batch.commit();
+    
+            showNotification(`${employeeToMove.name} foi movido para a Turma ${destinationTurma} com sucesso!`, 'success');
+            setActiveModal(ModalType.None);
+    
+        } catch (error) {
+            console.error("Error moving employee:", error);
+            const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
+            showNotification(`Falha ao mover funcionário: ${message}`, 'error');
+        }
+    };
+
     const handleSelectTurma = (turma: 'A' | 'B' | 'C' | 'D') => {
         localStorage.setItem('selectedTurma', turma);
         setLoading(true);
@@ -1977,6 +2123,7 @@ const App: React.FC = () => {
                 onReorganize={handleReorganize} 
                 onAddUser={() => setActiveModal(ModalType.AddUser)}
                 onSendReport={() => setActiveModal(ModalType.Report)}
+                onMoveUser={() => setActiveModal(ModalType.MoveEmployee)}
                 onEnterDemo={() => setActiveModal(ModalType.DemoPassword)}
                 onStartAdminTutorial={() => setIsAdminTutorialOpen(true)}
                 scale={modalScale}
@@ -2002,6 +2149,15 @@ const App: React.FC = () => {
                 matricula6H={specialMatricula}
             />
             
+            <MoveEmployeeModal
+                isOpen={activeModal === ModalType.MoveEmployee}
+                onClose={() => setActiveModal(ModalType.None)}
+                onMove={handleMoveEmployee}
+                employees={employees}
+                currentTurma={selectedTurma}
+                scale={modalScale}
+            />
+
             <InteractiveTutorial
                 isOpen={activeModal === ModalType.Tutorial}
                 onClose={() => setActiveModal(ModalType.None)}
