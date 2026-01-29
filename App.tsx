@@ -763,18 +763,25 @@ const ImportEmployeeModal: React.FC<{
             <form onSubmit={handleSubmit} className="space-y-4 text-left">
                 <div>
                     <label htmlFor="turma-select" className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Turma de Origem</label>
-                    <select
-                        id="turma-select"
-                        value={sourceTurma}
-                        onChange={(e) => setSourceTurma(e.target.value as 'A' | 'B' | 'C' | 'D')}
-                        className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
-                        required
-                    >
-                        <option value="" disabled>Selecione uma turma</option>
-                        {availableTurmas.map(turma => (
-                            <option key={turma} value={turma}>Turma {turma}</option>
-                        ))}
-                    </select>
+                    <div className="relative">
+                        <select
+                            id="turma-select"
+                            value={sourceTurma}
+                            onChange={(e) => setSourceTurma(e.target.value as 'A' | 'B' | 'C' | 'D')}
+                            className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white appearance-none pr-12"
+                            required
+                        >
+                            <option value="" disabled>Selecione uma turma</option>
+                            {availableTurmas.map(turma => (
+                                <option key={turma} value={turma}>Turma {turma}</option>
+                            ))}
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">
+                            <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                            </svg>
+                        </div>
+                    </div>
                 </div>
                 <div>
                     <label htmlFor="employee-select" className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Colaborador</label>
@@ -783,7 +790,7 @@ const ImportEmployeeModal: React.FC<{
                             id="employee-select"
                             value={selectedEmployeeId}
                             onChange={(e) => setSelectedEmployeeId(e.target.value)}
-                            className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white appearance-none pr-10"
+                            className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white appearance-none pr-12"
                             disabled={!sourceTurma || loadingEmployees || sourceEmployees.length === 0}
                             required
                         >
@@ -794,9 +801,15 @@ const ImportEmployeeModal: React.FC<{
                                 <option key={emp.id} value={emp.id}>{emp.name} (Mat: {emp.matricula})</option>
                             ))}
                         </select>
-                        {loadingEmployees && (
-                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                        {loadingEmployees ? (
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2">
                                 <div className="w-5 h-5 border-2 border-primary-light border-t-primary rounded-full animate-spin"></div>
+                            </div>
+                        ) : (
+                             <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">
+                                <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
                             </div>
                         )}
                     </div>
