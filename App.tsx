@@ -254,11 +254,11 @@ const AdminOptionsModal: React.FC<{
     onReorganize: () => void;
     onAddUser: () => void;
     onSendReport: () => void;
-    onMoveUser: () => void;
+    onImportUser: () => void;
     onEnterDemo: () => void;
     onStartAdminTutorial: () => void;
     scale: number;
-}> = ({ isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onMoveUser, onEnterDemo, onStartAdminTutorial, scale }) => {
+}> = ({ isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onImportUser, onEnterDemo, onStartAdminTutorial, scale }) => {
     if (!isOpen) return null;
     
     const AdminButton: React.FC<{ id: string; onClick: () => void; className: string; icon: React.ReactNode; label: string }> = ({ id, onClick, className, icon, label }) => (
@@ -301,11 +301,11 @@ const AdminOptionsModal: React.FC<{
                         label="Reorganizar"
                     />
                     <AdminButton
-                        id="admin-move-user-btn"
-                        onClick={onMoveUser}
+                        id="admin-import-user-btn"
+                        onClick={onImportUser}
                         className="bg-teal-500 text-white hover:bg-teal-600"
                         icon={<ExchangeIcon className="w-7 h-7" />}
-                        label="Mover Turma"
+                        label="Importar Colab."
                     />
                 </div>
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-2 flex flex-col gap-3">
@@ -681,72 +681,129 @@ const DemoPasswordModal: React.FC<{
     );
 };
 
-const MoveEmployeeModal: React.FC<{
+const ImportEmployeeModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
-    onMove: (employeeId: string, destinationTurma: 'A' | 'B' | 'C' | 'D') => void;
-    employees: Employee[];
+    onImport: (employeeId: string, sourceTurma: 'A' | 'B' | 'C' | 'D') => void;
     currentTurma: 'A' | 'B' | 'C' | 'D';
     scale: number;
-}> = ({ isOpen, onClose, onMove, employees, currentTurma, scale }) => {
+    showNotification: (msg: string, type: 'success' | 'error') => void;
+}> = ({ isOpen, onClose, onImport, currentTurma, scale, showNotification }) => {
+    const [sourceTurma, setSourceTurma] = useState<'A' | 'B' | 'C' | 'D' | ''>('');
+    const [sourceEmployees, setSourceEmployees] = useState<Employee[]>([]);
+    const [loadingEmployees, setLoadingEmployees] = useState(false);
     const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
-    const [destinationTurma, setDestinationTurma] = useState<'A' | 'B' | 'C' | 'D' | ''>('');
 
-    useEffect(() => {
-        if (isOpen) {
-            setSelectedEmployeeId('');
-            setDestinationTurma('');
-        }
-    }, [isOpen]);
-    
     const turmas: ('A' | 'B' | 'C' | 'D')[] = ['A', 'B', 'C', 'D'];
     const availableTurmas = turmas.filter(t => t !== currentTurma);
 
+    useEffect(() => {
+        if (isOpen) {
+            setSourceTurma('');
+            setSourceEmployees([]);
+            setSelectedEmployeeId('');
+            setLoadingEmployees(false);
+        }
+    }, [isOpen]);
+
+    useEffect(() => {
+        const fetchEmployees = async () => {
+            if (!sourceTurma) return;
+            if (!db) {
+                showNotification("A conexão com o banco de dados não está disponível.", "error");
+                return;
+            }
+
+            setLoadingEmployees(true);
+            setSelectedEmployeeId('');
+            setSourceEmployees([]);
+
+            try {
+                const collectionName = `turma ${sourceTurma.toLowerCase()}`;
+                const q = query(collection(db, collectionName), orderBy("name", "asc"));
+                const querySnapshot = await getDocs(q);
+                
+                const employeesData: Employee[] = querySnapshot.docs.map(doc => {
+                    const data = doc.data();
+                    return {
+                        id: doc.id,
+                        name: data.name,
+                        matricula: data.matricula,
+                        assDss: data.assDss,
+                        bem: data.bem,
+                        mal: data.mal,
+                        absent: data.absent,
+                        time: data.time ? formatTimestamp(data.time as Timestamp) : null,
+                        turno: data.turno || '7H',
+                    };
+                });
+                setSourceEmployees(employeesData);
+            } catch (error) {
+                console.error("Error fetching source employees:", error);
+                showNotification('Erro ao buscar colaboradores da turma de origem.', 'error');
+            } finally {
+                setLoadingEmployees(false);
+            }
+        };
+
+        fetchEmployees();
+    }, [sourceTurma, showNotification]);
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (selectedEmployeeId && destinationTurma) {
-            onMove(selectedEmployeeId, destinationTurma as 'A' | 'B' | 'C' | 'D');
+        if (selectedEmployeeId && sourceTurma) {
+            onImport(selectedEmployeeId, sourceTurma as 'A' | 'B' | 'C' | 'D');
         }
     };
 
     if (!isOpen) return null;
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Mover Colaborador" scale={scale}>
+        <Modal isOpen={isOpen} onClose={onClose} title="Importar Colaborador" scale={scale}>
             <form onSubmit={handleSubmit} className="space-y-4 text-left">
                 <div>
-                    <label htmlFor="employee-select" className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Colaborador</label>
+                    <label htmlFor="turma-select" className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Turma de Origem</label>
                     <select
-                        id="employee-select"
-                        value={selectedEmployeeId}
-                        onChange={(e) => setSelectedEmployeeId(e.target.value)}
+                        id="turma-select"
+                        value={sourceTurma}
+                        onChange={(e) => setSourceTurma(e.target.value as 'A' | 'B' | 'C' | 'D')}
                         className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
                         required
                     >
-                        <option value="" disabled>Selecione um colaborador</option>
-                        {employees.map(emp => (
-                            <option key={emp.id} value={emp.id}>{emp.name}</option>
+                        <option value="" disabled>Selecione uma turma</option>
+                        {availableTurmas.map(turma => (
+                            <option key={turma} value={turma}>Turma {turma}</option>
                         ))}
                     </select>
                 </div>
                 <div>
-                    <label htmlFor="turma-select" className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Mover para a Turma</label>
-                    <select
-                        id="turma-select"
-                        value={destinationTurma}
-                        onChange={(e) => setDestinationTurma(e.target.value as 'A' | 'B' | 'C' | 'D')}
-                        className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
-                        required
-                    >
-                        <option value="" disabled>Selecione a turma de destino</option>
-                        {availableTurmas.map(turma => (
-                            <option key={turma} value={turma}>{turma}</option>
-                        ))}
-                    </select>
+                    <label htmlFor="employee-select" className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Colaborador</label>
+                    <div className="relative">
+                        <select
+                            id="employee-select"
+                            value={selectedEmployeeId}
+                            onChange={(e) => setSelectedEmployeeId(e.target.value)}
+                            className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white appearance-none pr-10"
+                            disabled={!sourceTurma || loadingEmployees || sourceEmployees.length === 0}
+                            required
+                        >
+                            <option value="" disabled>
+                                {loadingEmployees ? 'Carregando...' : (sourceEmployees.length === 0 && sourceTurma ? 'Nenhum colaborador encontrado' : 'Selecione um colaborador')}
+                            </option>
+                            {sourceEmployees.map(emp => (
+                                <option key={emp.id} value={emp.id}>{emp.name} (Mat: {emp.matricula})</option>
+                            ))}
+                        </select>
+                        {loadingEmployees && (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                <div className="w-5 h-5 border-2 border-primary-light border-t-primary rounded-full animate-spin"></div>
+                            </div>
+                        )}
+                    </div>
                 </div>
                 <div className="pt-2">
-                    <button type="submit" className="w-full py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition shadow-lg">
-                        MOVER
+                    <button type="submit" disabled={!selectedEmployeeId} className="w-full py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed">
+                        IMPORTAR PARA TURMA {currentTurma}
                     </button>
                 </div>
             </form>
@@ -1884,25 +1941,20 @@ const App: React.FC = () => {
         showNotification('Painel reorganizado alfabeticamente!', 'success');
     };
 
-    const handleMoveEmployee = async (employeeId: string, destinationTurma: 'A' | 'B' | 'C' | 'D') => {
+    const handleImportEmployee = async (employeeId: string, sourceTurma: 'A' | 'B' | 'C' | 'D') => {
         if (!isAdmin || !selectedTurma) {
             showNotification('Ação não permitida.', 'error');
             return;
         }
-        if (destinationTurma === selectedTurma) {
-            showNotification('A turma de destino deve ser diferente da atual.', 'error');
-            return;
-        }
-    
-        const employeeToMove = employees.find(e => e.id === employeeId);
-        if (!employeeToMove) {
-            showNotification('Funcionário não encontrado.', 'error');
+        if (sourceTurma === selectedTurma) {
+            showNotification('A turma de origem deve ser diferente da atual.', 'error');
             return;
         }
     
         if (isDemoMode) {
-            setEmployees(prev => prev.filter(e => e.id !== employeeId));
-            showNotification(`${employeeToMove.name} movido para a Turma ${destinationTurma} (DEMO).`, 'success');
+            const employeeToMove = { id: `demo-moved-${Date.now()}`, name: "Funcionário Importado", matricula: "0000", turno: "7H", time: null, assDss: false, bem: false, mal: false, absent: false };
+            setEmployees(prev => [...prev, employeeToMove].sort((a,b) => a.name.localeCompare(b.name)));
+            showNotification(`${employeeToMove.name} importado para a Turma ${selectedTurma} (DEMO).`, 'success');
             setActiveModal(ModalType.None);
             return;
         }
@@ -1912,17 +1964,18 @@ const App: React.FC = () => {
             return;
         }
     
-        const sourceCollectionName = `turma ${selectedTurma.toLowerCase()}`;
-        const destinationCollectionName = `turma ${destinationTurma.toLowerCase()}`;
+        const sourceCollectionName = `turma ${sourceTurma.toLowerCase()}`;
+        const destinationCollectionName = `turma ${selectedTurma.toLowerCase()}`;
         const sourceDocRef = doc(db, sourceCollectionName, employeeId);
     
         try {
             const docSnap = await getDoc(sourceDocRef);
             if (!docSnap.exists()) {
-                throw new Error("Documento do funcionário não encontrado na turma de origem.");
+                throw new Error("Documento do funcionário não foi encontrado na turma de origem.");
             }
             
             const employeeData = docSnap.data();
+            const employeeName = employeeData.name || 'O colaborador';
     
             const batch = writeBatch(db);
             
@@ -1933,13 +1986,13 @@ const App: React.FC = () => {
             
             await batch.commit();
     
-            showNotification(`${employeeToMove.name} foi movido para a Turma ${destinationTurma} com sucesso!`, 'success');
+            showNotification(`${employeeName} foi importado para a Turma ${selectedTurma} com sucesso!`, 'success');
             setActiveModal(ModalType.None);
     
         } catch (error) {
-            console.error("Error moving employee:", error);
+            console.error("Error importing employee:", error);
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
-            showNotification(`Falha ao mover funcionário: ${message}`, 'error');
+            showNotification(`Falha ao importar funcionário: ${message}`, 'error');
         }
     };
 
@@ -2123,7 +2176,7 @@ const App: React.FC = () => {
                 onReorganize={handleReorganize} 
                 onAddUser={() => setActiveModal(ModalType.AddUser)}
                 onSendReport={() => setActiveModal(ModalType.Report)}
-                onMoveUser={() => setActiveModal(ModalType.MoveEmployee)}
+                onImportUser={() => setActiveModal(ModalType.ImportEmployee)}
                 onEnterDemo={() => setActiveModal(ModalType.DemoPassword)}
                 onStartAdminTutorial={() => setIsAdminTutorialOpen(true)}
                 scale={modalScale}
@@ -2149,13 +2202,13 @@ const App: React.FC = () => {
                 matricula6H={specialMatricula}
             />
             
-            <MoveEmployeeModal
-                isOpen={activeModal === ModalType.MoveEmployee}
+            <ImportEmployeeModal
+                isOpen={activeModal === ModalType.ImportEmployee}
                 onClose={() => setActiveModal(ModalType.None)}
-                onMove={handleMoveEmployee}
-                employees={employees}
+                onImport={handleImportEmployee}
                 currentTurma={selectedTurma}
                 scale={modalScale}
+                showNotification={showNotification}
             />
 
             <InteractiveTutorial

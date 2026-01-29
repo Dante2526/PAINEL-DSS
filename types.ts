@@ -42,5 +42,5 @@ export enum ModalType {
   InvalidMatricula, // Added for 8-digit validation warning
   Tutorial,
   DemoPassword,
-  MoveEmployee,
+  ImportEmployee,
 }
