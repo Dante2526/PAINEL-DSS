@@ -355,10 +355,10 @@ const AddUserModal: React.FC<{
         e.preventDefault();
         if (name.trim()) {
             onAdd(name.trim(), matricula, addAnother);
-            setName('');
-            setMatricula('');
-            if (addAnother) {
-                nameInputRef.current?.focus();
+            // Don't clear fields if user wants to add another, but clear them if the add was successful (handled in parent)
+            if (!addAnother) {
+                 setName('');
+                 setMatricula('');
             }
         }
     };
@@ -858,6 +858,7 @@ const App: React.FC = () => {
 
     // State for safety confirmation (Generic for Mal, Absent, Turno, Delete)
     const [pendingEmployeeId, setPendingEmployeeId] = useState<string | null>(null);
+    const [existingUserInfo, setExistingUserInfo] = useState<{ name: string; turma: string } | null>(null);
 
     const [isAdminTutorialOpen, setIsAdminTutorialOpen] = useState(false);
 
@@ -1831,11 +1832,16 @@ const App: React.FC = () => {
             showNotification('Apenas administradores podem adicionar usuários.', 'error');
             return;
         }
-        
+    
+        if (!name.trim() || !matricula.trim()) {
+            showNotification('Nome e matrícula são obrigatórios.', 'error');
+            return;
+        }
+    
         const finalName = name.toUpperCase();
-
+    
         if (isDemoMode) {
-             const newUser: Employee = {
+            const newUser: Employee = {
                 id: `demo-new-${Date.now()}`,
                 name: finalName,
                 matricula,
@@ -1853,19 +1859,37 @@ const App: React.FC = () => {
             showNotification(`Usuário ${finalName} adicionado com sucesso (DEMO)!`, 'success');
             return;
         }
-
+    
         if (!db) {
             showNotification("A conexão com o banco de dados não está disponível.", "error");
             return;
         }
-        
+    
         try {
-            if (matricula) {
-                const existingUser = employees.find(e => e.matricula === matricula);
-                if(existingUser) {
-                    throw new Error('Matrícula já existe.');
+            // Cross-turma duplicate check
+            const turmas = ['A', 'B', 'C', 'D'];
+            for (const turma of turmas) {
+                const collectionName = `turma ${turma.toLowerCase()}`;
+                const collRef = collection(db, collectionName);
+                
+                const matriculaQuery = query(collRef, where("matricula", "==", matricula));
+                const nameQuery = query(collRef, where("name", "==", finalName));
+    
+                const [matriculaSnapshot, nameSnapshot] = await Promise.all([
+                    getDocs(matriculaQuery),
+                    getDocs(nameQuery)
+                ]);
+                
+                const foundDoc = matriculaSnapshot.docs[0] || nameSnapshot.docs[0];
+    
+                if (foundDoc) {
+                    setExistingUserInfo({ name: foundDoc.data().name, turma: turma });
+                    setActiveModal(ModalType.UserExistsWarning);
+                    return; // Stop execution
                 }
             }
+    
+            // If no duplicate is found, proceed to add the user
             const collectionName = `turma ${selectedTurma.toLowerCase()}`;
             await addDoc(collection(db, collectionName), {
                 name: finalName,
@@ -1877,13 +1901,15 @@ const App: React.FC = () => {
                 time: null,
                 turno: '7H'
             });
+    
             if (!addAnother) {
                 setActiveModal(ModalType.None);
             }
             showNotification(`Usuário ${finalName} adicionado com sucesso!`, 'success');
         } catch (error) {
+            console.error("Error adding user:", error);
             const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro.';
-            showNotification(errorMessage, 'error');
+            showNotification(`Falha ao adicionar usuário: ${errorMessage}`, 'error');
         }
     };
 
@@ -2223,6 +2249,34 @@ const App: React.FC = () => {
                 scale={modalScale}
                 showNotification={showNotification}
             />
+             {activeModal === ModalType.UserExistsWarning && existingUserInfo && (
+                <Modal
+                    isOpen={true}
+                    onClose={() => setActiveModal(ModalType.None)}
+                    title="Usuário Já Cadastrado"
+                    scale={modalScale}
+                >
+                    <div className="space-y-6 text-center p-2 flex flex-col items-center">
+                        <div className="mx-auto w-16 h-16 bg-orange/20 rounded-full flex items-center justify-center mb-2 text-orange">
+                            <UserIcon className="w-8 h-8" />
+                        </div>
+                        <p className="text-lg text-light-text dark:text-dark-text font-medium">
+                            O colaborador <strong className="text-primary">{existingUserInfo.name}</strong> já existe.
+                        </p>
+                        <p className="text-base text-light-text-secondary dark:text-dark-text-secondary -mt-2">
+                            Ele está atualmente cadastrado na <strong className="text-light-text dark:text-dark-text">Turma {existingUserInfo.turma}</strong>.
+                        </p>
+                        <div className="w-full pt-4">
+                            <button 
+                                onClick={() => setActiveModal(ModalType.None)} 
+                                className="w-full py-4 font-bold text-white bg-primary rounded-lg hover:bg-primary-dark shadow-lg transition-all"
+                            >
+                                ENTENDI
+                            </button>
+                        </div>
+                    </div>
+                </Modal>
+            )}
 
             <InteractiveTutorial
                 isOpen={activeModal === ModalType.Tutorial}

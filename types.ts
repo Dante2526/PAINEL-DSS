@@ -43,4 +43,5 @@ export enum ModalType {
   Tutorial,
   DemoPassword,
   ImportEmployee,
+  UserExistsWarning,
 }
