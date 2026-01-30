@@ -364,7 +364,7 @@ const AddUserModal: React.FC<{
     };
     
     const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setName(e.target.value.toUpperCase());
+        setName(e.target.value);
     };
 
     if (!isOpen) return null;
