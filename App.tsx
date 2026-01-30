@@ -439,27 +439,31 @@ const ReportModal: React.FC<{
 
         const totalEmployees = employees.length;
         const totalPresent = employees.filter(e => e.bem || e.assDss || e.mal).length;
-        // Grouping Pending and Absent together for the summary count
-        const totalPendingAbsent = employees.filter(e => !e.bem && !e.assDss && !e.mal).length;
+        const totalAbsent = employees.filter(e => e.absent).length;
+        const totalPending = employees.filter(e => !e.bem && !e.assDss && !e.mal && !e.absent).length;
 
         
         let report = `RESUMO GERAL\n`;
         report += `Total de Funcionários: ${totalEmployees}\n`;
         report += `Presentes (DSS + Bem/Mal): ${totalPresent}\n`;
-        report += `Pendentes / Ausentes: ${totalPendingAbsent}\n\n`;
+        report += `Ausentes: ${totalAbsent}\n`;
+        report += `Pendentes: ${totalPending}\n\n`;
 
         // Helper to generate section list
         const getStatusList = (team: Employee[]) => {
             const bem = team.filter(e => e.bem || e.assDss);
             const mal = team.filter(e => e.mal);
-            const pendingAbsent = team.filter(e => !e.bem && !e.assDss && !e.mal);
+            const absent = team.filter(e => e.absent);
+            const pending = team.filter(e => !e.bem && !e.assDss && !e.mal && !e.absent);
 
             let section = `STATUS: "ASS.DSS + ESTOU BEM"\n`;
             section += bem.length > 0 ? bem.map(e => `${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
             section += `\n\n"ESTOU MAL"\n`;
             section += mal.length > 0 ? mal.map(e => `${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
-            section += `\n\nPENDENTES / AUSENTES\n`;
-            section += pendingAbsent.length > 0 ? pendingAbsent.map(e => `${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
+            section += `\n\nAUSENTES\n`;
+            section += absent.length > 0 ? absent.map(e => `${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
+            section += `\n\nPENDENTES\n`;
+            section += pending.length > 0 ? pending.map(e => `${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
             
             return section;
         };
@@ -924,6 +928,9 @@ const App: React.FC = () => {
         return window.matchMedia('(prefers-color-scheme: dark)').matches;
     });
     
+    // Ref to prevent double "loaded" notifications
+    const initialLoadDoneRef = useRef(false);
+    
     // Effect to set Favicon to the Shield Icon (FALLBACK_LOGO)
     useEffect(() => {
         const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
@@ -1128,56 +1135,63 @@ const App: React.FC = () => {
         }
     };
 
+    // Effect for one-time global data fetching (like the employee lookup list)
+    useEffect(() => {
+        const fetchGlobalData = async () => {
+             if (!isConfigured || !db) return;
+             
+             try {
+                await signInAnonymously(auth!);
+                console.log("Signed in anonymously for global data fetch.");
+
+                if (allEmployeesForLookup.length === 0) {
+                    const turmas = ['a', 'b', 'c', 'd'];
+                    const promises = turmas.map(turma => getDocs(query(collection(db, `turma ${turma}`))));
+
+                    const snapshots = await Promise.all(promises);
+                    const allEmps: Pick<Employee, 'name' | 'matricula'>[] = [];
+                    snapshots.forEach(snapshot => {
+                        snapshot.forEach(doc => {
+                            const data = doc.data();
+                            if (data.name && data.matricula) {
+                                allEmps.push({ name: data.name, matricula: data.matricula });
+                            }
+                        });
+                    });
+
+                    const uniqueEmps = Array.from(new Map(allEmps.map(item => [item.matricula, item])).values());
+                    setAllEmployeesForLookup(uniqueEmps);
+                }
+             } catch(error) {
+                 console.error("Global data fetch or anonymous sign-in failed:", error);
+             }
+        }
+        fetchGlobalData();
+    }, []); // Empty dependency array ensures this runs only once
+
+    // Effect for fetching data specific to the selected Turma
     useEffect(() => {
         if (!selectedTurma) {
             setLoading(false);
             return;
         }
 
+        if (!isConfigured) {
+            showNotification("Modo de pré-visualização: Faça o deploy no Vercel para carregar dados ao vivo.", "error");
+            setLoading(false);
+            return;
+        }
+        
+        initialLoadDoneRef.current = false; // Reset notification flag when turma changes
+
         let unsubscribeEmployees = () => {};
         let unsubscribeAdministrators = () => {};
         let unsubscribeRegistrations = () => {};
 
-        const signInAndSetupListeners = async () => {
-             if (!isConfigured) {
-                showNotification("Modo de pré-visualização: Faça o deploy no Vercel para carregar dados ao vivo.", "error");
-                setLoading(false);
-                return;
-            }
+        const setupListeners = async () => {
+            if (!db) return;
             try {
-                if (!auth || !db) throw new Error("Firebase not initialized correctly.");
-                
-                await signInAnonymously(auth);
-                console.log("Signed in anonymously");
-
-                // Fetch all employees for name lookup if the list is empty
-                if (allEmployeesForLookup.length === 0 && db && isConfigured) {
-                    try {
-                        const turmas = ['a', 'b', 'c', 'd'];
-                        const promises = turmas.map(turma => {
-                            const collectionName = `turma ${turma}`;
-                            return getDocs(query(collection(db, collectionName)));
-                        });
-        
-                        const snapshots = await Promise.all(promises);
-                        const allEmps: Pick<Employee, 'name' | 'matricula'>[] = [];
-                        snapshots.forEach(snapshot => {
-                            snapshot.docs.forEach(doc => {
-                                const data = doc.data();
-                                if (data.name && data.matricula) {
-                                    allEmps.push({ name: data.name, matricula: data.matricula });
-                                }
-                            });
-                        });
-        
-                        const uniqueEmps = Array.from(new Map(allEmps.map(item => [item.matricula, item])).values());
-                        setAllEmployeesForLookup(uniqueEmps);
-                    } catch (error) {
-                        console.error("Failed to fetch all employees for lookup:", error);
-                    }
-                }
-
-                // Determina o nome da coleção do Firestore com base na turma selecionada ('turma a', 'turma b', etc.).
+                // Listeners for the specific turma
                 const collectionName = `turma ${selectedTurma.toLowerCase()}`;
                 const employeesQuery = query(collection(db, collectionName), orderBy("name", "asc"));
                 unsubscribeEmployees = onSnapshot(employeesQuery, (querySnapshot) => {
@@ -1198,77 +1212,57 @@ const App: React.FC = () => {
                         };
                     });
                     setEmployees(employeesData);
-                    if (loading) setLoading(false);
+                    
+                    if (!initialLoadDoneRef.current) {
+                        setLoading(false);
+                        showNotification(`Dados da Turma ${selectedTurma} carregados!`, 'success');
+                        initialLoadDoneRef.current = true;
+                    }
+
                 }, (error) => {
                     console.error("Error listening to employee updates:", error);
-                    if (!isDemoModeRef.current) {
-                        showNotification(`Erro ao carregar funcionários: ${error.message}`, "error");
-                    }
+                    if (!isDemoModeRef.current) showNotification(`Erro ao carregar funcionários: ${error.message}`, "error");
                     setLoading(false);
                 });
 
-                // Acessa a coleção de administradores, que é compartilhada entre as turmas.
                 const administratorsQuery = query(collection(db, 'administrators'));
                 unsubscribeAdministrators = onSnapshot(administratorsQuery, (querySnapshot) => {
                     if (isDemoModeRef.current) return;
-
-                    const adminsData: Administrator[] = querySnapshot.docs.map(doc => {
-                         const data = doc.data();
-                         return {
-                             id: doc.id,
-                             name: data.name || 'Admin',
-                             matricula: data.matricula || '',
-                             email: data.email || ''
-                         };
-                    });
+                    const adminsData: Administrator[] = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Administrator));
                     setAdministrators(adminsData);
-                }, (error) => {
-                    console.error("Error listening to admin updates:", error);
-                });
+                }, (error) => console.error("Error listening to admin updates:", error));
                 
                 const registrationCollectionName = `registrosDSS ${selectedTurma}`;
-                // Acessa os registros de DSS, agora específicos da turma.
                 const registrationsQuery = query(collection(db, registrationCollectionName));
                 unsubscribeRegistrations = onSnapshot(registrationsQuery, (querySnapshot) => {
                     if (isDemoModeRef.current) return;
-                    
                     const registrations = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() })) as ManualRegistration[];
-                    
                     const mainReg = registrations.find(r => r.TURNO === '7H');
                     const specialReg = registrations.find(r => r.TURNO === '6H');
-
                     setMainSubject(mainReg?.assunto || '');
                     setMainMatricula(mainReg?.matricula || '');
                     setMainResponsible(mainReg?.name || '');
-                    
                     setSpecialSubject(specialReg?.assunto || '');
                     setSpecialMatricula(specialReg?.matricula || '');
                     setSpecialResponsible(specialReg?.name || '');
                 });
 
-
-                if (!isDemoModeRef.current) {
-                    showNotification(`Dados da Turma ${selectedTurma} carregados!`, 'success');
-                }
-
             } catch (error) {
-                console.error("Authentication or listener setup failed:", error);
-                const message = error instanceof Error ? error.message : 'Verifique as credenciais e as regras de segurança do Firebase.';
-                if (!isDemoModeRef.current) {
-                    showNotification(`Falha na conexão: ${message}`, "error");
-                }
+                console.error("Listener setup failed:", error);
+                const message = error instanceof Error ? error.message : 'Verifique as credenciais.';
+                if (!isDemoModeRef.current) showNotification(`Falha na conexão: ${message}`, "error");
                 setLoading(false);
             }
         };
 
-        signInAndSetupListeners();
+        setupListeners();
 
         return () => {
             unsubscribeEmployees();
             unsubscribeAdministrators();
             unsubscribeRegistrations();
         };
-    }, [selectedTurma, showNotification, allEmployeesForLookup.length]);
+    }, [selectedTurma]);
 
     const setScale = useCallback((newScale: number, scrollX?: number, scrollY?: number) => {
         const viewport = viewportRef.current;
@@ -2330,12 +2324,19 @@ const App: React.FC = () => {
                         <p className="text-base text-light-text-secondary dark:text-dark-text-secondary -mt-2">
                             Ele está atualmente cadastrado na <strong className="text-light-text dark:text-dark-text">Turma {existingUserInfo.turma}</strong>.
                         </p>
-                        <div className="w-full pt-4">
+                        <div className="w-full pt-4 flex flex-col gap-3">
                             <button 
                                 onClick={() => setActiveModal(ModalType.None)} 
-                                className="w-full py-4 font-bold text-white bg-primary rounded-lg hover:bg-primary-dark shadow-lg transition-all"
+                                className="w-full py-3 font-bold text-light-text dark:text-white bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition"
                             >
                                 ENTENDI
+                            </button>
+                            <button
+                                onClick={() => setActiveModal(ModalType.ImportEmployee)}
+                                className="w-full py-4 font-bold text-white bg-teal-500 rounded-lg hover:bg-teal-600 shadow-lg transition-all flex items-center justify-center gap-2"
+                            >
+                                <ExchangeIcon className="w-5 h-5" />
+                                <span>IMPORTAR FUNCIONÁRIO</span>
                             </button>
                         </div>
                     </div>
