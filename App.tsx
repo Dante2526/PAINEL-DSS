@@ -517,7 +517,8 @@ const ReportModal: React.FC<{
     };
 
     const handleDownload = () => {
-        const blob = new Blob([reportText], { type: 'text/plain' });
+        // Add UTF-8 BOM to ensure correct encoding on all devices
+        const blob = new Blob(['\uFEFF' + reportText], { type: 'text/plain;charset=utf-8' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
