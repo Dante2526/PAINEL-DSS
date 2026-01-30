@@ -693,6 +693,10 @@ const ImportEmployeeModal: React.FC<{
     const [sourceEmployees, setSourceEmployees] = useState<Employee[]>([]);
     const [loadingEmployees, setLoadingEmployees] = useState(false);
     const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
 
     const turmas: ('A' | 'B' | 'C' | 'D')[] = ['A', 'B', 'C', 'D'];
     const availableTurmas = turmas.filter(t => t !== currentTurma);
@@ -703,6 +707,8 @@ const ImportEmployeeModal: React.FC<{
             setSourceEmployees([]);
             setSelectedEmployeeId('');
             setLoadingEmployees(false);
+            setSearchTerm('');
+            setIsDropdownOpen(false);
         }
     }, [isOpen]);
 
@@ -717,6 +723,7 @@ const ImportEmployeeModal: React.FC<{
             setLoadingEmployees(true);
             setSelectedEmployeeId('');
             setSourceEmployees([]);
+            setSearchTerm('');
 
             try {
                 const collectionName = `turma ${sourceTurma.toLowerCase()}`;
@@ -748,6 +755,39 @@ const ImportEmployeeModal: React.FC<{
 
         fetchEmployees();
     }, [sourceTurma, showNotification]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+    
+    const filteredEmployees = useMemo(() => {
+        if (!searchTerm) return sourceEmployees;
+        return sourceEmployees.filter(emp =>
+            emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            emp.matricula.includes(searchTerm)
+        );
+    }, [searchTerm, sourceEmployees]);
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value);
+        if (selectedEmployeeId) {
+             setSelectedEmployeeId(''); // Clear selection if user starts typing again
+        }
+    };
+
+    const handleSelectEmployee = (emp: Employee) => {
+        setSelectedEmployeeId(emp.id);
+        setSearchTerm(`${emp.name} (Mat: ${emp.matricula})`);
+        setIsDropdownOpen(false);
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -783,37 +823,49 @@ const ImportEmployeeModal: React.FC<{
                         </div>
                     </div>
                 </div>
-                <div>
-                    <label htmlFor="employee-select" className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Colaborador</label>
+
+                <div ref={dropdownRef} className="relative">
+                    <label htmlFor="employee-search" className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Colaborador</label>
                     <div className="relative">
-                        <select
-                            id="employee-select"
-                            value={selectedEmployeeId}
-                            onChange={(e) => setSelectedEmployeeId(e.target.value)}
-                            className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white appearance-none pr-12"
-                            disabled={!sourceTurma || loadingEmployees || sourceEmployees.length === 0}
-                            required
-                        >
-                            <option value="" disabled>
-                                {loadingEmployees ? 'Carregando...' : (sourceEmployees.length === 0 && sourceTurma ? 'Nenhum colaborador encontrado' : 'Selecione um colaborador')}
-                            </option>
-                            {sourceEmployees.map(emp => (
-                                <option key={emp.id} value={emp.id}>{emp.name} (Mat: {emp.matricula})</option>
-                            ))}
-                        </select>
-                        {loadingEmployees ? (
+                        <input
+                            id="employee-search"
+                            type="text"
+                            value={searchTerm}
+                            onChange={handleSearchChange}
+                            onFocus={() => setIsDropdownOpen(true)}
+                            placeholder={
+                                loadingEmployees ? "Carregando..." : 
+                                (sourceTurma ? "Pesquisar por nome ou matrícula..." : "Selecione uma turma primeiro")
+                            }
+                            className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
+                            disabled={!sourceTurma || loadingEmployees}
+                        />
+                         {loadingEmployees && (
                             <div className="absolute right-4 top-1/2 -translate-y-1/2">
                                 <div className="w-5 h-5 border-2 border-primary-light border-t-primary rounded-full animate-spin"></div>
                             </div>
-                        ) : (
-                             <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">
-                                <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                                </svg>
-                            </div>
                         )}
                     </div>
+                    {isDropdownOpen && sourceEmployees.length > 0 && (
+                        <div className="absolute z-10 w-full mt-1 bg-light-card dark:bg-dark-card border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                            {filteredEmployees.length > 0 ? (
+                                filteredEmployees.map(emp => (
+                                    <div
+                                        key={emp.id}
+                                        onClick={() => handleSelectEmployee(emp)}
+                                        className="p-3 hover:bg-light-bg dark:hover:bg-dark-bg-secondary cursor-pointer border-b border-gray-200 dark:border-gray-700 last:border-b-0"
+                                    >
+                                        <p className="font-semibold text-light-text dark:text-dark-text">{emp.name}</p>
+                                        <p className="text-xs text-light-text-secondary dark:text-dark-text-secondary">Matrícula: {emp.matricula}</p>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="p-3 text-center text-light-text-secondary dark:text-dark-text-secondary">Nenhum colaborador encontrado.</div>
+                            )}
+                        </div>
+                    )}
                 </div>
+
                 <div className="pt-2">
                     <button type="submit" disabled={!selectedEmployeeId} className="w-full py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed">
                         IMPORTAR PARA TURMA {currentTurma}
