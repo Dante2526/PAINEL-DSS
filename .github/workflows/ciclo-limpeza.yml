@@ -9,8 +9,8 @@ on:
         required: true
         default: 'A'
   schedule:
-    - cron: '0 4 * * *'  # 1h da manhã BRT (Limpeza A e B)
-    - cron: '0 19 * * *' # 16h da tarde BRT (Limpeza C e D)
+    - cron: '5 4 * * *'  # 1h05 da manhã BRT (Limpeza A e B)
+    - cron: '8 19 * * *' # 16h08 da tarde BRT (Limpeza C e D)
 
 jobs:
   limpar-dados-firebase:
