@@ -8,10 +8,10 @@ on:
         required: true
         default: 'A'
   schedule:
-    # 13:00 UTC = 10:00 BRT (Manhã - Turmas A e B)
-    - cron: '0 13 * * *'
-    # 00:00 UTC = 21:00 BRT (Noite - Turmas C e D)
-    - cron: '0 0 * * *'
+    # 13:12 UTC = 10:12 BRT (Manhã - Foge do pico das 10:00)
+    - cron: '12 13 * * *'
+    # 00:07 UTC = 21:07 BRT (Noite - Foge do pico das 21:00)
+    - cron: '7 0 * * *'
 
 jobs:
   enviar-relatorio-job:
