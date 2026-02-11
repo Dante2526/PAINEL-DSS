@@ -45,6 +45,7 @@ jobs:
           # 21h BRT = 00h UTC
           # 22h BRT = 01h UTC
           # 23h BRT = 02h UTC
+          # 00h BRT = 03h UTC (Meia-noite)
           CURRENT_HOUR_UTC=$(date +%H)
           CURRENT_HOUR_UTC=$((10#$CURRENT_HOUR_UTC)) # Remove zero à esquerda
           
@@ -52,9 +53,10 @@ jobs:
 
           # ====================================================================
           # BLOCO MANHÃ (10h BRT / 13h UTC) -> A e B
-          # Janela: Aceita 13, 14 ou 15 UTC (10h às 12h BRT)
+          # Janela: Aceita 13, 14, 15 ou 16 UTC (10h até 13h BRT)
+          # Margem de segurança aumentada para 4 horas
           # ====================================================================
-          if [[ "$CURRENT_HOUR_UTC" -eq 13 || "$CURRENT_HOUR_UTC" -eq 14 || "$CURRENT_HOUR_UTC" -eq 15 ]]; then
+          if [[ "$CURRENT_HOUR_UTC" -eq 13 || "$CURRENT_HOUR_UTC" -eq 14 || "$CURRENT_HOUR_UTC" -eq 15 || "$CURRENT_HOUR_UTC" -eq 16 ]]; then
             echo ">>> Horário identificado: MANHÃ (Turmas A/B)"
             
             # Lógica Turma A
@@ -84,9 +86,10 @@ jobs:
 
           # ====================================================================
           # BLOCO NOITE (21h BRT / 00h UTC) -> Turmas C e D
-          # Janela: Aceita 00, 01 ou 02 UTC (21h, 22h ou 23h BRT)
+          # Janela: Aceita 00, 01, 02 ou 03 UTC (21h até 00h BRT)
+          # Margem de segurança de 4 horas (Meia-noite inclusa)
           # ====================================================================
-          if [[ "$CURRENT_HOUR_UTC" -eq 0 || "$CURRENT_HOUR_UTC" -eq 1 || "$CURRENT_HOUR_UTC" -eq 2 ]]; then
+          if [[ "$CURRENT_HOUR_UTC" -eq 0 || "$CURRENT_HOUR_UTC" -eq 1 || "$CURRENT_HOUR_UTC" -eq 2 || "$CURRENT_HOUR_UTC" -eq 3 ]]; then
              echo ">>> Horário identificado: NOITE (Turmas C ou D)"
              
              # Ajuste de Fuso (-3h) para manter a data correta do plantão.
@@ -133,3 +136,5 @@ jobs:
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           TARGET_TEAM: ${{ steps.verificar-dia.outputs.target_team }}
+          # GARANTE QUE A TRAVA DE SEGURANÇA NO BANCO FUNCIONE:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
