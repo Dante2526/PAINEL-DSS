@@ -36,7 +36,7 @@ if (TARGET_TEAM === 'A') {
 }
 
 console.log(`>>> INICIANDO LIMPEZA PARA A TURMA: ${TARGET_TEAM} <<<`);
-console.log(`Coleções alvo: '${colEmployeesName}' e '${colRegistrosName}'`);
+console.log(`Coleções alvo: '${colEmployeesName}', '${colRegistrosName}' e controle de envios.`);
 
 // --- FUNÇÃO 1: Limpar a coleção de funcionários ---
 async function limparEmployees() {
@@ -85,12 +85,24 @@ async function limparRegistros() {
   console.log(`[OK] Apagados ${snapshot.size} registros antigos de "${colRegistrosName}".`);
 }
 
+// --- FUNÇÃO 3: Limpar o controle de envio (NOVA) ---
+async function limparControleEnvio() {
+  const docId = `status_envio_${TARGET_TEAM}`;
+  console.log(`Apagando trava de envio: controle_envios/${docId}...`);
+  
+  const docRef = db.collection('controle_envios').doc(docId);
+  await docRef.delete();
+  
+  console.log(`[OK] Trava de envio removida para a Turma ${TARGET_TEAM}.`);
+}
+
 // --- FUNÇÃO PRINCIPAL ---
 async function executarLimpezaCompleta() {
   try {
     await Promise.all([
       limparEmployees(),
-      limparRegistros()
+      limparRegistros(),
+      limparControleEnvio() // Adicionado aqui
     ]);
     console.log(">>> LIMPEZA CONCLUÍDA COM SUCESSO <<<");
 
