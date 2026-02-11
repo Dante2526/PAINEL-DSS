@@ -8,7 +8,7 @@ const EMAIL_USER = process.env.EMAIL_USER;
 const EMAIL_PASS = process.env.EMAIL_PASS;
 const EMAIL_TO = process.env.EMAIL_TO;
 const TARGET_TEAM = process.env.TARGET_TEAM;
-// 'A', 'B', 'C' ou 'D'
+const GITHUB_EVENT_NAME = process.env.GITHUB_EVENT_NAME || 'manual'; // 'schedule' ou 'workflow_dispatch'
 
 // Validação de segurança
 if (!TARGET_TEAM || (TARGET_TEAM !== 'A' && TARGET_TEAM !== 'B' && TARGET_TEAM !== 'C' && TARGET_TEAM !== 'D')) {
@@ -52,6 +52,47 @@ function limparTexto(texto) {
   if (!texto) return '';
   return texto.replace(/\s+/g, ' ').trim();
 }
+
+// --- FUNÇÃO PARA VERIFICAR SE JÁ FOI ENVIADO HOJE ---
+async function verificarEnvioDuplicado() {
+  const dataHoje = new Date().toLocaleDateString('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
+    day: '2-digit', month: '2-digit', year: 'numeric'
+  });
+  
+  // ID do documento de controle: ex "status_envio_C"
+  const docId = `status_envio_${TARGET_TEAM}`;
+  const docRef = db.collection('controle_envios').doc(docId);
+  const docSnap = await docRef.get();
+
+  if (docSnap.exists) {
+    const dataUltimoEnvio = docSnap.data().ultimo_envio;
+    
+    // Se hoje é igual ao último envio E estamos rodando no AUTOMÁTICO
+    if (dataUltimoEnvio === dataHoje && GITHUB_EVENT_NAME === 'schedule') {
+      console.log(`>>> AVISO: O relatório da Turma ${TARGET_TEAM} já foi enviado hoje (${dataHoje}).`);
+      console.log(">>> Como esta é uma execução AUTOMÁTICA, o envio será cancelado para evitar duplicidade.");
+      return true; // É duplicado, deve parar
+    }
+  }
+  return false; // Não é duplicado, pode seguir
+}
+
+// --- FUNÇÃO PARA REGISTRAR QUE FOI ENVIADO ---
+async function registrarEnvioSucesso() {
+  const dataHoje = new Date().toLocaleDateString('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
+    day: '2-digit', month: '2-digit', year: 'numeric'
+  });
+
+  const docId = `status_envio_${TARGET_TEAM}`;
+  await db.collection('controle_envios').doc(docId).set({
+    ultimo_envio: dataHoje,
+    atualizado_em: admin.firestore.FieldValue.serverTimestamp()
+  });
+  console.log(`>>> Controle de envio atualizado: Turma ${TARGET_TEAM} / ${dataHoje}`);
+}
+
 
 // --- 2. FUNÇÃO DE LER OS DADOS (O Relatório) ---
 async function gerarRelatorio() {
@@ -278,6 +319,8 @@ async function enviarEmail(htmlRelatorio) {
   try {
     await transporter.sendMail(mailOptions);
     console.log("E-mail enviado com sucesso!");
+    // REGISTRA NO BANCO QUE ENVIOU
+    await registrarEnvioSucesso();
   } catch (error) {
     console.error("Erro ao enviar e-mail:", error);
     process.exit(1);
@@ -288,6 +331,14 @@ async function enviarEmail(htmlRelatorio) {
 async function main() {
   console.log(`Iniciando script de relatório para TURMA ${TARGET_TEAM}...`);
   try {
+    // 1. Antes de gerar, verifica se já foi enviado (apenas se for Automático)
+    const jaEnviado = await verificarEnvioDuplicado();
+    if (jaEnviado) {
+      console.log("Processo abortado com sucesso.");
+      process.exit(0); // Sai sem erro, mas sem enviar
+    }
+
+    // 2. Se não foi enviado, gera e envia
     const htmlRelatorio = await gerarRelatorio();
     await enviarEmail(htmlRelatorio);
     console.log("Script de relatório concluído.");
