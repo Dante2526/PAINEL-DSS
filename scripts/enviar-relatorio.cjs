@@ -46,7 +46,7 @@ function limparTexto(texto) {
   return texto.replace(/\s+/g, ' ').trim();
 }
 
-// --- GERAÇÃO DA DATA VIRTUAL DO PLANTÃO ---
+// --- GERAÇÃO DA DATA VIRTUAL ---
 // Subtrai 6 horas do relógio para garantir que a madrugada pertença ao dia anterior
 function getDataDoPlantao() {
   const dataVirtual = new Date(new Date().getTime() - (6 * 60 * 60 * 1000));
@@ -66,7 +66,7 @@ async function verificarEnvioDuplicado() {
   if (docSnap.exists) {
     const dataUltimoEnvio = docSnap.data().ultimo_envio;
     if (dataUltimoEnvio === dataPlantao && GITHUB_EVENT_NAME === 'schedule') {
-      console.log(`>>> AVISO: O relatório da Turma ${TARGET_TEAM} já foi enviado no plantão de (${dataPlantao}).`);
+      console.log(`>>> AVISO: O relatório da Turma ${TARGET_TEAM} já foi enviado hoje (${dataPlantao}).`);
       return true; 
     }
   }
@@ -81,7 +81,7 @@ async function registrarEnvioSucesso() {
     ultimo_envio: dataPlantao,
     atualizado_em: admin.firestore.FieldValue.serverTimestamp()
   });
-  console.log(`>>> Controle de envio atualizado: Turma ${TARGET_TEAM} / Plantão: ${dataPlantao}`);
+  console.log(`>>> Controle de envio atualizado: Turma ${TARGET_TEAM} / ${dataPlantao}`);
 }
 
 // --- 2. LER DADOS (Resumido para o relatorio) ---
@@ -175,7 +175,10 @@ async function gerarRelatorio() {
 async function enviarEmail(htmlRelatorio) {
   console.log(`Enviando e-mail para ${EMAIL_TO}...`);
   const dataPlantao = getDataDoPlantao();
-  const novoAssunto = `Relatório DSS - TURMA ${TARGET_TEAM} (Plantão ${dataPlantao})`;
+  
+  // --- ASSUNTO DO EMAIL CORRIGIDO (Removido o "Plantão") ---
+  const novoAssunto = `Relatório DSS - TURMA ${TARGET_TEAM} (${dataPlantao})`;
+  
   const mailOptions = { from: EMAIL_USER, to: EMAIL_TO, subject: novoAssunto, html: htmlRelatorio };
   try {
     await transporter.sendMail(mailOptions);
