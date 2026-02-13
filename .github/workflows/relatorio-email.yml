@@ -42,10 +42,6 @@ jobs:
           
           CURRENT_SECONDS=$(date +%s)
           # Pega hora UTC.
-          # 21h BRT = 00h UTC
-          # 22h BRT = 01h UTC
-          # 23h BRT = 02h UTC
-          # 00h BRT = 03h UTC (Meia-noite)
           CURRENT_HOUR_UTC=$(date +%H)
           CURRENT_HOUR_UTC=$((10#$CURRENT_HOUR_UTC)) # Remove zero à esquerda
           
@@ -54,7 +50,6 @@ jobs:
           # ====================================================================
           # BLOCO MANHÃ (10h BRT / 13h UTC) -> A e B
           # Janela: Aceita 13, 14, 15 ou 16 UTC (10h até 13h BRT)
-          # Margem de segurança aumentada para 4 horas
           # ====================================================================
           if [[ "$CURRENT_HOUR_UTC" -eq 13 || "$CURRENT_HOUR_UTC" -eq 14 || "$CURRENT_HOUR_UTC" -eq 15 || "$CURRENT_HOUR_UTC" -eq 16 ]]; then
             echo ">>> Horário identificado: MANHÃ (Turmas A/B)"
@@ -87,18 +82,18 @@ jobs:
           # ====================================================================
           # BLOCO NOITE (21h BRT / 00h UTC) -> Turmas C e D
           # Janela: Aceita 00, 01, 02 ou 03 UTC (21h até 00h BRT)
-          # Margem de segurança de 4 horas (Meia-noite inclusa)
           # ====================================================================
           if [[ "$CURRENT_HOUR_UTC" -eq 0 || "$CURRENT_HOUR_UTC" -eq 1 || "$CURRENT_HOUR_UTC" -eq 2 || "$CURRENT_HOUR_UTC" -eq 3 ]]; then
              echo ">>> Horário identificado: NOITE (Turmas C ou D)"
              
-             # Ajuste de Fuso (-3h) para manter a data correta do plantão.
-             SECONDS_BRT=$((CURRENT_SECONDS - 10800))
+             # CORREÇÃO DO EFEITO CINDERELA: Subtrai 12 horas (43200 segundos)
+             # Isso garante que a madrugada seja calculada como o dia anterior.
+             SECONDS_VIRTUAL=$((CURRENT_SECONDS - 43200))
              
              # >>> VERIFICAÇÃO TURMA C <<<
              ANCHOR_C="2026-01-16"
              SEC_C=$(date -d "$ANCHOR_C" +%s)
-             DIFF_C=$(((SECONDS_BRT - SEC_C) / 86400))
+             DIFF_C=$(((SECONDS_VIRTUAL - SEC_C) / 86400))
              CYCLE_C=$(( (DIFF_C % 4 + 4) % 4 ))
 
              if [[ $CYCLE_C -eq 0 || $CYCLE_C -eq 1 ]]; then
@@ -110,7 +105,7 @@ jobs:
              # >>> VERIFICAÇÃO TURMA D <<<
              ANCHOR_D="2026-01-26"
              SEC_D=$(date -d "$ANCHOR_D" +%s)
-             DIFF_D=$(((SECONDS_BRT - SEC_D) / 86400))
+             DIFF_D=$(((SECONDS_VIRTUAL - SEC_D) / 86400))
              CYCLE_D=$(( (DIFF_D % 4 + 4) % 4 ))
 
              if [[ $CYCLE_D -eq 0 || $CYCLE_D -eq 1 ]]; then
@@ -120,7 +115,7 @@ jobs:
              fi
           fi
 
-          echo "Nenhuma turma no ciclo de hoje/horário (UTC: $CURRENT_HOUR_UTC)."
+          echo "Nenhuma turma no ciclo de hoje/horário."
           echo "should_run=false" >> $GITHUB_OUTPUT
 
       - name: Instalar dependências
@@ -136,5 +131,4 @@ jobs:
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           TARGET_TEAM: ${{ steps.verificar-dia.outputs.target_team }}
-          # GARANTE QUE A TRAVA DE SEGURANÇA NO BANCO FUNCIONE:
           GITHUB_EVENT_NAME: ${{ github.event_name }}
