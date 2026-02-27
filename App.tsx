@@ -8,6 +8,7 @@ import Notification from './components/Notification';
 import Footer from './components/Footer';
 import InteractiveTutorial, { TutorialStep } from './components/InteractiveTutorial';
 import TurmaSelectionScreen from './components/TurmaSelectionScreen';
+import LayoutSelectionScreen from './components/LayoutSelectionScreen';
 import { SubjectIcon, UserIcon, EraserIcon, FileTextIcon, SortIcon, UserPlusIcon, ShiftIcon, AbsentIcon, TrashIcon, ExchangeIcon, MousePointerIcon, InfoIcon, HelpIcon } from './components/icons';
 import { Employee, StatusType, ModalType, ManualRegistration, Administrator } from './types';
 import type { NotificationData } from './components/Notification';
@@ -890,6 +891,15 @@ const App: React.FC = () => {
         }
         return null;
     });
+
+    const [selectedLayout, setSelectedLayout] = useState<'standard' | 'custom' | null>(() => {
+        const savedLayout = localStorage.getItem('selectedLayout');
+        if (savedLayout === 'standard' || savedLayout === 'custom') {
+            return savedLayout as 'standard' | 'custom';
+        }
+        return null;
+    });
+
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [administrators, setAdministrators] = useState<Administrator[]>([]);
     const [allEmployeesForLookup, setAllEmployeesForLookup] = useState<(Pick<Employee, 'name' | 'matricula'>)[]>([]);
@@ -1271,7 +1281,14 @@ const App: React.FC = () => {
         const contentWrapper = contentWrapperRef.current;
         if (!viewport || !scalableContainer || !contentWrapper) return;
 
-        const finalScale = Math.max(0.2, Math.min(newScale, 2.0));
+        // Calcular escala mínima com a LARGURA ORIGINAL INTOCADA (scalableContainerRef)
+        // Isso impede a "Tremedeira Matemática" descrita, pois a raiz nunca encolhe.
+        let minScale = 0.2;
+        if (scalableContainer.offsetWidth > 0) {
+            minScale = Math.min(1.0, window.innerWidth / scalableContainer.offsetWidth);
+        }
+
+        const finalScale = Math.max(minScale, Math.min(newScale, 2.0));
         scaleStateRef.current.currentScale = finalScale;
 
         scalableContainer.style.transform = `scale(${finalScale})`;
@@ -1335,7 +1352,20 @@ const App: React.FC = () => {
                 e.preventDefault();
                 const currentDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
                 const scaleRatio = currentDistance / initialDistance;
-                const newScale = initialScale * scaleRatio;
+                let newScale = initialScale * scaleRatio;
+
+                let minScale = 0.2;
+                const scalableContainer = scalableContainerRef.current;
+                if (scalableContainer && scalableContainer.offsetWidth > 0) {
+                    minScale = Math.min(1.0, window.innerWidth / scalableContainer.offsetWidth);
+                }
+
+                if (newScale < minScale) {
+                    newScale = minScale;
+                    if (scaleStateRef.current.currentScale === minScale) {
+                        return; // Anti-Shake: Aborta a continuação matemática do offsetX se já estivermos travados
+                    }
+                }
 
                 const originX = touchCenter.x - viewport.getBoundingClientRect().left;
                 const originY = touchCenter.y - viewport.getBoundingClientRect().top;
@@ -1355,7 +1385,20 @@ const App: React.FC = () => {
                 e.preventDefault();
                 const zoomIntensity = 0.002;
                 const delta = -e.deltaY * zoomIntensity;
-                const newScale = scaleStateRef.current.currentScale + delta * scaleStateRef.current.currentScale;
+                let newScale = scaleStateRef.current.currentScale + delta * scaleStateRef.current.currentScale;
+
+                let minScale = 0.2;
+                const scalableContainer = scalableContainerRef.current;
+                if (scalableContainer && scalableContainer.offsetWidth > 0) {
+                    minScale = Math.min(1.0, window.innerWidth / scalableContainer.offsetWidth);
+                }
+
+                if (newScale < minScale) {
+                    newScale = minScale;
+                    if (scaleStateRef.current.currentScale === minScale) {
+                        return; // Faz com que rolar o scroll no limite para trás ignore calclos de offset fantasmas
+                    }
+                }
 
                 const originX = e.clientX - viewport.getBoundingClientRect().left;
                 const originY = e.clientY - viewport.getBoundingClientRect().top;
@@ -2101,8 +2144,16 @@ const App: React.FC = () => {
         setSelectedTurma(turma);
     };
 
+    const handleSelectLayout = (layout: 'standard' | 'custom') => {
+        localStorage.setItem('selectedLayout', layout);
+        setSelectedLayout(layout);
+        setLoading(true);
+    };
+
     const handleReturnToSelection = () => {
         localStorage.removeItem('selectedTurma');
+        localStorage.removeItem('selectedLayout');
+        setSelectedLayout(null);
         setSelectedTurma(null);
         setEmployees([]);
         setIsAdmin(false); // Reseta o estado de admin ao trocar de turma
@@ -2157,36 +2208,47 @@ const App: React.FC = () => {
     const handleFastScroll = (letter: string) => {
         if (!viewportRef.current) return;
 
-        const COLUMNS = 3;
-        const HEADER_HEIGHT = 56; // Example: 40px text + 16px bottom margin
-        const CARD_HEIGHT = 200;  // approximate card height including gap (176 box + 24 gap)
-        const NAVBAR_HEIGHT = 0;  // Header is inside the scalable area, top padding logic might differ, assuming 0 internal extra offset
+        const barElement = document.getElementById('fast-scroller-bar');
+        const groupElement = document.getElementById(`letter-group-${letter}`);
 
-        let totalOffset = NAVBAR_HEIGHT;
-        let found = false;
+        if (groupElement) {
+            const viewportRect = viewportRef.current.getBoundingClientRect();
+            const groupRect = groupElement.getBoundingClientRect();
 
-        for (let i = 0; i < groupedMainTeam.length; i++) {
-            const section = groupedMainTeam[i];
+            // Pegar a escala nativa contida no state do app (usada para o Zoom Pinch)
+            const scale = scaleStateRef.current.currentScale;
 
-            if (section.letter === letter) {
-                found = true;
-                break;
+            // Se tivermos a barra lateral, calculamos o centro dela para alinhar o cartão
+            let targetVisualOffset = 80 * scale; // Fallback para logo abaixo do header
+
+            if (barElement) {
+                const barRect = barElement.getBoundingClientRect();
+                const barCenterY = barRect.top - viewportRect.top + (barRect.height / 2);
+
+                // Tentamos pegar o primeiro card dentro do grupo para centralizar por ele, não pela label da letra
+                const firstCard = groupElement.querySelector('.card-optimized') || groupElement.querySelector('div[class*="w-[870px]"]');
+                const cardHeight = firstCard ? firstCard.getBoundingClientRect().height : 300 * scale;
+
+                // Alinhamos o topo do grupo de forma que o centro do primeiro card 
+                // bata com o centro vertical da barra de letras
+                // Mas precisamos compensar o título do grupo (que tem aprox 80px)
+                const groupTitleHeight = 80 * scale;
+                targetVisualOffset = barCenterY - (cardHeight / 2) - groupTitleHeight;
             }
 
-            totalOffset += HEADER_HEIGHT;
-            const rowsCount = Math.ceil(section.employees.length / COLUMNS);
-            totalOffset += (rowsCount * CARD_HEIGHT);
-        }
+            // Distância visual atual entre o topo do elemento e o topo visível do viewport de rolagem
+            const currentRelativeToViewport = groupRect.top - viewportRect.top;
 
-        if (found) {
-            // Apply scale consideration if we want it pixel-perfect within scalabe-container
-            // But since viewport scrolls natively based on scaled content, 
-            // The scroll position scales with the content. We might just scroll into view the DOM element directly:
-            const element = document.getElementById(`letter-group-${letter}`);
-            if (element) {
-                // Using standard DOM API is much safer with nested transforms
-                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
+            // Quanto pixels de scroll ainda precisamos para empurrar a borda superior do grupo
+            // até a posição do `targetVisualOffset`
+            const scrollAmount = currentRelativeToViewport - targetVisualOffset;
+
+            const targetScrollTop = viewportRef.current.scrollTop + scrollAmount;
+
+            viewportRef.current.scrollTo({
+                top: targetScrollTop,
+                behavior: 'smooth'
+            });
         }
     };
 
@@ -2239,6 +2301,18 @@ const App: React.FC = () => {
         );
     }
 
+    if (!selectedLayout) {
+        return (
+            <LayoutSelectionScreen
+                onSelect={handleSelectLayout}
+                isDarkMode={isDarkMode}
+                onToggleDarkMode={handleToggleDarkMode}
+                onBack={() => setSelectedTurma(null)}
+                selecionadaTurma={selectedTurma}
+            />
+        );
+    }
+
     return (
         <div className="bg-light-bg-secondary dark:bg-dark-bg min-h-screen text-light-text dark:text-dark-text transition-colors">
             <div ref={viewportRef} className={`viewport fixed inset-0 bg-light-bg-secondary dark:bg-dark-bg`}>
@@ -2275,53 +2349,77 @@ const App: React.FC = () => {
 
                                 <div className="flex gap-6 pr-12 relative w-fit">
                                     <div className="flex flex-col gap-8 w-fit shrink-0 relative pb-[50vh]">
-                                        {groupedMainTeam.map((group) => (
-                                            <div key={group.letter} id={`letter-group-${group.letter}`} className="flex flex-col w-fit">
-                                                <div className="sticky top-[80px] z-[5] bg-light-bg-secondary/90 dark:bg-dark-bg/90 backdrop-blur-md py-4 mb-4 font-bold text-4xl text-light-text-secondary dark:text-dark-text-secondary border-b-2 border-primary/20 flex items-center gap-4 shadow-sm w-[2660px]">
-                                                    <div className="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center text-2xl shadow-md shrink-0">
-                                                        {group.letter}
+                                        {/* RENDERIZAÇÃO BASEADA NO LAYOUT SELECIONADO */}
+                                        {selectedLayout === 'standard' ? (
+                                            <div className="flex flex-wrap gap-[24px] w-max max-w-[2660px]">
+                                                {mainTeam.map((emp, index) => (
+                                                    <div key={emp.id} className="w-[870px]">
+                                                        <EmployeeCard
+                                                            employee={emp}
+                                                            onStatusChange={handleStatusChange}
+                                                            onToggleSpecialTeam={handleToggleSpecialTeam}
+                                                            isTogglingSpecialTeam={togglingSpecialTeamId === emp.id}
+                                                            isAdmin={isAdmin}
+                                                            onDelete={handleDeleteUser}
+                                                            onTimeChange={handleTimeUpdate}
+                                                            onMatriculaChange={handleMatriculaUpdate}
+                                                            domId={index === 0 ? "tutorial-first-card" : undefined}
+                                                        />
                                                     </div>
-                                                    <span className="opacity-50 text-xl font-normal ml-auto">{group.employees.length} colaboradores</span>
-                                                </div>
-                                                <div className="grid grid-cols-3 gap-[24px] w-[2660px]">
-                                                    {group.employees.map((emp, index) => (
-                                                        <div key={emp.id} className="w-[870px]">
-                                                            <EmployeeCard
-                                                                employee={emp}
-                                                                onStatusChange={handleStatusChange}
-                                                                onToggleSpecialTeam={handleToggleSpecialTeam}
-                                                                isTogglingSpecialTeam={togglingSpecialTeamId === emp.id}
-                                                                isAdmin={isAdmin}
-                                                                onDelete={handleDeleteUser}
-                                                                onTimeChange={handleTimeUpdate}
-                                                                onMatriculaChange={handleMatriculaUpdate}
-                                                                domId={index === 0 && group.letter === groupedMainTeam[0]?.letter ? "tutorial-first-card" : undefined}
-                                                            />
-                                                        </div>
-                                                    ))}
-                                                </div>
+                                                ))}
                                             </div>
-                                        ))}
+                                        ) : (
+                                            /* RENDERIZAÇÃO LAYOUT 'CUSTOM' (ALFABÉTICO) */
+                                            groupedMainTeam.map((group) => (
+                                                <div key={group.letter} id={`letter-group-${group.letter}`} className="flex flex-col w-fit">
+                                                    <div className="bg-light-bg-secondary/90 dark:bg-dark-bg/90 backdrop-blur-md py-4 mb-4 font-bold text-4xl text-light-text-secondary dark:text-dark-text-secondary border-b-2 border-primary/20 flex items-center gap-4 shadow-sm w-full">
+                                                        <div className="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center text-2xl shadow-md shrink-0">
+                                                            {group.letter}
+                                                        </div>
+                                                        <span className="opacity-50 text-xl font-normal ml-auto">{group.employees.length} colaboradores</span>
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-[24px] w-max max-w-[2660px]">
+                                                        {group.employees.map((emp, index) => (
+                                                            <div key={emp.id} className="w-[870px]">
+                                                                <EmployeeCard
+                                                                    employee={emp}
+                                                                    onStatusChange={handleStatusChange}
+                                                                    onToggleSpecialTeam={handleToggleSpecialTeam}
+                                                                    isTogglingSpecialTeam={togglingSpecialTeamId === emp.id}
+                                                                    isAdmin={isAdmin}
+                                                                    onDelete={handleDeleteUser}
+                                                                    onTimeChange={handleTimeUpdate}
+                                                                    onMatriculaChange={handleMatriculaUpdate}
+                                                                    domId={index === 0 && group.letter === groupedMainTeam[0]?.letter ? "tutorial-first-card" : undefined}
+                                                                />
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ))
+                                        )}
 
-                                        {groupedMainTeam.length === 0 && (
+                                        {mainTeam.length === 0 && (
                                             <div className="w-full text-center py-20 text-light-text-secondary dark:text-dark-text-secondary text-xl font-medium">
                                                 Nenhum colaborador encontrado na Turma {selectedTurma}.
                                             </div>
                                         )}
                                     </div>
 
-                                    {/* ALPHABETICAL FAST SCROLLER */}
-                                    <div className="sticky top-[100px] h-fit max-h-[80vh] flex flex-col gap-1 z-10 p-2 bg-light-card/80 dark:bg-dark-card/80 backdrop-blur-xl rounded-full shadow-lg border border-white/20 dark:border-white/5 ml-4 self-start">
-                                        {groupedMainTeam.map(group => (
-                                            <div
-                                                key={`nav-${group.letter}`}
-                                                onClick={() => handleFastScroll(group.letter)}
-                                                className="w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold cursor-pointer transition-all bg-transparent text-light-text-secondary dark:text-dark-text-secondary hover:bg-primary hover:text-white hover:scale-110 active:scale-95 shadow-sm"
-                                            >
-                                                {group.letter}
-                                            </div>
-                                        ))}
-                                    </div>
+                                    {/* ALPHABETICAL FAST SCROLLER (Somente no layout custom) */}
+                                    {selectedLayout === 'custom' && (
+                                        <div id="fast-scroller-bar" className="sticky top-[100px] h-fit max-h-[80vh] flex flex-col gap-1 z-10 p-2 bg-light-card/80 dark:bg-dark-card/80 backdrop-blur-xl rounded-full shadow-lg border border-white/20 dark:border-white/5 ml-4 self-start">
+                                            {groupedMainTeam.map(group => (
+                                                <div
+                                                    key={`nav-${group.letter}`}
+                                                    onClick={() => handleFastScroll(group.letter)}
+                                                    className="w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold cursor-pointer transition-all bg-transparent text-light-text-secondary dark:text-dark-text-secondary hover:bg-primary hover:text-white hover:scale-110 active:scale-95 shadow-sm"
+                                                >
+                                                    {group.letter}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
 
                                 </div>
                             </div>
