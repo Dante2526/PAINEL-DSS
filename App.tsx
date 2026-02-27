@@ -13,10 +13,10 @@ import { Employee, StatusType, ModalType, ManualRegistration, Administrator } fr
 import type { NotificationData } from './components/Notification';
 import { db, auth, isConfigured } from './firebase';
 import { FALLBACK_LOGO } from './components/logoConstants';
-import { 
-    collection, 
-    query, 
-    orderBy, 
+import {
+    collection,
+    query,
+    orderBy,
     onSnapshot,
     doc,
     updateDoc,
@@ -47,7 +47,7 @@ const tutorialSteps: TutorialStep[] = [
         title: 'Controle de Zoom',
         content: 'O painel se adapta a você! Use o movimento de pinça (dois dedos na tela) para dar zoom e ajustar o tamanho ideal para sua visualização.',
         disableHorizontalScroll: true,
-        noHighlight: true 
+        noHighlight: true
     },
     {
         targetId: 'tutorial-manual-register-bar',
@@ -63,13 +63,13 @@ const tutorialSteps: TutorialStep[] = [
         targetId: 'tutorial-card-actions',
         title: 'Botões de Ação',
         content: 'Use "TURNO 6H" para mover o colaborador para uma coluna somente para esse turno. Use "AUSENTE" para marcar que o colaborador faltou. Use "DELETAR" para remover permanentemente o usuário (Aparece somente para-ADM).',
-        scrollTargetId: 'tutorial-first-card' 
+        scrollTargetId: 'tutorial-first-card'
     },
     {
         targetId: 'tutorial-card-time',
         title: 'Registro de Horário',
         content: 'Aqui fica registrado o momento exato em que o colaborador assinou sua DSS',
-        scrollTargetId: 'tutorial-first-card' 
+        scrollTargetId: 'tutorial-first-card'
     },
     {
         targetId: 'tutorial-special-demo-area',
@@ -80,7 +80,7 @@ const tutorialSteps: TutorialStep[] = [
         targetId: 'tutorial-return-turn-btn',
         title: 'Retornar ao Turno Normal',
         content: 'Ao Clicar neste botão na coluna do horário especial, o colaborador é movido de volta para o turno normal.',
-        scrollTargetId: 'tutorial-special-demo-area' 
+        scrollTargetId: 'tutorial-special-demo-area'
     },
     {
         targetId: 'tutorial-change-turma-btn',
@@ -155,7 +155,7 @@ const ManualRegisterSection: React.FC<{
         if (!matricula) return '';
         const admin = administrators.find(a => a.matricula === matricula);
         if (admin) return admin.name;
-        
+
         const employee = employeesForLookup.find(e => e.matricula === matricula);
         return employee ? employee.name : '';
     }, [matricula, employeesForLookup, administrators]);
@@ -166,33 +166,33 @@ const ManualRegisterSection: React.FC<{
 
     return (
         <div className="w-full bg-light-card dark:bg-dark-card rounded-3xl p-6 shadow-lg mb-8 shrink-0">
-             <div id="tutorial-manual-register-bar" className="flex gap-4 items-center w-fit">
+            <div id="tutorial-manual-register-bar" className="flex gap-4 items-center w-fit">
                 <div className="relative w-[600px]">
                     <SubjectIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input 
-                        type="text" 
+                    <input
+                        type="text"
                         value={subject}
                         onChange={(e) => onSubjectChange(e.target.value)}
-                        placeholder="ASSUNTO DO DSS" 
+                        placeholder="ASSUNTO DO DSS"
                         className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition uppercase"
                         autoCapitalize="characters"
                     />
                 </div>
-                 <div className="relative w-[180px]">
+                <div className="relative w-[180px]">
                     <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                     <input 
-                        type="text" 
+                    <input
+                        type="text"
                         value={matricula}
                         onChange={handleMatriculaChange}
-                        placeholder="Matrícula" 
+                        placeholder="Matrícula"
                         className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
                         inputMode="numeric"
                         pattern="[0-9]*"
-                     />
+                    />
                 </div>
                 <div className="relative w-[250px]">
-                    <input 
-                        type="text" 
+                    <input
+                        type="text"
                         value={foundName}
                         readOnly
                         placeholder="Nome do Responsável"
@@ -260,7 +260,7 @@ const AdminOptionsModal: React.FC<{
     scale: number;
 }> = ({ isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onImportUser, onEnterDemo, onStartAdminTutorial, scale }) => {
     if (!isOpen) return null;
-    
+
     const AdminButton: React.FC<{ id: string; onClick: () => void; className: string; icon: React.ReactNode; label: string }> = ({ id, onClick, className, icon, label }) => (
         <button id={id} onClick={onClick} className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 transition shadow-lg ${className}`}>
             {icon}
@@ -309,7 +309,7 @@ const AdminOptionsModal: React.FC<{
                     />
                 </div>
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-2 flex flex-col gap-3">
-                     <button 
+                    <button
                         id="admin-tutorial-btn"
                         onClick={onStartAdminTutorial}
                         className="w-full p-3 bg-cyan-500 text-white rounded-xl flex items-center justify-center gap-2 hover:bg-cyan-600 transition shadow-lg"
@@ -317,7 +317,7 @@ const AdminOptionsModal: React.FC<{
                         <HelpIcon className="w-6 h-6" />
                         <span className="font-bold text-sm">AJUDA / TUTORIAL</span>
                     </button>
-                    <button 
+                    <button
                         id="admin-demo-btn"
                         onClick={onEnterDemo}
                         className="w-full p-3 bg-gray-700 text-white rounded-xl flex items-center justify-center gap-2 hover:bg-gray-800 transition shadow-lg border border-gray-500"
@@ -357,12 +357,12 @@ const AddUserModal: React.FC<{
             onAdd(name.trim(), matricula, addAnother);
             // Don't clear fields if user wants to add another, but clear them if the add was successful (handled in parent)
             if (!addAnother) {
-                 setName('');
-                 setMatricula('');
+                setName('');
+                setMatricula('');
             }
         }
     };
-    
+
     const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setName(e.target.value);
     };
@@ -386,7 +386,7 @@ const AddUserModal: React.FC<{
                         *Coloque apenas o primeiro nome e o último sobrenome
                     </p>
                 </div>
-                 <input
+                <input
                     type="text"
                     placeholder="Matrícula"
                     value={matricula}
@@ -442,7 +442,7 @@ const ReportModal: React.FC<{
         const totalAbsent = employees.filter(e => e.absent).length;
         const totalPending = employees.filter(e => !e.bem && !e.assDss && !e.mal && !e.absent).length;
 
-        
+
         let report = `RESUMO GERAL\n`;
         report += `Total de Funcionários: ${totalEmployees}\n`;
         report += `Presentes (DSS + Bem/Mal): ${totalPresent}\n`;
@@ -464,7 +464,7 @@ const ReportModal: React.FC<{
             section += absent.length > 0 ? absent.map(e => `${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
             section += `\n\nPENDENTES\n`;
             section += pending.length > 0 ? pending.map(e => `${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
-            
+
             return section;
         };
 
@@ -483,7 +483,7 @@ const ReportModal: React.FC<{
             // Using a new line for Responsible to be clear, including Matricula
             report += `\nResponsável: ${responsible7H} (Matrícula: ${matricula7H || '---'})\n`;
         } else {
-             report += `\n`;
+            report += `\n`;
         }
 
         report += `\nREGISTROS DSS (TURNO 6H)\n`;
@@ -491,7 +491,7 @@ const ReportModal: React.FC<{
         if (responsible6H) {
             report += `\nResponsável: ${responsible6H} (Matrícula: ${matricula6H || '---'})\n`;
         } else {
-             report += `\n`;
+            report += `\n`;
         }
 
         return report;
@@ -580,7 +580,7 @@ const ReportModal: React.FC<{
                         <span className="text-xl font-bold text-green-600 dark:text-green-400">{visualStats.present}</span>
                         <span className="text-[8px] uppercase text-gray-500 font-bold tracking-tight">Presentes</span>
                     </div>
-                     <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-lg p-2 flex flex-col items-center justify-center shadow-sm">
+                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-lg p-2 flex flex-col items-center justify-center shadow-sm">
                         <span className="text-xl font-bold text-red-600 dark:text-red-400">{visualStats.malCount}</span>
                         <span className="text-[8px] uppercase text-red-500/80 font-bold tracking-tight">Mal</span>
                     </div>
@@ -612,7 +612,7 @@ const ReportModal: React.FC<{
                                 </div>
                             </div>
                         )}
-                         {visualStats.absentList.length > 0 && (
+                        {visualStats.absentList.length > 0 && (
                             <div>
                                 <div className="flex items-center gap-1.5 mb-1.5 text-amber-600 dark:text-amber-400 font-bold text-[10px] uppercase tracking-wide">
                                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
@@ -632,14 +632,14 @@ const ReportModal: React.FC<{
             </div>
 
             <div className="grid grid-cols-2 gap-3 pt-2">
-                <button 
+                <button
                     onClick={handleCopy}
                     className="w-full py-3 bg-blue-500 text-white font-bold rounded-xl hover:bg-blue-600 transition flex items-center justify-center gap-2 shadow-md text-sm"
                 >
                     <FileTextIcon className="w-4 h-4" />
                     COPIAR
                 </button>
-                <button 
+                <button
                     onClick={handleDownload}
                     className="w-full py-3 bg-gray-700 text-white font-bold rounded-xl hover:bg-gray-800 transition flex items-center justify-center gap-2 shadow-md text-sm"
                 >
@@ -734,7 +734,7 @@ const ImportEmployeeModal: React.FC<{
                 const collectionName = `turma ${sourceTurma.toLowerCase()}`;
                 const q = query(collection(db, collectionName), orderBy("name", "asc"));
                 const querySnapshot = await getDocs(q);
-                
+
                 const employeesData: Employee[] = querySnapshot.docs.map(doc => {
                     const data = doc.data();
                     return {
@@ -772,7 +772,7 @@ const ImportEmployeeModal: React.FC<{
             document.removeEventListener('mousedown', handleClickOutside);
         };
     }, []);
-    
+
     const filteredEmployees = useMemo(() => {
         if (!searchTerm) return sourceEmployees;
         return sourceEmployees.filter(emp =>
@@ -784,7 +784,7 @@ const ImportEmployeeModal: React.FC<{
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value);
         if (selectedEmployeeId) {
-             setSelectedEmployeeId(''); // Clear selection if user starts typing again
+            setSelectedEmployeeId(''); // Clear selection if user starts typing again
         }
     };
 
@@ -839,13 +839,13 @@ const ImportEmployeeModal: React.FC<{
                             onChange={handleSearchChange}
                             onFocus={() => setIsDropdownOpen(true)}
                             placeholder={
-                                loadingEmployees ? "Carregando..." : 
-                                (sourceTurma ? "Pesquisar por nome ou matrícula..." : "Selecione uma turma primeiro")
+                                loadingEmployees ? "Carregando..." :
+                                    (sourceTurma ? "Pesquisar por nome ou matrícula..." : "Selecione uma turma primeiro")
                             }
                             className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
                             disabled={!sourceTurma || loadingEmployees}
                         />
-                         {loadingEmployees && (
+                        {loadingEmployees && (
                             <div className="absolute right-4 top-1/2 -translate-y-1/2">
                                 <div className="w-5 h-5 border-2 border-primary-light border-t-primary rounded-full animate-spin"></div>
                             </div>
@@ -903,7 +903,7 @@ const App: React.FC = () => {
     const scalableContainerRef = useRef<HTMLDivElement>(null);
     const scaleStateRef = useRef({ currentScale: 1 });
     const [modalScale, setModalScale] = useState(1);
-    
+
     // State for manual registration inputs
     const [mainSubject, setMainSubject] = useState('');
     const [mainMatricula, setMainMatricula] = useState('');
@@ -928,10 +928,10 @@ const App: React.FC = () => {
         if (savedTheme) return savedTheme === 'dark';
         return window.matchMedia('(prefers-color-scheme: dark)').matches;
     });
-    
+
     // Ref to prevent double "loaded" notifications
     const initialLoadDoneRef = useRef(false);
-    
+
     // Effect to set Favicon to the Shield Icon (FALLBACK_LOGO)
     useEffect(() => {
         const link = document.querySelector("link[rel~='icon']") as HTMLLinkElement;
@@ -959,7 +959,7 @@ const App: React.FC = () => {
             localStorage.setItem('theme', 'light');
             // FIX: Set body background to match theme (light-bg-secondary color)
             document.body.style.backgroundColor = '#e8ecf1';
-             // FIX: Update theme-color meta tag for mobile browsers (status bar color)
+            // FIX: Update theme-color meta tag for mobile browsers (status bar color)
             if (themeColorMeta) themeColorMeta.setAttribute('content', '#e8ecf1');
         }
     }, [isDarkMode]);
@@ -1003,7 +1003,7 @@ const App: React.FC = () => {
 
     // Função para enviar alerta por e-mail
     const sendAlertEmail = async (name: string, matricula: string, turno: string) => {
-         if (isDemoMode) {
+        if (isDemoMode) {
             console.log(`[DEMO] Email alert triggered for ${name}`);
             return;
         }
@@ -1129,7 +1129,7 @@ const App: React.FC = () => {
                 templateParams,
                 EMAILJS_PUBLIC_KEY
             );
-            
+
             showNotification('Alerta enviado por e-mail ao setor responsável.', 'success');
         } catch (error) {
             console.error("Erro ao enviar e-mail via EmailJS:", error);
@@ -1139,9 +1139,9 @@ const App: React.FC = () => {
     // Effect for one-time global data fetching (like the employee lookup list)
     useEffect(() => {
         const fetchGlobalData = async () => {
-             if (!isConfigured || !db) return;
-             
-             try {
+            if (!isConfigured || !db) return;
+
+            try {
                 await signInAnonymously(auth!);
                 console.log("Signed in anonymously for global data fetch.");
 
@@ -1163,9 +1163,9 @@ const App: React.FC = () => {
                     const uniqueEmps = Array.from(new Map(allEmps.map(item => [item.matricula, item])).values());
                     setAllEmployeesForLookup(uniqueEmps);
                 }
-             } catch(error) {
-                 console.error("Global data fetch or anonymous sign-in failed:", error);
-             }
+            } catch (error) {
+                console.error("Global data fetch or anonymous sign-in failed:", error);
+            }
         }
         fetchGlobalData();
     }, []); // Empty dependency array ensures this runs only once
@@ -1182,12 +1182,12 @@ const App: React.FC = () => {
             setLoading(false);
             return;
         }
-        
+
         initialLoadDoneRef.current = false; // Reset notification flag when turma changes
 
-        let unsubscribeEmployees = () => {};
-        let unsubscribeAdministrators = () => {};
-        let unsubscribeRegistrations = () => {};
+        let unsubscribeEmployees = () => { };
+        let unsubscribeAdministrators = () => { };
+        let unsubscribeRegistrations = () => { };
 
         const setupListeners = async () => {
             if (!db) return;
@@ -1213,7 +1213,7 @@ const App: React.FC = () => {
                         };
                     });
                     setEmployees(employeesData);
-                    
+
                     if (!initialLoadDoneRef.current) {
                         setLoading(false);
                         showNotification(`Dados da Turma ${selectedTurma} carregados!`, 'success');
@@ -1232,7 +1232,7 @@ const App: React.FC = () => {
                     const adminsData: Administrator[] = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Administrator));
                     setAdministrators(adminsData);
                 }, (error) => console.error("Error listening to admin updates:", error));
-                
+
                 const registrationCollectionName = `registrosDSS ${selectedTurma}`;
                 const registrationsQuery = query(collection(db, registrationCollectionName));
                 unsubscribeRegistrations = onSnapshot(registrationsQuery, (querySnapshot) => {
@@ -1275,10 +1275,10 @@ const App: React.FC = () => {
         scaleStateRef.current.currentScale = finalScale;
 
         scalableContainer.style.transform = `scale(${finalScale})`;
-        
+
         const originalWidth = scalableContainer.offsetWidth;
         const originalHeight = scalableContainer.offsetHeight;
-        
+
         contentWrapper.style.width = `${originalWidth * finalScale}px`;
         contentWrapper.style.height = `${originalHeight * finalScale}px`;
 
@@ -1291,7 +1291,7 @@ const App: React.FC = () => {
         const scalableContainer = scalableContainerRef.current;
         if (!viewport || !scalableContainer) return;
 
-        const isMobileView = ('ontouchstart' in window || navigator.maxTouchPoints > 0) || window.innerWidth < 1366; 
+        const isMobileView = ('ontouchstart' in window || navigator.maxTouchPoints > 0) || window.innerWidth < 1366;
 
         if (isMobileView) {
             const oneColumnScale = viewport.clientWidth / 920;
@@ -1308,7 +1308,7 @@ const App: React.FC = () => {
         const scalableContainer = scalableContainerRef.current;
 
         if (!viewport || !scalableContainer) return;
-        
+
         initializeScale();
         const initTimer = setTimeout(initializeScale, 50);
 
@@ -1316,7 +1316,7 @@ const App: React.FC = () => {
         let initialScale = 1;
         let scrollStart = { x: 0, y: 0 };
         let touchCenter = { x: 0, y: 0 };
-        
+
         const handleTouchStart = (e: TouchEvent) => {
             if (e.touches.length === 2) {
                 e.preventDefault();
@@ -1336,7 +1336,7 @@ const App: React.FC = () => {
                 const currentDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
                 const scaleRatio = currentDistance / initialDistance;
                 const newScale = initialScale * scaleRatio;
-                
+
                 const originX = touchCenter.x - viewport.getBoundingClientRect().left;
                 const originY = touchCenter.y - viewport.getBoundingClientRect().top;
 
@@ -1345,7 +1345,7 @@ const App: React.FC = () => {
 
                 const newScrollX = (contentOriginX * newScale) - originX;
                 const newScrollY = (contentOriginY * newScale) - originY;
-                
+
                 setScale(newScale, newScrollX, newScrollY);
             }
         };
@@ -1380,7 +1380,7 @@ const App: React.FC = () => {
             if (window.innerWidth !== lastWidth) {
                 lastWidth = window.innerWidth;
                 setScale(scaleStateRef.current.currentScale);
-                initializeScale(); 
+                initializeScale();
             }
         };
 
@@ -1395,9 +1395,9 @@ const App: React.FC = () => {
             window.removeEventListener('load', initializeScale);
             window.removeEventListener('resize', handleResize);
             if (viewport) {
-              viewport.removeEventListener('wheel', handleWheel);
-              viewport.removeEventListener('touchstart', handleTouchStart);
-              viewport.removeEventListener('touchmove', handleTouchMove);
+                viewport.removeEventListener('wheel', handleWheel);
+                viewport.removeEventListener('touchstart', handleTouchStart);
+                viewport.removeEventListener('touchmove', handleTouchMove);
             }
         };
 
@@ -1411,21 +1411,21 @@ const App: React.FC = () => {
             setActiveModal(ModalType.AdminOptions);
         }
     };
-    
+
     const handleEnterDemoMode = () => {
         if (!selectedTurma) {
             showNotification('Selecione uma turma antes de entrar no modo de demonstração.', 'error');
             return;
         }
         isDemoModeRef.current = true;
-        
+
         const firstNames = ["João", "Maria", "Pedro", "Ana", "Carlos", "Fernanda", "Lucas", "Juliana", "Marcos", "Beatriz", "Rafael", "Camila", "Gustavo", "Larissa", "Bruno"];
         const lastNames = ["Silva", "Santos", "Oliveira", "Souza", "Rodrigues", "Ferreira", "Alves", "Pereira", "Lima", "Gomes", "Costa", "Ribeiro", "Martins"];
-        
+
         const generateName = () => {
-             const first = firstNames[Math.floor(Math.random() * firstNames.length)];
-             const last = lastNames[Math.floor(Math.random() * lastNames.length)];
-             return `${first} ${last}`;
+            const first = firstNames[Math.floor(Math.random() * firstNames.length)];
+            const last = lastNames[Math.floor(Math.random() * lastNames.length)];
+            return `${first} ${last}`;
         };
 
         const mockEmployees: Employee[] = Array.from({ length: 45 }).map((_, i) => {
@@ -1433,20 +1433,20 @@ const App: React.FC = () => {
             const isBem = isPresent && Math.random() > 0.1;
             const isMal = isPresent && !isBem;
             const isAbsent = !isPresent;
-            
+
             return {
                 id: `demo-${i}`,
                 name: generateName(),
                 matricula: `${1000 + i}`,
-                assDss: isBem, 
+                assDss: isBem,
                 bem: isBem,
                 mal: isMal,
                 absent: isAbsent,
                 time: isPresent ? formatTimestamp(Timestamp.now()) : null,
-                turno: i < 35 ? '7H' : '6H' 
+                turno: i < 35 ? '7H' : '6H'
             };
-        }).sort((a,b) => a.name.localeCompare(b.name));
-        
+        }).sort((a, b) => a.name.localeCompare(b.name));
+
         const mockAdmins: Administrator[] = [
             { id: 'admin1', name: 'Admin Demo User', matricula: '9999', email: 'admin@demo.com' }
         ];
@@ -1454,7 +1454,7 @@ const App: React.FC = () => {
         setEmployees(mockEmployees);
         setAdministrators(mockAdmins);
         setIsDemoMode(true);
-        setIsAdmin(true); 
+        setIsAdmin(true);
         setActiveModal(ModalType.None);
         setLoading(false);
         showNotification('Modo de Demonstração Ativado! Dados fictícios carregados.', 'success');
@@ -1476,14 +1476,14 @@ const App: React.FC = () => {
 
         if (type === 'absent') {
             updatedData.absent = isChecking;
-            if (isChecking) { 
+            if (isChecking) {
                 updatedData.assDss = false;
                 updatedData.bem = false;
                 updatedData.mal = false;
             }
-        } else { 
+        } else {
             if (isChecking) {
-                updatedData.absent = false; 
+                updatedData.absent = false;
             }
 
             if (type === 'assDss') {
@@ -1491,7 +1491,7 @@ const App: React.FC = () => {
             } else if (type === 'bem') {
                 updatedData.bem = isChecking;
                 if (isChecking) {
-                    updatedData.assDss = true; 
+                    updatedData.assDss = true;
                     updatedData.mal = false;
                 }
             } else if (type === 'mal') {
@@ -1502,7 +1502,7 @@ const App: React.FC = () => {
                 }
             }
         }
-        
+
         if (isDemoMode) {
             const finalStates = {
                 absent: updatedData.absent !== undefined ? updatedData.absent : employee.absent,
@@ -1510,14 +1510,14 @@ const App: React.FC = () => {
                 bem: updatedData.bem !== undefined ? updatedData.bem : employee.bem,
                 mal: updatedData.mal !== undefined ? updatedData.mal : employee.mal,
             };
-            
+
             let newTime = employee.time;
-             if (finalStates.absent) {
+            if (finalStates.absent) {
                 newTime = null;
             } else if (finalStates.assDss) {
                 if (!newTime) {
-                     const date = new Date();
-                     newTime = `${date.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit', year: 'numeric'})} ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+                    const date = new Date();
+                    newTime = `${date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })} ${date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
                 }
             } else {
                 newTime = null;
@@ -1539,7 +1539,7 @@ const App: React.FC = () => {
                 bem: updatedData.bem !== undefined ? updatedData.bem : employee.bem,
                 mal: updatedData.mal !== undefined ? updatedData.mal : employee.mal,
             };
-            
+
             if (finalStates.absent) {
                 updatedData.time = null;
             } else if (finalStates.assDss) {
@@ -1566,7 +1566,7 @@ const App: React.FC = () => {
         }
 
         if (isDemoMode) {
-            const newTimeStr = `${newDate.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit', year: 'numeric'})} ${newDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+            const newTimeStr = `${newDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })} ${newDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
             setEmployees(prev => prev.map(e => e.id === id ? { ...e, time: newTimeStr } : e));
             showNotification('Horário atualizado com sucesso (DEMO)!', 'success');
             return;
@@ -1607,16 +1607,16 @@ const App: React.FC = () => {
             showNotification("A conexão com o banco de dados não está disponível.", "error");
             return;
         }
-        
+
         try {
             const collectionName = `turma ${selectedTurma.toLowerCase()}`;
-            
+
             // Check for duplicates
             const q = query(collection(db, collectionName), where("matricula", "==", newMatricula));
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty && querySnapshot.docs[0].id !== id) {
-                 showNotification('Esta matrícula já está em uso por outro funcionário.', 'error');
-                 return;
+                showNotification('Esta matrícula já está em uso por outro funcionário.', 'error');
+                return;
             }
 
             const docRef = doc(db, collectionName, id);
@@ -1667,7 +1667,7 @@ const App: React.FC = () => {
             setActiveModal(ModalType.None);
         }
     };
-    
+
     const processToggleSpecialTeam = async (id: string) => {
         if (!selectedTurma) return;
         setTogglingSpecialTeamId(id);
@@ -1679,12 +1679,12 @@ const App: React.FC = () => {
         const newTurno = employee.turno === '6H' ? '7H' : '6H';
 
         if (isDemoMode) {
-             setTimeout(() => {
-                 setEmployees(prev => prev.map(e => e.id === id ? { ...e, turno: newTurno } : e));
-                 showNotification(`${employee.name} foi movido para o turno ${newTurno} (DEMO).`, 'success');
-                 setTogglingSpecialTeamId(null);
-             }, 500);
-             return;
+            setTimeout(() => {
+                setEmployees(prev => prev.map(e => e.id === id ? { ...e, turno: newTurno } : e));
+                showNotification(`${employee.name} foi movido para o turno ${newTurno} (DEMO).`, 'success');
+                setTogglingSpecialTeamId(null);
+            }, 500);
+            return;
         }
 
         if (!db) {
@@ -1695,7 +1695,7 @@ const App: React.FC = () => {
         try {
             const collectionName = `turma ${selectedTurma.toLowerCase()}`;
             const docRef = doc(db, collectionName, id);
-            await updateDoc(docRef, { 
+            await updateDoc(docRef, {
                 turno: newTurno
             });
             showNotification(`${employee.name} foi movido para o turno ${newTurno}.`, 'success');
@@ -1754,7 +1754,7 @@ const App: React.FC = () => {
         }
         const employeeToDelete = employees.find(e => e.id === employeeId);
         if (!employeeToDelete) {
-             showNotification('Usuário não encontrado.', 'error');
+            showNotification('Usuário não encontrado.', 'error');
             return;
         }
 
@@ -1781,7 +1781,7 @@ const App: React.FC = () => {
             showNotification('Por favor, insira uma matrícula.', 'error');
             return;
         }
-        
+
         if (matricula.length !== 8) {
             setActiveModal(ModalType.InvalidMatricula);
             return;
@@ -1816,7 +1816,7 @@ const App: React.FC = () => {
             // setDoc will create the document if it doesn't exist, or completely overwrite it if it does.
             // This simplifies the logic from query/update/add to a single operation.
             await setDoc(docRef, registrationData);
-            
+
             showNotification(`Registro para turno ${turno} salvo com sucesso.`, 'success');
         } catch (error) {
             console.error("Error saving manual registration:", error);
@@ -1824,17 +1824,17 @@ const App: React.FC = () => {
             showNotification(`Falha ao salvar registro: ${message}`, 'error');
         }
     };
-    
+
     const handleAdminLogin = async (email: string) => {
         const normalizedEmail = email.trim().toLowerCase();
-        
+
         const isFirstAdminLogin = !localStorage.getItem('hasSeenAdminTutorial');
 
         const processLogin = (isDemo = false) => {
             setIsAdmin(true);
             setActiveModal(ModalType.AdminOptions);
             showNotification(isDemo ? 'Acesso Admin (DEMO) concedido.' : 'Login de administrador bem-sucedido!', 'success');
-            
+
             if (isFirstAdminLogin) {
                 localStorage.setItem('hasSeenAdminTutorial', 'true');
                 setIsAdminTutorialOpen(true);
@@ -1842,8 +1842,8 @@ const App: React.FC = () => {
         };
 
         if (normalizedEmail === 'naylanmoreira350@gmail.com') {
-             processLogin();
-             return;
+            processLogin();
+            return;
         }
 
         if (isDemoMode) {
@@ -1873,20 +1873,20 @@ const App: React.FC = () => {
             showNotification(`Erro no login: ${message}`, 'error');
         }
     };
-    
+
     const handleAddUser = async (name: string, matricula: string, addAnother: boolean) => {
         if (!isAdmin || !selectedTurma) {
             showNotification('Apenas administradores podem adicionar usuários.', 'error');
             return;
         }
-    
+
         if (!name.trim() || !matricula.trim()) {
             showNotification('Nome e matrícula são obrigatórios.', 'error');
             return;
         }
-    
+
         const finalName = name.toUpperCase();
-    
+
         if (isDemoMode) {
             const newUser: Employee = {
                 id: `demo-new-${Date.now()}`,
@@ -1899,43 +1899,43 @@ const App: React.FC = () => {
                 time: null,
                 turno: '7H'
             };
-            setEmployees(prev => [...prev, newUser].sort((a,b) => a.name.localeCompare(b.name)));
+            setEmployees(prev => [...prev, newUser].sort((a, b) => a.name.localeCompare(b.name)));
             if (!addAnother) {
                 setActiveModal(ModalType.None);
             }
             showNotification(`Usuário ${finalName} adicionado com sucesso (DEMO)!`, 'success');
             return;
         }
-    
+
         if (!db) {
             showNotification("A conexão com o banco de dados não está disponível.", "error");
             return;
         }
-    
+
         try {
             // Cross-turma duplicate check
             const turmas = ['A', 'B', 'C', 'D'];
             for (const turma of turmas) {
                 const collectionName = `turma ${turma.toLowerCase()}`;
                 const collRef = collection(db, collectionName);
-                
+
                 const matriculaQuery = query(collRef, where("matricula", "==", matricula));
                 const nameQuery = query(collRef, where("name", "==", finalName));
-    
+
                 const [matriculaSnapshot, nameSnapshot] = await Promise.all([
                     getDocs(matriculaQuery),
                     getDocs(nameQuery)
                 ]);
-                
+
                 const foundDoc = matriculaSnapshot.docs[0] || nameSnapshot.docs[0];
-    
+
                 if (foundDoc) {
                     setExistingUserInfo({ name: foundDoc.data().name, turma: turma });
                     setActiveModal(ModalType.UserExistsWarning);
                     return; // Stop execution
                 }
             }
-    
+
             // If no duplicate is found, proceed to add the user
             const collectionName = `turma ${selectedTurma.toLowerCase()}`;
             await addDoc(collection(db, collectionName), {
@@ -1948,7 +1948,7 @@ const App: React.FC = () => {
                 time: null,
                 turno: '7H'
             });
-    
+
             if (!addAnother) {
                 setActiveModal(ModalType.None);
             }
@@ -1967,23 +1967,23 @@ const App: React.FC = () => {
         }
 
         if (isDemoMode) {
-             setEmployees(prev => prev.map(e => ({
+            setEmployees(prev => prev.map(e => ({
                 ...e,
                 assDss: false,
                 bem: false,
                 mal: false,
                 absent: false,
                 time: null
-             })));
-             setMainSubject('');
-             setMainMatricula('');
-             setMainResponsible('');
-             setSpecialSubject('');
-             setSpecialMatricula('');
-             setSpecialResponsible('');
-             setActiveModal(ModalType.None);
-             showNotification('Dados limpos com sucesso (DEMO)!', 'success');
-             return;
+            })));
+            setMainSubject('');
+            setMainMatricula('');
+            setMainResponsible('');
+            setSpecialSubject('');
+            setSpecialMatricula('');
+            setSpecialResponsible('');
+            setActiveModal(ModalType.None);
+            showNotification('Dados limpos com sucesso (DEMO)!', 'success');
+            return;
         }
 
         if (!db) {
@@ -2014,7 +2014,7 @@ const App: React.FC = () => {
             await batch.commit();
             setActiveModal(ModalType.None);
             showNotification('Dados de status diário e registros manuais foram limpos!', 'success');
-        } catch(error) {
+        } catch (error) {
             console.error("Error clearing data:", error);
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
             showNotification(`Falha ao limpar dados: ${message}`, 'error');
@@ -2022,7 +2022,7 @@ const App: React.FC = () => {
     };
 
     const handleReorganize = () => {
-        setEmployees(prev => [...prev].sort((a,b) => a.name.localeCompare(b.name)));
+        setEmployees(prev => [...prev].sort((a, b) => a.name.localeCompare(b.name)));
         setActiveModal(ModalType.None);
         showNotification('Painel reorganizado alfabeticamente!', 'success');
     };
@@ -2036,30 +2036,30 @@ const App: React.FC = () => {
             showNotification('A turma de origem deve ser diferente da atual.', 'error');
             return;
         }
-    
+
         if (isDemoMode) {
             const employeeToMove = { id: `demo-moved-${Date.now()}`, name: "Funcionário Importado", matricula: "0000", turno: "7H", time: null, assDss: false, bem: false, mal: false, absent: false };
-            setEmployees(prev => [...prev, employeeToMove].sort((a,b) => a.name.localeCompare(b.name)));
+            setEmployees(prev => [...prev, employeeToMove].sort((a, b) => a.name.localeCompare(b.name)));
             showNotification(`${employeeToMove.name} importado para a Turma ${selectedTurma} (DEMO).`, 'success');
             setActiveModal(ModalType.None);
             return;
         }
-    
+
         if (!db) {
             showNotification("A conexão com o banco de dados não está disponível.", "error");
             return;
         }
-    
+
         const sourceCollectionName = `turma ${sourceTurma.toLowerCase()}`;
         const destinationCollectionName = `turma ${selectedTurma.toLowerCase()}`;
         const sourceDocRef = doc(db, sourceCollectionName, employeeId);
-    
+
         try {
             const docSnap = await getDoc(sourceDocRef);
             if (!docSnap.exists()) {
                 throw new Error("Documento do funcionário não foi encontrado na turma de origem.");
             }
-            
+
             const employeeData = docSnap.data();
             const employeeName = employeeData.name || 'O colaborador';
 
@@ -2074,19 +2074,19 @@ const App: React.FC = () => {
                 absent: false,
                 time: null,
             };
-    
+
             const batch = writeBatch(db);
-            
+
             const newDocRef = doc(collection(db, destinationCollectionName));
             batch.set(newDocRef, cleanedEmployeeData);
-            
+
             batch.delete(sourceDocRef);
-            
+
             await batch.commit();
-    
+
             showNotification(`${employeeName} foi importado para a Turma ${selectedTurma} com sucesso!`, 'success');
             setActiveModal(ModalType.None);
-    
+
         } catch (error) {
             console.error("Error importing employee:", error);
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
@@ -2123,14 +2123,73 @@ const App: React.FC = () => {
         absent: employees.filter(e => e.absent).length,
         total: employees.length,
     }), [employees]);
-    
-    const mainTeam = useMemo(() => employees.filter(e => e.turno !== '6H'), [employees]);
-    const specialTeam = useMemo(() => employees.filter(e => e.turno === '6H'), [employees]);
 
-    const columnSize = Math.ceil(mainTeam.length / 3);
-    const col1 = mainTeam.slice(0, columnSize);
-    const col2 = mainTeam.slice(columnSize, columnSize * 2);
-    const col3 = mainTeam.slice(columnSize * 2);
+    const mainTeam = useMemo(() => employees.filter(e => e.turno !== '6H').sort((a, b) => a.name.localeCompare(b.name)), [employees]);
+    const specialTeam = useMemo(() => employees.filter(e => e.turno === '6H').sort((a, b) => a.name.localeCompare(b.name)), [employees]);
+
+    const groupedMainTeam = useMemo(() => {
+        const groups: { letter: string; employees: Employee[] }[] = [];
+
+        mainTeam.forEach(emp => {
+            const firstLetter = emp.name.charAt(0).toUpperCase();
+
+            // Allow letters A-Z, otherwise group under '#'
+            const groupLetter = /^[A-Z]$/.test(firstLetter) ? firstLetter : '#';
+
+            let group = groups.find(g => g.letter === groupLetter);
+            if (!group) {
+                group = { letter: groupLetter, employees: [] };
+                groups.push(group);
+            }
+            group.employees.push(emp);
+        });
+
+        // Sort letters just to be absolutely sure (A-Z, then #)
+        groups.sort((a, b) => {
+            if (a.letter === '#') return 1;
+            if (b.letter === '#') return -1;
+            return a.letter.localeCompare(b.letter);
+        });
+
+        return groups;
+    }, [mainTeam]);
+
+    const handleFastScroll = (letter: string) => {
+        if (!viewportRef.current) return;
+
+        const COLUMNS = 3;
+        const HEADER_HEIGHT = 56; // Example: 40px text + 16px bottom margin
+        const CARD_HEIGHT = 200;  // approximate card height including gap (176 box + 24 gap)
+        const NAVBAR_HEIGHT = 0;  // Header is inside the scalable area, top padding logic might differ, assuming 0 internal extra offset
+
+        let totalOffset = NAVBAR_HEIGHT;
+        let found = false;
+
+        for (let i = 0; i < groupedMainTeam.length; i++) {
+            const section = groupedMainTeam[i];
+
+            if (section.letter === letter) {
+                found = true;
+                break;
+            }
+
+            totalOffset += HEADER_HEIGHT;
+            const rowsCount = Math.ceil(section.employees.length / COLUMNS);
+            totalOffset += (rowsCount * CARD_HEIGHT);
+        }
+
+        if (found) {
+            // Apply scale consideration if we want it pixel-perfect within scalabe-container
+            // But since viewport scrolls natively based on scaled content, 
+            // The scroll position scales with the content. We might just scroll into view the DOM element directly:
+            const element = document.getElementById(`letter-group-${letter}`);
+            if (element) {
+                // Using standard DOM API is much safer with nested transforms
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+    };
+
 
     const getPendingEmployeeName = () => {
         return employees.find(e => e.id === pendingEmployeeId)?.name || 'Colaborador';
@@ -2142,27 +2201,27 @@ const App: React.FC = () => {
     };
 
     const handleTutorialStepChange = (step: TutorialStep) => {
-        const isMobile = window.innerWidth < 1024; 
+        const isMobile = window.innerWidth < 1024;
         if (!isMobile) return;
 
         let targetIdForZoom = step.targetId;
-        
+
         if (step.targetId === 'tutorial-card-actions' || step.targetId === 'tutorial-card-time') {
             targetIdForZoom = 'tutorial-first-card';
         }
-        
-        if (step.targetId === 'tutorial-return-turn-btn' || 
+
+        if (step.targetId === 'tutorial-return-turn-btn' ||
             ['tutorial-stats', 'tutorial-dark-mode', 'tutorial-admin-btn', 'tutorial-change-turma-btn', 'tutorial-help-btn'].includes(step.targetId)) {
             targetIdForZoom = 'tutorial-special-demo-area';
         }
 
         const element = document.getElementById(targetIdForZoom);
         if (!element) return;
-        
+
         const margin = 32;
         const availableWidth = window.innerWidth - margin;
-        const elementWidth = element.offsetWidth; 
-        
+        const elementWidth = element.offsetWidth;
+
         if (elementWidth > 0) {
             let newScale = availableWidth / elementWidth;
             newScale = Math.min(Math.max(newScale, 0.3), 1.1);
@@ -2172,9 +2231,9 @@ const App: React.FC = () => {
 
     if (!selectedTurma) {
         return (
-            <TurmaSelectionScreen 
-                onSelect={handleSelectTurma} 
-                isDarkMode={isDarkMode} 
+            <TurmaSelectionScreen
+                onSelect={handleSelectTurma}
+                isDarkMode={isDarkMode}
                 onToggleDarkMode={handleToggleDarkMode}
             />
         );
@@ -2195,16 +2254,16 @@ const App: React.FC = () => {
                             turma={selectedTurma}
                             onReturnToSelection={handleReturnToSelection}
                         />
-                        
+
                         {isDemoMode && (
                             <div className="absolute top-6 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-black px-4 py-1 rounded-full font-bold shadow-md z-10 animate-pulse pointer-events-none">
                                 MODO DEMONSTRAÇÃO ATIVO
                             </div>
                         )}
-                        
-                        <div className="flex gap-8 flex-nowrap">
-                        <div className="flex flex-col gap-8 shrink-0">
-                                <ManualRegisterSection 
+
+                        <div className="flex gap-8 flex-nowrap relative">
+                            <div className="flex flex-col gap-8 shrink-0 min-h-screen relative">
+                                <ManualRegisterSection
                                     subject={mainSubject}
                                     matricula={mainMatricula}
                                     onSubjectChange={setMainSubject}
@@ -2213,33 +2272,61 @@ const App: React.FC = () => {
                                     employeesForLookup={allEmployeesForLookup}
                                     administrators={administrators}
                                 />
-                                <div className="flex gap-8">
-                                    <div className="flex flex-col gap-6 w-[870px]">
-                                        {col1.map((emp, index) => (
-                                            <EmployeeCard 
-                                                key={emp.id} 
-                                                employee={emp} 
-                                                onStatusChange={handleStatusChange} 
-                                                onToggleSpecialTeam={handleToggleSpecialTeam} 
-                                                isTogglingSpecialTeam={togglingSpecialTeamId === emp.id} 
-                                                isAdmin={isAdmin} 
-                                                onDelete={handleDeleteUser}
-                                                onTimeChange={handleTimeUpdate}
-                                                onMatriculaChange={handleMatriculaUpdate}
-                                                domId={index === 0 ? "tutorial-first-card" : undefined}
-                                            />
+
+                                <div className="flex gap-6 pr-12 relative w-fit">
+                                    <div className="flex flex-col gap-8 w-fit shrink-0 relative pb-[50vh]">
+                                        {groupedMainTeam.map((group) => (
+                                            <div key={group.letter} id={`letter-group-${group.letter}`} className="flex flex-col w-fit">
+                                                <div className="sticky top-[80px] z-[5] bg-light-bg-secondary/90 dark:bg-dark-bg/90 backdrop-blur-md py-4 mb-4 font-bold text-4xl text-light-text-secondary dark:text-dark-text-secondary border-b-2 border-primary/20 flex items-center gap-4 shadow-sm w-[2660px]">
+                                                    <div className="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center text-2xl shadow-md shrink-0">
+                                                        {group.letter}
+                                                    </div>
+                                                    <span className="opacity-50 text-xl font-normal ml-auto">{group.employees.length} colaboradores</span>
+                                                </div>
+                                                <div className="grid grid-cols-3 gap-[24px] w-[2660px]">
+                                                    {group.employees.map((emp, index) => (
+                                                        <div key={emp.id} className="w-[870px]">
+                                                            <EmployeeCard
+                                                                employee={emp}
+                                                                onStatusChange={handleStatusChange}
+                                                                onToggleSpecialTeam={handleToggleSpecialTeam}
+                                                                isTogglingSpecialTeam={togglingSpecialTeamId === emp.id}
+                                                                isAdmin={isAdmin}
+                                                                onDelete={handleDeleteUser}
+                                                                onTimeChange={handleTimeUpdate}
+                                                                onMatriculaChange={handleMatriculaUpdate}
+                                                                domId={index === 0 && group.letter === groupedMainTeam[0]?.letter ? "tutorial-first-card" : undefined}
+                                                            />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+
+                                        {groupedMainTeam.length === 0 && (
+                                            <div className="w-full text-center py-20 text-light-text-secondary dark:text-dark-text-secondary text-xl font-medium">
+                                                Nenhum colaborador encontrado na Turma {selectedTurma}.
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* ALPHABETICAL FAST SCROLLER */}
+                                    <div className="sticky top-[100px] h-fit max-h-[80vh] flex flex-col gap-1 z-10 p-2 bg-light-card/80 dark:bg-dark-card/80 backdrop-blur-xl rounded-full shadow-lg border border-white/20 dark:border-white/5 ml-4 self-start">
+                                        {groupedMainTeam.map(group => (
+                                            <div
+                                                key={`nav-${group.letter}`}
+                                                onClick={() => handleFastScroll(group.letter)}
+                                                className="w-8 h-8 flex items-center justify-center rounded-full text-sm font-bold cursor-pointer transition-all bg-transparent text-light-text-secondary dark:text-dark-text-secondary hover:bg-primary hover:text-white hover:scale-110 active:scale-95 shadow-sm"
+                                            >
+                                                {group.letter}
+                                            </div>
                                         ))}
                                     </div>
-                                    <div className="flex flex-col gap-6 w-[870px]">
-                                        {col2.map(emp => <EmployeeCard key={emp.id} employee={emp} onStatusChange={handleStatusChange} onToggleSpecialTeam={handleToggleSpecialTeam} isTogglingSpecialTeam={togglingSpecialTeamId === emp.id} isAdmin={isAdmin} onDelete={handleDeleteUser} onTimeChange={handleTimeUpdate} onMatriculaChange={handleMatriculaUpdate} />)}
-                                    </div>
-                                    <div className="flex flex-col gap-6 w-[870px]">
-                                        {col3.map(emp => <EmployeeCard key={emp.id} employee={emp} onStatusChange={handleStatusChange} onToggleSpecialTeam={handleToggleSpecialTeam} isTogglingSpecialTeam={togglingSpecialTeamId === emp.id} isAdmin={isAdmin} onDelete={handleDeleteUser} onTimeChange={handleTimeUpdate} onMatriculaChange={handleMatriculaUpdate} />)}
-                                    </div>
+
                                 </div>
-                        </div>
-                            <SpecialTeamPanel 
-                                specialTeam={specialTeam} 
+                            </div>
+                            <SpecialTeamPanel
+                                specialTeam={specialTeam}
                                 onStatusChange={handleStatusChange}
                                 onToggleSpecialTeam={handleToggleSpecialTeam}
                                 togglingSpecialTeamId={togglingSpecialTeamId}
@@ -2260,18 +2347,18 @@ const App: React.FC = () => {
                     </div>
                 </div>
             </div>
-            
-            <AdminLoginModal 
-                isOpen={activeModal === ModalType.AdminLogin} 
-                onClose={() => setActiveModal(ModalType.None)} 
-                onLogin={handleAdminLogin} 
-                scale={modalScale} 
+
+            <AdminLoginModal
+                isOpen={activeModal === ModalType.AdminLogin}
+                onClose={() => setActiveModal(ModalType.None)}
+                onLogin={handleAdminLogin}
+                scale={modalScale}
             />
-            <AdminOptionsModal 
-                isOpen={activeModal === ModalType.AdminOptions} 
-                onClose={() => setActiveModal(ModalType.None)} 
-                onClear={handleClearData} 
-                onReorganize={handleReorganize} 
+            <AdminOptionsModal
+                isOpen={activeModal === ModalType.AdminOptions}
+                onClose={() => setActiveModal(ModalType.None)}
+                onClear={handleClearData}
+                onReorganize={handleReorganize}
                 onAddUser={() => setActiveModal(ModalType.AddUser)}
                 onSendReport={() => setActiveModal(ModalType.Report)}
                 onImportUser={() => setActiveModal(ModalType.ImportEmployee)}
@@ -2286,7 +2373,7 @@ const App: React.FC = () => {
                 scale={modalScale}
             />
             <AddUserModal isOpen={activeModal === ModalType.AddUser} onClose={() => setActiveModal(ModalType.None)} onAdd={handleAddUser} scale={modalScale} />
-            <ReportModal 
+            <ReportModal
                 isOpen={activeModal === ModalType.Report}
                 onClose={() => setActiveModal(ModalType.None)}
                 employees={employees}
@@ -2299,7 +2386,7 @@ const App: React.FC = () => {
                 responsible6H={specialResponsible}
                 matricula6H={specialMatricula}
             />
-            
+
             <ImportEmployeeModal
                 isOpen={activeModal === ModalType.ImportEmployee}
                 onClose={() => setActiveModal(ModalType.None)}
@@ -2308,7 +2395,7 @@ const App: React.FC = () => {
                 scale={modalScale}
                 showNotification={showNotification}
             />
-             {activeModal === ModalType.UserExistsWarning && existingUserInfo && (
+            {activeModal === ModalType.UserExistsWarning && existingUserInfo && (
                 <Modal
                     isOpen={true}
                     onClose={() => setActiveModal(ModalType.None)}
@@ -2326,8 +2413,8 @@ const App: React.FC = () => {
                             Ele está atualmente cadastrado na <strong className="text-light-text dark:text-dark-text">Turma {existingUserInfo.turma}</strong>.
                         </p>
                         <div className="w-full pt-4 flex flex-col gap-3">
-                            <button 
-                                onClick={() => setActiveModal(ModalType.None)} 
+                            <button
+                                onClick={() => setActiveModal(ModalType.None)}
                                 className="w-full py-3 font-bold text-light-text dark:text-white bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition"
                             >
                                 ENTENDI
@@ -2361,32 +2448,32 @@ const App: React.FC = () => {
             />
 
             {activeModal === ModalType.InvalidMatricula && (
-                <div 
+                <div
                     className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
                     onClick={() => setActiveModal(ModalType.None)}
                 >
-                    <div 
+                    <div
                         className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center relative mx-4"
-                        style={{ 
-                            transform: `scale(${modalScale})`, 
-                            animation: 'fade-in-scale 0.3s forwards ease-out' 
+                        style={{
+                            transform: `scale(${modalScale})`,
+                            animation: 'fade-in-scale 0.3s forwards ease-out'
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <button 
-                            onClick={() => setActiveModal(ModalType.None)} 
+                        <button
+                            onClick={() => setActiveModal(ModalType.None)}
                             className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10"
                         >
                             &times;
                         </button>
-                        
+
                         <h2 className="text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6">FORMATO DE MATRÍCULA</h2>
 
                         <div className="space-y-6 text-center p-2 flex flex-col items-center">
                             <div className="mx-auto w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-2 text-primary">
                                 <InfoIcon className="w-8 h-8" />
                             </div>
-                            
+
                             <div className="text-lg text-light-text dark:text-dark-text font-medium flex flex-col items-center gap-2">
                                 <span>Toda matrícula tem <strong>8 dígitos</strong>.</span>
                             </div>
@@ -2399,8 +2486,8 @@ const App: React.FC = () => {
                             </div>
 
                             <div className="w-full">
-                                <button 
-                                    onClick={() => setActiveModal(ModalType.None)} 
+                                <button
+                                    onClick={() => setActiveModal(ModalType.None)}
                                     className="w-full py-4 font-bold text-white bg-primary rounded-lg hover:bg-primary-dark shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
                                 >
                                     ENTENDI
@@ -2410,60 +2497,60 @@ const App: React.FC = () => {
                     </div>
                 </div>
             )}
-            
+
             {activeModal === ModalType.ConfirmMal && (
-                <div 
+                <div
                     className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
                     onClick={() => {
                         setPendingEmployeeId(null);
                         setActiveModal(ModalType.None);
                     }}
                 >
-                    <div 
+                    <div
                         className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center relative mx-4"
-                        style={{ 
-                            transform: `scale(${modalScale})`, 
-                            animation: 'fade-in-scale 0.3s forwards ease-out' 
+                        style={{
+                            transform: `scale(${modalScale})`,
+                            animation: 'fade-in-scale 0.3s forwards ease-out'
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <button 
+                        <button
                             onClick={() => {
                                 setPendingEmployeeId(null);
                                 setActiveModal(ModalType.None);
-                            }} 
+                            }}
                             className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10"
                         >
                             &times;
                         </button>
-                        
+
                         <h2 className="text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6">CONFIRMAÇÃO NECESSÁRIA</h2>
 
                         <div className="space-y-6 text-center p-2 flex flex-col items-center">
                             <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-2">
                                 <span className="text-4xl">🚨</span>
                             </div>
-                            
+
                             <div className="text-lg text-light-text dark:text-dark-text font-medium flex flex-col items-center gap-2">
                                 <span>Você selecionou a opção</span>
                                 <span className="text-danger font-bold text-3xl">"ESTOU MAL"</span>
                             </div>
 
                             <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-2">
-                                Isso enviará um alerta imediato para a <strong>gestão</strong>. <br/>Deseja realmente confirmar que não está se sentindo bem?
+                                Isso enviará um alerta imediato para a <strong>gestão</strong>. <br />Deseja realmente confirmar que não está se sentindo bem?
                             </p>
                             <div className="grid grid-cols-1 gap-3 mt-6 w-full">
-                                <button 
-                                    onClick={handleConfirmMal} 
+                                <button
+                                    onClick={handleConfirmMal}
                                     className="w-full py-4 font-bold text-white bg-danger rounded-lg hover:bg-red-700 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
                                 >
                                     SIM, ESTOU MAL
                                 </button>
-                                <button 
+                                <button
                                     onClick={() => {
                                         setPendingEmployeeId(null);
                                         setActiveModal(ModalType.None);
-                                    }} 
+                                    }}
                                     className="w-full py-4 font-bold text-light-text dark:text-white bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition"
                                 >
                                     CANCELAR
@@ -2475,55 +2562,55 @@ const App: React.FC = () => {
             )}
 
             {activeModal === ModalType.ConfirmTurno && (
-                <div 
+                <div
                     className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
                     onClick={() => {
                         setPendingEmployeeId(null);
                         setActiveModal(ModalType.None);
                     }}
                 >
-                    <div 
+                    <div
                         className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center relative mx-4"
-                        style={{ 
-                            transform: `scale(${modalScale})`, 
-                            animation: 'fade-in-scale 0.3s forwards ease-out' 
+                        style={{
+                            transform: `scale(${modalScale})`,
+                            animation: 'fade-in-scale 0.3s forwards ease-out'
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <button 
+                        <button
                             onClick={() => {
                                 setPendingEmployeeId(null);
                                 setActiveModal(ModalType.None);
-                            }} 
+                            }}
                             className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10"
                         >
                             &times;
                         </button>
-                        
+
                         <h2 className="text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6">TROCA DE TURNO</h2>
 
                         <div className="space-y-6 text-center p-2 flex flex-col items-center">
                             <div className="mx-auto w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-2 text-primary">
                                 <ShiftIcon className="w-8 h-8" />
                             </div>
-                            
+
                             <div className="text-lg text-light-text dark:text-dark-text font-medium flex flex-col items-center gap-2">
                                 <span>Mover <strong>{getPendingEmployeeName()}</strong> para o turno:</span>
                                 <span className="text-primary font-bold text-3xl">{getPendingEmployeeTurno()}</span>
                             </div>
 
                             <div className="grid grid-cols-1 gap-3 mt-6 w-full">
-                                <button 
-                                    onClick={handleConfirmTurno} 
+                                <button
+                                    onClick={handleConfirmTurno}
                                     className="w-full py-4 font-bold text-white bg-primary rounded-lg hover:bg-primary-dark shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
                                 >
                                     CONFIRMAR TROCA
                                 </button>
-                                <button 
+                                <button
                                     onClick={() => {
                                         setPendingEmployeeId(null);
                                         setActiveModal(ModalType.None);
-                                    }} 
+                                    }}
                                     className="w-full py-4 font-bold text-light-text dark:text-white bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition"
                                 >
                                     CANCELAR
@@ -2535,59 +2622,59 @@ const App: React.FC = () => {
             )}
 
             {activeModal === ModalType.ConfirmAbsent && (
-                <div 
+                <div
                     className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
                     onClick={() => {
                         setPendingEmployeeId(null);
                         setActiveModal(ModalType.None);
                     }}
                 >
-                    <div 
+                    <div
                         className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center relative mx-4"
-                        style={{ 
-                            transform: `scale(${modalScale})`, 
-                            animation: 'fade-in-scale 0.3s forwards ease-out' 
+                        style={{
+                            transform: `scale(${modalScale})`,
+                            animation: 'fade-in-scale 0.3s forwards ease-out'
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <button 
+                        <button
                             onClick={() => {
                                 setPendingEmployeeId(null);
                                 setActiveModal(ModalType.None);
-                            }} 
+                            }}
                             className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10"
                         >
                             &times;
                         </button>
-                        
+
                         <h2 className="text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6">CONFIRMAR AUSÊNCIA</h2>
 
                         <div className="space-y-6 text-center p-2 flex flex-col items-center">
                             <div className="mx-auto w-16 h-16 bg-orange/20 rounded-full flex items-center justify-center mb-2 text-orange">
                                 <AbsentIcon className="w-8 h-8" />
                             </div>
-                            
+
                             <div className="text-lg text-light-text dark:text-dark-text font-medium flex flex-col items-center gap-2">
                                 <span>Marcar <strong>{getPendingEmployeeName()}</strong> como:</span>
                                 <span className="text-orange font-bold text-3xl">AUSENTE</span>
                             </div>
 
-                             <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-2">
+                            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-2">
                                 Isso limpará quaisquer registros de horário ou status de saúde anteriores deste colaborador hoje.
                             </p>
 
                             <div className="grid grid-cols-1 gap-3 mt-6 w-full">
-                                <button 
-                                    onClick={handleConfirmAbsent} 
+                                <button
+                                    onClick={handleConfirmAbsent}
                                     className="w-full py-4 font-bold text-white bg-orange rounded-lg hover:bg-orange-600 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
                                 >
                                     CONFIRMAR AUSÊNCIA
                                 </button>
-                                <button 
+                                <button
                                     onClick={() => {
                                         setPendingEmployeeId(null);
                                         setActiveModal(ModalType.None);
-                                    }} 
+                                    }}
                                     className="w-full py-4 font-bold text-light-text dark:text-white bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition"
                                 >
                                     CANCELAR
@@ -2599,58 +2686,58 @@ const App: React.FC = () => {
             )}
 
             {activeModal === ModalType.ConfirmDelete && (
-                <div 
+                <div
                     className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
                     onClick={() => {
                         setPendingEmployeeId(null);
                         setActiveModal(ModalType.None);
                     }}
                 >
-                    <div 
+                    <div
                         className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center relative mx-4"
-                        style={{ 
-                            transform: `scale(${modalScale})`, 
-                            animation: 'fade-in-scale 0.3s forwards ease-out' 
+                        style={{
+                            transform: `scale(${modalScale})`,
+                            animation: 'fade-in-scale 0.3s forwards ease-out'
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <button 
+                        <button
                             onClick={() => {
                                 setPendingEmployeeId(null);
                                 setActiveModal(ModalType.None);
-                            }} 
+                            }}
                             className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10"
                         >
                             &times;
                         </button>
-                        
+
                         <h2 className="text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6">EXCLUIR USUÁRIO</h2>
 
                         <div className="space-y-6 text-center p-2 flex flex-col items-center">
                             <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-2 text-danger">
                                 <TrashIcon className="w-8 h-8" />
                             </div>
-                            
+
                             <div className="text-lg text-light-text dark:text-dark-text font-medium flex flex-col items-center gap-2">
                                 <span>Tem certeza que deseja excluir <strong>{getPendingEmployeeName()}</strong>?</span>
                             </div>
 
-                             <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-2">
+                            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-2">
                                 Esta ação removerá o usuário permanentemente do sistema e não pode ser desfeita.
                             </p>
 
                             <div className="grid grid-cols-1 gap-3 mt-6 w-full">
-                                <button 
-                                    onClick={handleConfirmDelete} 
+                                <button
+                                    onClick={handleConfirmDelete}
                                     className="w-full py-4 font-bold text-white bg-danger rounded-lg hover:bg-red-700 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
                                 >
                                     SIM, EXCLUIR
                                 </button>
-                                <button 
+                                <button
                                     onClick={() => {
                                         setPendingEmployeeId(null);
                                         setActiveModal(ModalType.None);
-                                    }} 
+                                    }}
                                     className="w-full py-4 font-bold text-light-text dark:text-white bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition"
                                 >
                                     CANCELAR
@@ -2661,7 +2748,7 @@ const App: React.FC = () => {
                 </div>
             )}
 
-            <div 
+            <div
                 className="fixed z-[100] space-y-3 top-[calc(1.25rem+env(safe-area-inset-top))] right-[calc(1.25rem+env(safe-area-inset-right))]"
                 style={{ transform: `scale(${modalScale})`, transformOrigin: 'top right' }}
             >
