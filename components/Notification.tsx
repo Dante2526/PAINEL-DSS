@@ -16,12 +16,17 @@ const Notification: React.FC<NotificationProps> = ({ notification, onDismiss }) 
 
   useEffect(() => {
     setVisible(true);
+    let dismissTimer: NodeJS.Timeout;
+
     const timer = setTimeout(() => {
       setVisible(false);
-      setTimeout(() => onDismiss(notification.id), 500);
+      dismissTimer = setTimeout(() => onDismiss(notification.id), 500);
     }, 3000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      if (dismissTimer) clearTimeout(dismissTimer);
+    };
   }, [notification, onDismiss]);
 
   const baseClasses = 'font-semibold text-white px-6 py-4 rounded-xl shadow-lg transition-all duration-500 ease-[cubic-bezier(0.68,-0.55,0.27,1.55)] max-w-xs text-center';

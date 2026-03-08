@@ -998,16 +998,20 @@ const App: React.FC = () => {
     // Effect to check if tutorial should be shown for first-time users
     useEffect(() => {
         // Wait for loading to finish so DOM elements are present
+        let timeoutId: NodeJS.Timeout;
         if (!loading && selectedTurma) {
             const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
             if (!hasSeenTutorial) {
                 // Short delay to ensure rendering frames are complete
-                setTimeout(() => {
+                timeoutId = setTimeout(() => {
                     setActiveModal(ModalType.Tutorial);
                     localStorage.setItem('hasSeenTutorial', 'true');
                 }, 1000);
             }
         }
+        return () => {
+            if (timeoutId) clearTimeout(timeoutId);
+        };
     }, [loading, selectedTurma]);
 
     const handleToggleDarkMode = useCallback(() => setIsDarkMode(prev => !prev), []);
