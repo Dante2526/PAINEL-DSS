@@ -17,16 +17,20 @@ export const logAuditEvent = async (
     try {
         const adminAuditRef = doc(db, 'registros_auditoria', email);
 
+        const timestampFormatado = new Date().toLocaleString('pt-BR', {
+            timeZone: 'America/Sao_Paulo'
+        });
+
         const logEntry = {
             action,
             details,
             turma: turma || 'N/A',
-            timestamp: new Date().toISOString()
+            timestamp: timestampFormatado
         };
 
         await setDoc(adminAuditRef, {
             acoes: arrayUnion(logEntry),
-            ultimo_acesso: new Date().toISOString()
+            ultimo_acesso: timestampFormatado
         }, { merge: true });
 
     } catch (error) {
