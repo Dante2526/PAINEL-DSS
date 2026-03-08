@@ -2177,7 +2177,6 @@ const App: React.FC = () => {
     const handleSelectLayout = (layout: 'standard' | 'custom') => {
         localStorage.setItem('selectedLayout', layout);
         setSelectedLayout(layout);
-        setLoading(true);
     };
 
     const handleReturnToSelection = useCallback(() => {
