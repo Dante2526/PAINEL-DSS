@@ -23,12 +23,12 @@ interface SpecialTeamPanelProps {
     administrators: Administrator[]; // Access to admin list for lookup
 }
 
-const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = ({ 
-    specialTeam, 
-    onStatusChange, 
-    onToggleSpecialTeam, 
-    togglingSpecialTeamId, 
-    isAdmin, 
+const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = React.memo(({
+    specialTeam,
+    onStatusChange,
+    onToggleSpecialTeam,
+    togglingSpecialTeamId,
+    isAdmin,
     onDeleteUser,
     subject,
     matricula,
@@ -40,17 +40,17 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = ({
     employeesForLookup,
     administrators
 }) => {
-    const handleMatriculaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleMatriculaChangeLocal = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         onMatriculaChange(e.target.value.replace(/[^0-9]/g, ''));
-    };
-    
+    }, [onMatriculaChange]);
+
     // Find name based on matricula from administrators list first, then all employees from all turmas
     const foundName = useMemo(() => {
         if (!matricula) return '';
         // Prioritize administrators collection for manual registry
         const admin = administrators.find(a => a.matricula === matricula);
         if (admin) return admin.name;
-        
+
         // Fallback to the global employee lookup list
         const employee = employeesForLookup.find(e => e.matricula === matricula);
         return employee ? employee.name : '';
@@ -64,15 +64,15 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = ({
             <div id="tutorial-special-demo-area">
                 <div id="tutorial-special-header">
                     <h2 className="text-2xl font-bold text-center text-light-text dark:text-dark-text pb-4 mb-6 border-b-2 border-gray-200 dark:border-gray-700">TURNO 6H</h2>
-                    
+
                     <div className="space-y-4 mb-6 pb-6 border-b-2 border-gray-200 dark:border-gray-700">
                         <div className="relative">
                             <SubjectIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 value={subject}
                                 onChange={(e) => onSubjectChange(e.target.value)}
-                                placeholder="Assunto do DSS" 
+                                placeholder="Assunto do DSS"
                                 className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition uppercase"
                                 autoCapitalize="characters"
                             />
@@ -81,20 +81,20 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = ({
                         <div className="relative flex items-stretch w-[50%] mx-auto">
                             <div className="relative w-[40%] focus-within:z-10">
                                 <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     value={matricula}
-                                    onChange={handleMatriculaChange}
-                                    placeholder="Matrícula" 
+                                    onChange={handleMatriculaChangeLocal}
+                                    placeholder="Matrícula"
                                     className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 border-r-0 border-gray-200 dark:border-gray-600 rounded-l-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
                                     inputMode="numeric"
                                     pattern="[0-9]*"
                                 />
                             </div>
                             <div className="relative w-[60%]">
-                                <input 
-                                    type="text" 
-                                    value={foundName} 
+                                <input
+                                    type="text"
+                                    value={foundName}
                                     readOnly
                                     placeholder={matricula ? "Não encontrado" : "Nome do Responsável"}
                                     className="w-full px-4 py-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-medium border-2 border-l-0 border-gray-200 dark:border-gray-600 rounded-r-lg outline-none pointer-events-none truncate text-center"
@@ -110,10 +110,10 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = ({
                         REGISTRAR
                     </button>
                 </div>
-                
+
                 {firstEmployee && (
-                    <EmployeeCard 
-                        key={firstEmployee.id} 
+                    <EmployeeCard
+                        key={firstEmployee.id}
                         employee={firstEmployee}
                         onStatusChange={onStatusChange}
                         onToggleSpecialTeam={onToggleSpecialTeam}
@@ -126,12 +126,12 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = ({
                     />
                 )}
             </div>
-            
+
             {remainingEmployees.length > 0 && (
                 <div className="space-y-6 mt-6">
                     {remainingEmployees.map(employee => (
-                        <EmployeeCard 
-                            key={employee.id} 
+                        <EmployeeCard
+                            key={employee.id}
                             employee={employee}
                             onStatusChange={onStatusChange}
                             onToggleSpecialTeam={onToggleSpecialTeam}
@@ -146,6 +146,6 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = ({
             )}
         </div>
     );
-};
+});
 
 export default SpecialTeamPanel;

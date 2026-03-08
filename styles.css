@@ -1,14 +1,17 @@
-
-
 /* === GENERAL STYLES === */
-html, body {
+html,
+body,
+#root {
     margin: 0;
     padding: 0;
-    height: 100%;
+    height: 100dvh;
     width: 100%;
-    overflow: hidden; /* Prevent the main page from scrolling */
-    overscroll-behavior: none; /* PREVENTS THE WHITE GLOW/BOUNCE EFFECT */
-    background-color: #1A202C; /* Default to dark to prevent white flashes */
+    overflow: hidden;
+    /* Prevent the main page from scrolling */
+    overscroll-behavior: none;
+    /* PREVENTS THE WHITE GLOW/BOUNCE EFFECT */
+    background-color: #1A202C;
+    /* Default to dark to prevent white flashes */
     -webkit-overflow-scrolling: touch;
     /* Smooth theme transition for background colors */
     transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -17,10 +20,13 @@ html, body {
 .viewport {
     width: 100%;
     height: 100%;
-    overflow: auto; /* Enable scrolling in both directions (horizontal and vertical) */
+    overflow: auto;
+    /* Enable scrolling in both directions (horizontal and vertical) */
     cursor: grab;
-    overscroll-behavior: none; /* PREVENTS THE WHITE GLOW/BOUNCE EFFECT INSIDE CONTAINER */
-    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    overscroll-behavior: none;
+    /* PREVENTS THE WHITE GLOW/BOUNCE EFFECT INSIDE CONTAINER */
+    -webkit-overflow-scrolling: touch;
+    /* Smooth scrolling on iOS */
     /* Remove translateZ from viewport to reduce memory usage */
     will-change: scroll-position;
 }
@@ -30,10 +36,12 @@ html, body {
 }
 
 .scalable-container {
-    transform-origin: 0 0; /* Anchor scaling to the top-left corner */
+    transform-origin: 0 0;
+    /* Anchor scaling to the top-left corner */
     /* Simplificado para evitar erros de renderização */
     transform-style: flat;
-    min-height: 100%; /* Ensure it covers height */
+    min-height: 100%;
+    /* Ensure it covers height */
     width: fit-content;
 }
 
@@ -41,16 +49,39 @@ html, body {
 .card-optimized {
     /* REMOVED content-visibility: auto; - Caused rendering voids on mobile */
     /* REMOVED transform: translateZ(0); - Caused excessive VRAM usage */
-    
+
     /* Keep basic containment for layout calculation speed, but lighter */
-    contain: layout style; 
+    contain: layout style;
     position: relative;
     /* Only animate opacity/transform when interacted with, not always */
 }
 
 /* Prevent zoom on double tap and ensure inputs behave well on touch */
-input, textarea, button, select, a {
-  touch-action: manipulation;
+input,
+textarea,
+button,
+select,
+a {
+    touch-action: manipulation;
+}
+
+/* Custom Scrollbar Hiding & Touch Scroll */
+.hide-scrollbar {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+    /* Chrome, Safari and Opera */
+}
+
+#fast-scroller-bar {
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    overscroll-behavior: contain;
 }
 
 /* === BB-8 TOGGLE STYLES === */
@@ -116,7 +147,7 @@ input, textarea, button, select, a {
     margin-bottom: -0.188em;
     width: 2.5em;
     height: 1.688em;
-    background: 
+    background:
         linear-gradient(transparent 0.063em, dimgray 0.063em 0.313em, transparent 0.313em 0.375em, var(--accent) 0.375em 0.5em, transparent 0.5em 1.313em, silver 1.313em 1.438em, transparent 1.438em),
         linear-gradient(45deg, transparent 0.188em, var(--bb8-bg) 0.188em 1.25em, transparent 1.25em),
         linear-gradient(-45deg, transparent 0.188em, var(--bb8-bg) 0.188em 1.25em, transparent 1.25em),
@@ -132,7 +163,7 @@ input, textarea, button, select, a {
     position: absolute;
     width: 0.563em;
     height: 0.563em;
-    background: 
+    background:
         radial-gradient(0.125em circle at 0.25em 0.375em, red, transparent),
         radial-gradient(0.063em circle at 0.375em 0.188em, var(--bb8-bg) 50%, transparent 100%),
         linear-gradient(45deg, #000 0.188em, dimgray 0.313em 0.375em, #000 0.5em);
@@ -187,7 +218,7 @@ input, textarea, button, select, a {
     transition: var(--transition);
     z-index: 9;
     transform: rotate(45deg);
-    background: 
+    background:
         linear-gradient(-90deg, var(--bb8-bg) 4%, var(--accent) 4% 10%, transparent 10% 90%, var(--accent) 90% 96%, var(--bb8-bg) 96%),
         linear-gradient(var(--bb8-bg) 4%, var(--accent) 4% 10%, transparent 10% 90%, var(--accent) 90% 96%, var(--bb8-bg) 96%),
         linear-gradient(to right, transparent 2.156em, silver 2.156em 2.219em, transparent 2.188em),
@@ -217,7 +248,7 @@ input, textarea, button, select, a {
     left: 50%;
     transform: translate(-50%, -50%);
     border: 0.313em solid var(--accent);
-    background: 
+    background:
         radial-gradient(1em circle at center, rgb(236, 236, 236) 50%, transparent 51%),
         radial-gradient(1.25em circle at center, var(--bb8-bg) 50%, transparent 51%),
         linear-gradient(-90deg, transparent 42%, var(--accent) 42% 58%, transparent 58%),
@@ -396,13 +427,33 @@ input, textarea, button, select, a {
     top: 100%;
 }
 
-.bb8-toggle__checkbox:checked + .bb8-toggle__container .bb8-toggle__scenery .bb8-toggle__star:nth-child(1) { top: 0.625em; }
-.bb8-toggle__checkbox:checked + .bb8-toggle__container .bb8-toggle__scenery .bb8-toggle__star:nth-child(2) { top: 1.875em; }
-.bb8-toggle__checkbox:checked + .bb8-toggle__container .bb8-toggle__scenery .bb8-toggle__star:nth-child(3) { top: 1.25em; }
-.bb8-toggle__checkbox:checked + .bb8-toggle__container .bb8-toggle__scenery .bb8-toggle__star:nth-child(4) { top: 3.438em; }
-.bb8-toggle__checkbox:checked + .bb8-toggle__container .bb8-toggle__scenery .bb8-toggle__star:nth-child(5) { top: 3.438em; }
-.bb8-toggle__checkbox:checked + .bb8-toggle__container .bb8-toggle__scenery .bb8-toggle__star:nth-child(6) { top: 0.313em; }
-.bb8-toggle__checkbox:checked + .bb8-toggle__container .bb8-toggle__scenery .bb8-toggle__star:nth-child(7) { top: 1.875em; }
+.bb8-toggle__checkbox:checked+.bb8-toggle__container .bb8-toggle__scenery .bb8-toggle__star:nth-child(1) {
+    top: 0.625em;
+}
+
+.bb8-toggle__checkbox:checked+.bb8-toggle__container .bb8-toggle__scenery .bb8-toggle__star:nth-child(2) {
+    top: 1.875em;
+}
+
+.bb8-toggle__checkbox:checked+.bb8-toggle__container .bb8-toggle__scenery .bb8-toggle__star:nth-child(3) {
+    top: 1.25em;
+}
+
+.bb8-toggle__checkbox:checked+.bb8-toggle__container .bb8-toggle__scenery .bb8-toggle__star:nth-child(4) {
+    top: 3.438em;
+}
+
+.bb8-toggle__checkbox:checked+.bb8-toggle__container .bb8-toggle__scenery .bb8-toggle__star:nth-child(5) {
+    top: 3.438em;
+}
+
+.bb8-toggle__checkbox:checked+.bb8-toggle__container .bb8-toggle__scenery .bb8-toggle__star:nth-child(6) {
+    top: 0.313em;
+}
+
+.bb8-toggle__checkbox:checked+.bb8-toggle__container .bb8-toggle__scenery .bb8-toggle__star:nth-child(7) {
+    top: 1.875em;
+}
 
 .bb8-toggle__star:nth-child(1) {
     left: 3.75em;
@@ -450,44 +501,67 @@ input, textarea, button, select, a {
     transition: 0.8s;
 }
 
-.bb8-toggle__checkbox:checked + .bb8-toggle__container {
+.bb8-toggle__checkbox:checked+.bb8-toggle__container {
     background-position-y: 0;
 }
 
-.bb8-toggle__checkbox:checked + .bb8-toggle__container .bb8 {
+.bb8-toggle__checkbox:checked+.bb8-toggle__container .bb8 {
     left: calc(100% - var(--bb8-diameter) - var(--toggle-offset));
 }
 
-.bb8-toggle__checkbox:checked + .bb8-toggle__container .bb8__body {
+.bb8-toggle__checkbox:checked+.bb8-toggle__container .bb8__body {
     transform: rotate(225deg);
 }
 
-.bb8-toggle__checkbox:checked + .bb8-toggle__container .artificial__hidden .bb8__shadow {
+.bb8-toggle__checkbox:checked+.bb8-toggle__container .artificial__hidden .bb8__shadow {
     left: calc(100% - var(--bb8-diameter) - var(--toggle-offset) + 0.938em);
     transform: skew(70deg);
 }
 
-.bb8-toggle__checkbox:checked + .bb8-toggle__container .bb8-toggle__scenery .bb8-toggle__cloud { right: -100%; }
-.bb8-toggle__checkbox:checked + .bb8-toggle__container .bb8-toggle__scenery .gomrassen { top: 0.938em; }
-.bb8-toggle__checkbox:checked + .bb8-toggle__container .bb8-toggle__scenery .hermes { top: 2.5em; }
-.bb8-toggle__checkbox:checked + .bb8-toggle__container .bb8-toggle__scenery .chenini { top: 2.75em; }
-.bb8-toggle__checkbox:checked + .bb8-toggle__container .bb8-toggle__scenery .tatto-1 { top: 100%; }
-.bb8-toggle__checkbox:checked + .bb8-toggle__container .bb8-toggle__scenery .tatto-2 { top: 100%; }
+.bb8-toggle__checkbox:checked+.bb8-toggle__container .bb8-toggle__scenery .bb8-toggle__cloud {
+    right: -100%;
+}
+
+.bb8-toggle__checkbox:checked+.bb8-toggle__container .bb8-toggle__scenery .gomrassen {
+    top: 0.938em;
+}
+
+.bb8-toggle__checkbox:checked+.bb8-toggle__container .bb8-toggle__scenery .hermes {
+    top: 2.5em;
+}
+
+.bb8-toggle__checkbox:checked+.bb8-toggle__container .bb8-toggle__scenery .chenini {
+    top: 2.75em;
+}
+
+.bb8-toggle__checkbox:checked+.bb8-toggle__container .bb8-toggle__scenery .tatto-1 {
+    top: 100%;
+}
+
+.bb8-toggle__checkbox:checked+.bb8-toggle__container .bb8-toggle__scenery .tatto-2 {
+    top: 100%;
+}
 
 /* === TURNO 6H BUTTON STYLES === */
 .turno-button {
     position: relative;
     overflow: hidden;
-    padding: 1rem 1.5rem; /* Increased to normal height */
-    font-size: 1rem; /* Normal text size */
-    font-weight: 700; /* font-bold */
-    border-radius: 0.5rem; /* rounded-lg */
+    padding: 1rem 1.5rem;
+    /* Increased to normal height */
+    font-size: 1rem;
+    /* Normal text size */
+    font-weight: 700;
+    /* font-bold */
+    border-radius: 0.5rem;
+    /* rounded-lg */
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem; /* Restored gap */
+    gap: 0.5rem;
+    /* Restored gap */
     color: white;
-    background: linear-gradient(135deg, #F97316 0%, #EA580C 100%); /* Orange gradient */
+    background: linear-gradient(135deg, #F97316 0%, #EA580C 100%);
+    /* Orange gradient */
     transition: all 0.3s ease;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border: none;
@@ -501,7 +575,8 @@ input, textarea, button, select, a {
 }
 
 .turno-button.active {
-    background: linear-gradient(135deg, #0056b3 0%, #004080 100%); /* Dark blue gradient */
+    background: linear-gradient(135deg, #0056b3 0%, #004080 100%);
+    /* Dark blue gradient */
     color: #e0e0e0;
 }
 
@@ -545,6 +620,7 @@ input, textarea, button, select, a {
     from {
         transform: rotate(0deg);
     }
+
     to {
         transform: rotate(360deg);
     }
@@ -570,15 +646,19 @@ input, textarea, button, select, a {
 .absent-button {
     position: relative;
     overflow: hidden;
-    padding: 1rem 1.5rem; /* Increased to normal height */
-    font-size: 1rem; /* Normal text size */
+    padding: 1rem 1.5rem;
+    /* Increased to normal height */
+    font-size: 1rem;
+    /* Normal text size */
     font-weight: 700;
     border-radius: 0.5rem;
     display: flex;
     align-items: center;
-    gap: 0.5rem; /* Restored gap */
+    gap: 0.5rem;
+    /* Restored gap */
     color: white;
-    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); /* Amber gradient */
+    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+    /* Amber gradient */
     box-shadow: 0 10px 32px rgba(217, 119, 6, 0.35);
     border: none;
     cursor: pointer;
@@ -592,7 +672,8 @@ input, textarea, button, select, a {
 }
 
 .absent-button.marked {
-    background: linear-gradient(135deg, #D97706 0%, #B45309 100%); /* Darker amber gradient */
+    background: linear-gradient(135deg, #D97706 0%, #B45309 100%);
+    /* Darker amber gradient */
     transform: translateY(1px);
     box-shadow: 0 6px 20px rgba(217, 119, 6, 0.3);
 }
@@ -601,15 +682,19 @@ input, textarea, button, select, a {
 .delete-button {
     position: relative;
     overflow: hidden;
-    padding: 1rem 1.5rem; /* Increased to normal height */
-    font-size: 1rem; /* Normal text size */
+    padding: 1rem 1.5rem;
+    /* Increased to normal height */
+    font-size: 1rem;
+    /* Normal text size */
     font-weight: 700;
     border-radius: 0.5rem;
     display: flex;
     align-items: center;
-    gap: 0.5rem; /* Restored gap */
+    gap: 0.5rem;
+    /* Restored gap */
     color: white;
-    background: linear-gradient(135deg, #ff5252 0%, #c51111 100%); /* Red gradient */
+    background: linear-gradient(135deg, #ff5252 0%, #c51111 100%);
+    /* Red gradient */
     box-shadow: 0 10px 32px rgba(255, 82, 82, 0.35);
     border: none;
     cursor: pointer;
@@ -625,6 +710,8 @@ input, textarea, button, select, a {
 /* Custom rule to resize BB-8 on selection screen for mobile */
 @media (max-width: 767px) {
     .selection-screen-toggle .bb8-toggle {
-        --toggle-size: 10px; /* Default is 16px, this makes it smaller for mobile */
+        --toggle-size: 7px;
+        /* Default is 16px, this makes it smaller for mobile */
+        margin: 4px;
     }
 }

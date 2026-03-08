@@ -16,6 +16,12 @@ service cloud.firestore {
          collectionId == 'registrosDSS D');
     }
 
+    // REGRA PARA LOG DE AUDITORIA
+    // Permite criar e ler registros de auditoria para usuários autenticados.
+    match /registros_auditoria/{logId} {
+      allow read, write: if request.auth != null;
+    }
+
     // REGRA DE SEGURANÇA PARA ADMINISTRADORES
     // Permite apenas ler a lista de admins, mas proíbe criar ou editar pelo app.
     match /administrators/{adminId} {

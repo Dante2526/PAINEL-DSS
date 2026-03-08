@@ -1,5 +1,4 @@
-
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 
 interface ModalProps {
   isOpen: boolean;
@@ -11,33 +10,59 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, scale = 1, size = 'sm' }) => {
+  const [viewportHeight, setViewportHeight] = useState('100vh');
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const updateHeight = () => {
+      if (window.visualViewport) {
+        setViewportHeight(`${window.visualViewport.height}px`);
+      } else {
+        setViewportHeight(`${window.innerHeight}px`);
+      }
+    };
+
+    updateHeight();
+
+    window.visualViewport?.addEventListener('resize', updateHeight);
+    window.addEventListener('resize', updateHeight);
+
+    return () => {
+      window.visualViewport?.removeEventListener('resize', updateHeight);
+      window.removeEventListener('resize', updateHeight);
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
-  const modalStyle = { 
-    transform: `scale(${scale})`, 
-    animation: 'fade-in-scale 0.3s forwards ease-out' 
+  const modalStyle = {
+    transform: `scale(${scale})`,
+    animation: 'fade-in-scale 0.3s forwards ease-out'
   };
-  
+
   const sizeClass = {
     sm: 'max-w-sm',
     md: 'max-w-md',
     lg: 'max-w-lg',
   }[size];
 
-
   return (
-    <div 
-      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 transition-opacity duration-300"
+    <div
+      className="fixed inset-x-0 top-0 bg-black/60 flex items-center justify-center p-4 z-50 transition-opacity duration-300 overflow-hidden"
+      style={{ height: viewportHeight }}
       onClick={onClose}
     >
-      <div 
-        className={`bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-8 w-full ${sizeClass} text-center`}
+      <div
+        className={`bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-8 w-full max-h-full overflow-y-auto hide-scrollbar ${sizeClass} text-center relative flex flex-col`}
         style={modalStyle}
         onClick={(e) => e.stopPropagation()}
       >
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10">&times;</button>
-        <h2 className="text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6">{title}</h2>
-        {children}
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10 font-bold">&times;</button>
+        <h2 className="text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6 mt-2 shrink-0">{title}</h2>
+        <div className="flex-grow flex flex-col min-h-0">
+          {children}
+        </div>
       </div>
       <style>{`
         @keyframes fade-in-scale {
