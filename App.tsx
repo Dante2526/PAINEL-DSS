@@ -2376,6 +2376,18 @@ const App: React.FC = () => {
         }
     }
 
+    // Callbacks estáveis para evitar re-renders de componentes com React.memo
+    // IMPORTANTE: Hooks devem ficar ANTES de qualquer return condicional (Regra dos Hooks do React)
+    const handleOpenAdminLogin = useCallback(() => setActiveModal(ModalType.AdminLogin), []);
+    const handleCloseModal = useCallback(() => setActiveModal(ModalType.None), []);
+    const handleOpenAddUser = useCallback(() => setActiveModal(ModalType.AddUser), []);
+    const handleOpenReport = useCallback(() => setActiveModal(ModalType.Report), []);
+    const handleOpenImportEmployee = useCallback(() => setActiveModal(ModalType.ImportEmployee), []);
+    const handleOpenDemoPassword = useCallback(() => setActiveModal(ModalType.DemoPassword), []);
+    const handleStartAdminTutorial = useCallback(() => setIsAdminTutorialOpen(true), []);
+    const handleRegister7H = useCallback(() => handleManualRegister('7H'), [handleManualRegister]);
+    const handleRegister6H = useCallback(() => handleManualRegister('6H'), [handleManualRegister]);
+
     if (!selectedTurma) {
         return (
             <TurmaSelectionScreen
@@ -2397,17 +2409,6 @@ const App: React.FC = () => {
             />
         );
     }
-
-    // Callbacks estáveis para evitar re-renders de componentes com React.memo
-    const handleOpenAdminLogin = useCallback(() => setActiveModal(ModalType.AdminLogin), []);
-    const handleCloseModal = useCallback(() => setActiveModal(ModalType.None), []);
-    const handleOpenAddUser = useCallback(() => setActiveModal(ModalType.AddUser), []);
-    const handleOpenReport = useCallback(() => setActiveModal(ModalType.Report), []);
-    const handleOpenImportEmployee = useCallback(() => setActiveModal(ModalType.ImportEmployee), []);
-    const handleOpenDemoPassword = useCallback(() => setActiveModal(ModalType.DemoPassword), []);
-    const handleStartAdminTutorial = useCallback(() => setIsAdminTutorialOpen(true), []);
-    const handleRegister7H = useCallback(() => handleManualRegister('7H'), [handleManualRegister]);
-    const handleRegister6H = useCallback(() => handleManualRegister('6H'), [handleManualRegister]);
 
     return (
         <div className="bg-light-bg-secondary dark:bg-dark-bg min-h-screen text-light-text dark:text-dark-text transition-colors relative overflow-hidden">
