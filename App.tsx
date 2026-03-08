@@ -2330,6 +2330,7 @@ const App: React.FC = () => {
 
             viewportRef.current.scrollTo({
                 top: targetScrollTop,
+                left: 0,
                 behavior: 'smooth'
             });
 
