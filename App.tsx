@@ -43,6 +43,33 @@ const EMAILJS_TEMPLATE_ID = "template_owo0dmm";
 const EMAILJS_PUBLIC_KEY = "Ef-7IoF9U9NQ_iV8X";
 // ----------------------------
 
+// --- TIPO E HELPERS DE TURMA ---
+type TurmaType = 'A' | 'B' | 'C' | 'D' | 'CCG';
+const ALL_TURMAS: TurmaType[] = ['A', 'B', 'C', 'D', 'CCG'];
+
+const TURMA_DISPLAY_NAMES: Record<TurmaType, string> = {
+    A: 'A',
+    B: 'B',
+    C: 'C',
+    D: 'D',
+    CCG: 'C CG',
+};
+
+function getTurmaCollectionName(turma: TurmaType): string {
+    const displayName = TURMA_DISPLAY_NAMES[turma];
+    return `turma ${displayName.toLowerCase()}`;
+}
+
+function getTurmaRegistrationName(turma: TurmaType): string {
+    const displayName = TURMA_DISPLAY_NAMES[turma];
+    return `registrosDSS ${displayName}`;
+}
+
+function isValidTurma(value: string): value is TurmaType {
+    return ALL_TURMAS.includes(value as TurmaType);
+}
+// --------------------------------
+
 const tutorialSteps: TutorialStep[] = [
     {
         targetId: 'app-header',
@@ -697,12 +724,12 @@ const DemoPasswordModal: React.FC<{
 const ImportEmployeeModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
-    onImport: (employeeId: string, sourceTurma: 'A' | 'B' | 'C' | 'D') => void;
-    currentTurma: 'A' | 'B' | 'C' | 'D';
+    onImport: (employeeId: string, sourceTurma: TurmaType) => void;
+    currentTurma: TurmaType;
     scale: number;
     showNotification: (msg: string, type: 'success' | 'error') => void;
 }> = ({ isOpen, onClose, onImport, currentTurma, scale, showNotification }) => {
-    const [sourceTurma, setSourceTurma] = useState<'A' | 'B' | 'C' | 'D' | ''>('');
+    const [sourceTurma, setSourceTurma] = useState<TurmaType | ''>('');
     const [sourceEmployees, setSourceEmployees] = useState<Employee[]>([]);
     const [loadingEmployees, setLoadingEmployees] = useState(false);
     const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
@@ -711,7 +738,7 @@ const ImportEmployeeModal: React.FC<{
     const dropdownRef = useRef<HTMLDivElement>(null);
 
 
-    const turmas: ('A' | 'B' | 'C' | 'D')[] = ['A', 'B', 'C', 'D'];
+    const turmas: TurmaType[] = [...ALL_TURMAS];
     const availableTurmas = turmas.filter(t => t !== currentTurma);
 
     useEffect(() => {
@@ -739,7 +766,7 @@ const ImportEmployeeModal: React.FC<{
             setSearchTerm('');
 
             try {
-                const collectionName = `turma ${sourceTurma.toLowerCase()}`;
+                const collectionName = getTurmaCollectionName(sourceTurma as TurmaType);
                 const q = query(collection(db, collectionName), orderBy("name", "asc"));
                 const querySnapshot = await getDocs(q);
 
@@ -805,7 +832,7 @@ const ImportEmployeeModal: React.FC<{
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (selectedEmployeeId && sourceTurma) {
-            onImport(selectedEmployeeId, sourceTurma as 'A' | 'B' | 'C' | 'D');
+            onImport(selectedEmployeeId, sourceTurma as TurmaType);
         }
     };
 
@@ -820,13 +847,13 @@ const ImportEmployeeModal: React.FC<{
                         <select
                             id="turma-select"
                             value={sourceTurma}
-                            onChange={(e) => setSourceTurma(e.target.value as 'A' | 'B' | 'C' | 'D')}
+                            onChange={(e) => setSourceTurma(e.target.value as TurmaType)}
                             className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white appearance-none pr-12"
                             required
                         >
                             <option value="" disabled>Selecione uma turma</option>
                             {availableTurmas.map(turma => (
-                                <option key={turma} value={turma}>Turma {turma}</option>
+                                <option key={turma} value={turma}>Turma {TURMA_DISPLAY_NAMES[turma]}</option>
                             ))}
                         </select>
                         <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">
@@ -881,7 +908,7 @@ const ImportEmployeeModal: React.FC<{
 
                 <div className="pt-2">
                     <button type="submit" disabled={!selectedEmployeeId} className="w-full py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed">
-                        IMPORTAR PARA TURMA {currentTurma}
+                        IMPORTAR PARA TURMA {TURMA_DISPLAY_NAMES[currentTurma]}
                     </button>
                 </div>
             </form>
@@ -891,10 +918,10 @@ const ImportEmployeeModal: React.FC<{
 
 
 const App: React.FC = () => {
-    const [selectedTurma, setSelectedTurma] = useState<'A' | 'B' | 'C' | 'D' | null>(() => {
+    const [selectedTurma, setSelectedTurma] = useState<TurmaType | null>(() => {
         const savedTurma = localStorage.getItem('selectedTurma');
-        if (savedTurma === 'A' || savedTurma === 'B' || savedTurma === 'C' || savedTurma === 'D') {
-            return savedTurma as 'A' | 'B' | 'C' | 'D';
+        if (savedTurma && isValidTurma(savedTurma)) {
+            return savedTurma;
         }
         return null;
     });
@@ -1144,7 +1171,7 @@ const App: React.FC = () => {
 
             const templateParams = {
                 html_content: emailContent,
-                subject: `🚨 ALERTA URGENTE TURMA ${selectedTurma}: "ESTOU MAL"`,
+                subject: `🚨 ALERTA URGENTE TURMA ${TURMA_DISPLAY_NAMES[selectedTurma]}: "ESTOU MAL"`,
             };
 
             await emailjs.send(
@@ -1170,8 +1197,7 @@ const App: React.FC = () => {
                 console.log("Signed in anonymously for global data fetch.");
 
                 if (allEmployeesForLookup.length === 0) {
-                    const turmas = ['a', 'b', 'c', 'd'];
-                    const promises = turmas.map(turma => getDocs(query(collection(db, `turma ${turma}`))));
+                    const promises = ALL_TURMAS.map(turma => getDocs(query(collection(db, getTurmaCollectionName(turma)))));
 
                     const snapshots = await Promise.all(promises);
                     const allEmps: Pick<Employee, 'name' | 'matricula'>[] = [];
@@ -1217,7 +1243,7 @@ const App: React.FC = () => {
             if (!db) return;
             try {
                 // Listeners for the specific turma
-                const collectionName = `turma ${selectedTurma.toLowerCase()}`;
+                const collectionName = getTurmaCollectionName(selectedTurma);
                 const employeesQuery = query(collection(db, collectionName), orderBy("name", "asc"));
                 unsubscribeEmployees = onSnapshot(employeesQuery, (querySnapshot) => {
                     if (isDemoModeRef.current) return;
@@ -1240,7 +1266,7 @@ const App: React.FC = () => {
 
                     if (!initialLoadDoneRef.current) {
                         setLoading(false);
-                        showNotification(`Dados da Turma ${selectedTurma} carregados!`, 'success');
+                        showNotification(`Dados da Turma ${TURMA_DISPLAY_NAMES[selectedTurma]} carregados!`, 'success');
                         initialLoadDoneRef.current = true;
                     }
 
@@ -1257,7 +1283,7 @@ const App: React.FC = () => {
                     setAdministrators(adminsData);
                 }, (error) => console.error("Error listening to admin updates:", error));
 
-                const registrationCollectionName = `registrosDSS ${selectedTurma}`;
+                const registrationCollectionName = getTurmaRegistrationName(selectedTurma);
                 const registrationsQuery = query(collection(db, registrationCollectionName));
                 unsubscribeRegistrations = onSnapshot(registrationsQuery, (querySnapshot) => {
                     if (isDemoModeRef.current) return;
@@ -1606,7 +1632,7 @@ const App: React.FC = () => {
             } else {
                 updatedData.time = null;
             }
-            const collectionName = `turma ${selectedTurma.toLowerCase()}`;
+            const collectionName = getTurmaCollectionName(selectedTurma);
             const docRef = doc(db, collectionName, id);
             await updateDoc(docRef, updatedData);
             logAuditEvent(adminEmailRef.current, 'STATUS_CHANGE', `Funcionário: ${employee.name} | Alteração: ${type} → ${isChecking ? 'marcado' : 'desmarcado'}`, selectedTurma);
@@ -1636,7 +1662,7 @@ const App: React.FC = () => {
         }
 
         try {
-            const collectionName = `turma ${selectedTurma.toLowerCase()}`;
+            const collectionName = getTurmaCollectionName(selectedTurma);
             const docRef = doc(db, collectionName, id);
             await updateDoc(docRef, {
                 time: Timestamp.fromDate(newDate)
@@ -1669,7 +1695,7 @@ const App: React.FC = () => {
         }
 
         try {
-            const collectionName = `turma ${selectedTurma.toLowerCase()}`;
+            const collectionName = getTurmaCollectionName(selectedTurma);
 
             // Check for duplicates
             const q = query(collection(db, collectionName), where("matricula", "==", newMatricula));
@@ -1755,7 +1781,7 @@ const App: React.FC = () => {
         }
 
         try {
-            const collectionName = `turma ${selectedTurma.toLowerCase()}`;
+            const collectionName = getTurmaCollectionName(selectedTurma);
             const docRef = doc(db, collectionName, id);
             await updateDoc(docRef, {
                 turno: newTurno
@@ -1799,7 +1825,7 @@ const App: React.FC = () => {
             return;
         }
         try {
-            const collectionName = `turma ${selectedTurma.toLowerCase()}`;
+            const collectionName = getTurmaCollectionName(selectedTurma);
             const docRef = doc(db, collectionName, employeeId);
             await deleteDoc(docRef);
             showNotification(`Usuário ${employeeToDelete.name} deletado com sucesso!`, 'success');
@@ -1865,7 +1891,7 @@ const App: React.FC = () => {
             return;
         }
 
-        const registrationCollectionName = `registrosDSS ${selectedTurma}`;
+        const registrationCollectionName = getTurmaRegistrationName(selectedTurma);
         const docId = `registro_${turno}`; // Creates a predictable ID like "registro_7H" or "registro_6H"
         const docRef = doc(db, registrationCollectionName, docId);
 
@@ -2007,7 +2033,7 @@ const App: React.FC = () => {
             }
 
             // If no duplicate is found, proceed to add the user
-            const collectionName = `turma ${selectedTurma.toLowerCase()}`;
+            const collectionName = getTurmaCollectionName(selectedTurma);
             await addDoc(collection(db, collectionName), {
                 name: finalName,
                 matricula,
@@ -2023,7 +2049,7 @@ const App: React.FC = () => {
                 setActiveModal(ModalType.None);
             }
             showNotification(`Usuário ${finalName} adicionado com sucesso!`, 'success');
-            logAuditEvent(adminEmail, 'ADD_USER', `Novo funcionário: ${finalName} (Matrícula: ${matricula}) na Turma ${selectedTurma}`, selectedTurma);
+            logAuditEvent(adminEmail, 'ADD_USER', `Novo funcionário: ${finalName} (Matrícula: ${matricula}) na Turma ${TURMA_DISPLAY_NAMES[selectedTurma]}`, selectedTurma);
         } catch (error) {
             console.error("Error adding user:", error);
             const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro.';
@@ -2064,7 +2090,7 @@ const App: React.FC = () => {
 
         try {
             const batch = writeBatch(db);
-            const collectionName = `turma ${selectedTurma.toLowerCase()}`;
+            const collectionName = getTurmaCollectionName(selectedTurma);
             const employeesSnapshot = await getDocs(collection(db, collectionName));
             employeesSnapshot.forEach((doc) => {
                 batch.update(doc.ref, {
@@ -2076,7 +2102,7 @@ const App: React.FC = () => {
                 });
             });
 
-            const registrationCollectionName = `registrosDSS ${selectedTurma}`;
+            const registrationCollectionName = getTurmaRegistrationName(selectedTurma);
             const registrationsSnapshot = await getDocs(collection(db, registrationCollectionName));
             registrationsSnapshot.forEach((doc) => {
                 batch.delete(doc.ref);
@@ -2085,7 +2111,7 @@ const App: React.FC = () => {
             await batch.commit();
             setActiveModal(ModalType.None);
             showNotification('Dados de status diário e registros manuais foram limpos!', 'success');
-            logAuditEvent(adminEmail, 'CLEAR_DATA', `Dados diários limpos da Turma ${selectedTurma}`, selectedTurma);
+            logAuditEvent(adminEmail, 'CLEAR_DATA', `Dados diários limpos da Turma ${TURMA_DISPLAY_NAMES[selectedTurma]}`, selectedTurma);
         } catch (error) {
             console.error("Error clearing data:", error);
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
@@ -2099,7 +2125,7 @@ const App: React.FC = () => {
         showNotification('Painel reorganizado alfabeticamente!', 'success');
     };
 
-    const handleImportEmployee = async (employeeId: string, sourceTurma: 'A' | 'B' | 'C' | 'D') => {
+    const handleImportEmployee = async (employeeId: string, sourceTurma: TurmaType) => {
         if (!isAdmin || !selectedTurma) {
             showNotification('Ação não permitida.', 'error');
             return;
@@ -2112,7 +2138,7 @@ const App: React.FC = () => {
         if (isDemoMode) {
             const employeeToMove = { id: `demo-moved-${Date.now()}`, name: "Funcionário Importado", matricula: "0000", turno: "7H", time: null, assDss: false, bem: false, mal: false, absent: false };
             setEmployees(prev => [...prev, employeeToMove].sort((a, b) => a.name.localeCompare(b.name)));
-            showNotification(`${employeeToMove.name} importado para a Turma ${selectedTurma} (DEMO).`, 'success');
+            showNotification(`${employeeToMove.name} importado para a Turma ${TURMA_DISPLAY_NAMES[selectedTurma]} (DEMO).`, 'success');
             setActiveModal(ModalType.None);
             return;
         }
@@ -2122,8 +2148,8 @@ const App: React.FC = () => {
             return;
         }
 
-        const sourceCollectionName = `turma ${sourceTurma.toLowerCase()}`;
-        const destinationCollectionName = `turma ${selectedTurma.toLowerCase()}`;
+        const sourceCollectionName = getTurmaCollectionName(sourceTurma);
+        const destinationCollectionName = getTurmaCollectionName(selectedTurma);
         const sourceDocRef = doc(db, sourceCollectionName, employeeId);
 
         try {
@@ -2156,8 +2182,8 @@ const App: React.FC = () => {
 
             await batch.commit();
 
-            showNotification(`${employeeName} foi importado para a Turma ${selectedTurma} com sucesso!`, 'success');
-            logAuditEvent(adminEmail, 'IMPORT_USER', `Funcionário: ${employeeName} importado da Turma ${sourceTurma} para Turma ${selectedTurma}`, selectedTurma);
+            showNotification(`${employeeName} foi importado para a Turma ${TURMA_DISPLAY_NAMES[selectedTurma]} com sucesso!`, 'success');
+            logAuditEvent(adminEmail, 'IMPORT_USER', `Funcionário: ${employeeName} importado da Turma ${TURMA_DISPLAY_NAMES[sourceTurma]} para Turma ${TURMA_DISPLAY_NAMES[selectedTurma]}`, selectedTurma);
             setActiveModal(ModalType.None);
 
         } catch (error) {
@@ -2167,7 +2193,7 @@ const App: React.FC = () => {
         }
     };
 
-    const handleSelectTurma = (turma: 'A' | 'B' | 'C' | 'D') => {
+    const handleSelectTurma = (turma: TurmaType) => {
         localStorage.setItem('selectedTurma', turma);
         setLoading(true);
         setEmployees([]); // Limpa dados antigos para evitar exibir dados da turma errada

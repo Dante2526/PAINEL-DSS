@@ -10,10 +10,12 @@ service cloud.firestore {
          collectionId == 'turma b' || 
          collectionId == 'turma c' ||
          collectionId == 'turma d' ||
+         collectionId == 'turma c cg' ||
          collectionId == 'registrosDSS A' || 
          collectionId == 'registrosDSS B' ||
          collectionId == 'registrosDSS C' ||
-         collectionId == 'registrosDSS D');
+         collectionId == 'registrosDSS D' ||
+         collectionId == 'registrosDSS C CG');
     }
 
     // REGRA PARA LOG DE AUDITORIA
