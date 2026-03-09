@@ -386,10 +386,16 @@ const AddUserModal: React.FC<{
         e.preventDefault();
         if (name.trim()) {
             onAdd(name.trim(), matricula, addAnother);
-            // Don't clear fields if user wants to add another, but clear them if the add was successful (handled in parent)
-            if (!addAnother) {
-                setName('');
-                setMatricula('');
+            // Sempre limpa os campos após enviar
+            setName('');
+            setMatricula('');
+
+            // Se "Continuar Adicionando" estiver marcado, o modal não fechará
+            // então focamos automaticamente no campo de nome para o próximo
+            if (addAnother && nameInputRef.current) {
+                setTimeout(() => {
+                    nameInputRef.current?.focus();
+                }, 100);
             }
         }
     };
