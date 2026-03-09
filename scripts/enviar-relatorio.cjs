@@ -152,23 +152,27 @@ async function gerarRelatorio() {
   htmlBody += `<h3>AUSENTES</h3>`;
   if (cat_7H_Ausentes.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_7H_Ausentes.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }
 
-  // EQUIPE TURNO 6H
-  htmlBody += `<br><h2>EQUIPE TURNO 6H</h2><hr>`;
-  htmlBody += `<h3>STATUS: "ASS.DSS + ESTOU BEM"</h3>`;
-  if (cat_6H_EstouBem.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_6H_EstouBem.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }
-  htmlBody += `<h3>STATUS "ESTOU MAL"</h3>`;
-  if (cat_6H_EstouMal.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_6H_EstouMal.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }
-  htmlBody += `<h3>PENDENTES</h3>`;
-  if (cat_6H_Pendentes.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_6H_Pendentes.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }
-  htmlBody += `<h3>AUSENTES</h3>`;
-  if (cat_6H_Ausentes.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_6H_Ausentes.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }
+  // EQUIPE TURNO 6H (Apenas se não for CCG)
+  if (TARGET_TEAM !== 'CCG') {
+    htmlBody += `<br><h2>EQUIPE TURNO 6H</h2><hr>`;
+    htmlBody += `<h3>STATUS: "ASS.DSS + ESTOU BEM"</h3>`;
+    if (cat_6H_EstouBem.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_6H_EstouBem.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }
+    htmlBody += `<h3>STATUS "ESTOU MAL"</h3>`;
+    if (cat_6H_EstouMal.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_6H_EstouMal.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }
+    htmlBody += `<h3>PENDENTES</h3>`;
+    if (cat_6H_Pendentes.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_6H_Pendentes.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }
+    htmlBody += `<h3>AUSENTES</h3>`;
+    if (cat_6H_Ausentes.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_6H_Ausentes.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }
+  }
 
   // REGISTROS DSS
   htmlBody += `<br><h2>REGISTROS DSS (TURNO 7H)</h2><hr>`;
   if (registros7H.length === 0) { htmlBody += `Nenhum registro de assunto encontrado para 7H.`; } else { htmlBody += `<ul ${ulStyle}>`; registros7H.forEach(reg => { const n = reg.name ? limparTexto(reg.name) : "Nome não informado"; htmlBody += `<li style="margin-bottom: 10px;"><strong>${n}</strong> (Matrícula: ${reg.matricula})<br><span style="font-style: italic; color: #000;">Assunto: ${limparTexto(reg.assunto)}</span></li>`; }); htmlBody += `</ul>`; }
 
-  htmlBody += `<br><h2>REGISTROS DSS (TURNO 6H)</h2><hr>`;
-  if (registros6H.length === 0) { htmlBody += `Nenhum registro de assunto encontrado para 6H.`; } else { htmlBody += `<ul ${ulStyle}>`; registros6H.forEach(reg => { const n = reg.name ? limparTexto(reg.name) : "Nome não informado"; htmlBody += `<li style="margin-bottom: 10px;"><strong>${n}</strong> (Matrícula: ${reg.matricula})<br><span style="font-style: italic; color: #000;">Assunto: ${limparTexto(reg.assunto)}</span></li>`; }); htmlBody += `</ul>`; }
+  if (TARGET_TEAM !== 'CCG') {
+    htmlBody += `<br><h2>REGISTROS DSS (TURNO 6H)</h2><hr>`;
+    if (registros6H.length === 0) { htmlBody += `Nenhum registro de assunto encontrado para 6H.`; } else { htmlBody += `<ul ${ulStyle}>`; registros6H.forEach(reg => { const n = reg.name ? limparTexto(reg.name) : "Nome não informado"; htmlBody += `<li style="margin-bottom: 10px;"><strong>${n}</strong> (Matrícula: ${reg.matricula})<br><span style="font-style: italic; color: #000;">Assunto: ${limparTexto(reg.assunto)}</span></li>`; }); htmlBody += `</ul>`; }
+  }
 
   htmlBody += `</div>`;
   return htmlBody;

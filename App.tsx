@@ -511,9 +511,11 @@ const ReportModal: React.FC<{
         report += getStatusList(team7H);
         report += `\n\n`;
 
-        report += `EQUIPE TURNO 6H\n`;
-        report += getStatusList(team6H);
-        report += `\n\n`;
+        if (turma !== 'CCG') {
+            report += `EQUIPE TURNO 6H\n`;
+            report += getStatusList(team6H);
+            report += `\n\n`;
+        }
 
         // Footer Section with Registries
         report += `REGISTROS DSS (TURNO 7H)\n`;
@@ -525,12 +527,14 @@ const ReportModal: React.FC<{
             report += `\n`;
         }
 
-        report += `\nREGISTROS DSS (TURNO 6H)\n`;
-        report += `Assunto: ${subject6H || 'NÃO INFORMADO'}`;
-        if (responsible6H) {
-            report += `\nResponsável: ${responsible6H} (Matrícula: ${matricula6H || '---'})\n`;
-        } else {
-            report += `\n`;
+        if (turma !== 'CCG') {
+            report += `\nREGISTROS DSS (TURNO 6H)\n`;
+            report += `Assunto: ${subject6H || 'NÃO INFORMADO'}`;
+            if (responsible6H) {
+                report += `\nResponsável: ${responsible6H} (Matrícula: ${matricula6H || '---'})\n`;
+            } else {
+                report += `\n`;
+            }
         }
 
         return report;
@@ -2500,6 +2504,7 @@ const App: React.FC = () => {
                                                             onTimeChange={handleTimeUpdate}
                                                             onMatriculaChange={handleMatriculaUpdate}
                                                             domId={index === 0 ? "tutorial-first-card" : undefined}
+                                                            hideShiftButton={selectedTurma === 'CCG'}
                                                         />
                                                     </div>
                                                 ))}
@@ -2527,6 +2532,7 @@ const App: React.FC = () => {
                                                                     onTimeChange={handleTimeUpdate}
                                                                     onMatriculaChange={handleMatriculaUpdate}
                                                                     domId={index === 0 && group.letter === groupedMainTeam[0]?.letter ? "tutorial-first-card" : undefined}
+                                                                    hideShiftButton={selectedTurma === 'CCG'}
                                                                 />
                                                             </div>
                                                         ))}
@@ -2576,23 +2582,25 @@ const App: React.FC = () => {
 
                                 </div>
                             </div>
-                            <SpecialTeamPanel
-                                specialTeam={specialTeam}
-                                onStatusChange={handleStatusChange}
-                                onToggleSpecialTeam={handleToggleSpecialTeam}
-                                togglingSpecialTeamId={togglingSpecialTeamId}
-                                isAdmin={isAdmin}
-                                onDeleteUser={handleDeleteUser}
-                                onTimeChange={handleTimeUpdate}
-                                onMatriculaUpdate={handleMatriculaUpdate}
-                                subject={specialSubject}
-                                matricula={specialMatricula}
-                                onSubjectChange={setSpecialSubject}
-                                onMatriculaChange={setSpecialMatricula}
-                                onRegister={handleRegister6H}
-                                employeesForLookup={allEmployeesForLookup}
-                                administrators={administrators}
-                            />
+                            {selectedTurma !== 'CCG' && (
+                                <SpecialTeamPanel
+                                    specialTeam={specialTeam}
+                                    onStatusChange={handleStatusChange}
+                                    onToggleSpecialTeam={handleToggleSpecialTeam}
+                                    togglingSpecialTeamId={togglingSpecialTeamId}
+                                    isAdmin={isAdmin}
+                                    onDeleteUser={handleDeleteUser}
+                                    onTimeChange={handleTimeUpdate}
+                                    onMatriculaUpdate={handleMatriculaUpdate}
+                                    subject={specialSubject}
+                                    matricula={specialMatricula}
+                                    onSubjectChange={setSpecialSubject}
+                                    onMatriculaChange={setSpecialMatricula}
+                                    onRegister={handleRegister6H}
+                                    employeesForLookup={allEmployeesForLookup}
+                                    administrators={administrators}
+                                />
+                            )}
                         </div>
                         <Footer />
                     </div>

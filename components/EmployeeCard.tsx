@@ -16,6 +16,7 @@ interface EmployeeCardProps {
     onMatriculaChange?: (id: string, newMatricula: string) => void; // New prop
     domId?: string; // Prop for tutorial targeting wrapper
     specialTurnBtnId?: string; // Prop specifically for the shift button tutorial
+    hideShiftButton?: boolean; // Hide shift button for turmas without 6H
 }
 
 interface CheckboxItemProps {
@@ -44,7 +45,7 @@ const CheckboxItem: React.FC<CheckboxItemProps> = ({ label, icon, type, checked,
 );
 
 
-const EmployeeCard: React.FC<EmployeeCardProps> = memo(({ employee, onStatusChange, onToggleSpecialTeam, isTogglingSpecialTeam, isAdmin, onDelete, onTimeChange, onMatriculaChange, domId, specialTurnBtnId }) => {
+const EmployeeCard: React.FC<EmployeeCardProps> = memo(({ employee, onStatusChange, onToggleSpecialTeam, isTogglingSpecialTeam, isAdmin, onDelete, onTimeChange, onMatriculaChange, domId, specialTurnBtnId, hideShiftButton }) => {
     const [isEditingTime, setIsEditingTime] = useState(false);
     const [editTimeValue, setEditTimeValue] = useState('');
 
@@ -53,7 +54,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = memo(({ employee, onStatusChan
 
     const createRipple = (e: React.MouseEvent<HTMLButtonElement>) => {
         const button = e.currentTarget;
-        
+
         const ripple = document.createElement("span");
         const diameter = Math.max(button.clientWidth, button.clientHeight);
         const radius = diameter / 2;
@@ -65,10 +66,10 @@ const EmployeeCard: React.FC<EmployeeCardProps> = memo(({ employee, onStatusChan
         ripple.classList.add("ripple");
 
         const existingRipple = button.querySelector('.ripple');
-        if(existingRipple) {
+        if (existingRipple) {
             existingRipple.remove();
         }
-        
+
         button.appendChild(ripple);
 
         ripple.addEventListener('animationend', () => {
@@ -86,7 +87,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = memo(({ employee, onStatusChan
         createRipple(e);
         onStatusChange(employee.id, 'absent');
     };
-    
+
     const getHeaderClass = () => {
         if (employee.bem) return 'bg-gradient-to-r from-success to-green-600';
         if (employee.mal) return 'bg-gradient-to-r from-danger to-red-600';
@@ -111,7 +112,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = memo(({ employee, onStatusChan
             console.error("Failed to parse date for editing", e);
             // Fallback to current time if parse fails
             const now = new Date();
-            const tzOffset = now.getTimezoneOffset() * 60000; 
+            const tzOffset = now.getTimezoneOffset() * 60000;
             const localISOTime = (new Date(now.getTime() - tzOffset)).toISOString().slice(0, 16);
             setEditTimeValue(localISOTime);
             setIsEditingTime(true);
@@ -132,7 +133,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = memo(({ employee, onStatusChan
         e.stopPropagation();
         setIsEditingTime(false);
     };
-    
+
     // --- Matricula Editing Handlers ---
     const handleMatriculaSave = () => {
         if (onMatriculaChange && editMatriculaValue.trim() !== '' && editMatriculaValue !== employee.matricula) {
@@ -154,7 +155,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = memo(({ employee, onStatusChan
                 <div className="w-12 h-12 bg-white/25 rounded-full flex items-center justify-center text-xl mr-3 flex-shrink-0">👤</div>
                 <div className="flex-grow min-w-0 mr-2">
                     <div className="text-xl font-bold truncate" title={employee.name}>{employee.name}</div>
-                    
+
                     {isEditingMatricula ? (
                         <div className="flex items-center gap-2 text-sm">
                             <input
@@ -166,23 +167,23 @@ const EmployeeCard: React.FC<EmployeeCardProps> = memo(({ employee, onStatusChan
                                 autoFocus
                                 onKeyDown={(e) => { if (e.key === 'Enter') handleMatriculaSave(); if (e.key === 'Escape') handleMatriculaCancel(e as any); }}
                             />
-                            <button 
-                                onClick={handleMatriculaSave} 
-                                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/90 hover:bg-white transition-all shadow-md transform hover:scale-110" 
+                            <button
+                                onClick={handleMatriculaSave}
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/90 hover:bg-white transition-all shadow-md transform hover:scale-110"
                                 aria-label="Salvar matrícula"
                             >
                                 <CheckIcon className="w-5 h-5 text-success" />
                             </button>
-                            <button 
-                                onClick={handleMatriculaCancel} 
-                                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/90 hover:bg-white transition-all shadow-md transform hover:scale-110" 
+                            <button
+                                onClick={handleMatriculaCancel}
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-white/90 hover:bg-white transition-all shadow-md transform hover:scale-110"
                                 aria-label="Cancelar edição"
                             >
                                 <XIcon className="w-5 h-5 text-danger" />
                             </button>
                         </div>
                     ) : (
-                        <div 
+                        <div
                             className={`relative group text-sm opacity-90 truncate flex items-center gap-1.5 ${isAdmin ? 'cursor-pointer' : ''}`}
                             onClick={() => isAdmin && setIsEditingMatricula(true)}
                         >
@@ -196,21 +197,23 @@ const EmployeeCard: React.FC<EmployeeCardProps> = memo(({ employee, onStatusChan
                 </div>
                 {/* ID adicionado aqui condicionalmente para o tutorial focar nos botões deste cartão específico */}
                 <div id={domId ? "tutorial-card-actions" : undefined} className="flex gap-2 flex-shrink-0">
-                    <button
-                        id={specialTurnBtnId}
-                        onClick={handleToggleSpecialTeamClick}
-                        disabled={isTogglingSpecialTeam}
-                        className={`turno-button text-base ${employee.turno === '6H' ? 'active' : ''} ${isTogglingSpecialTeam ? 'loading' : ''}`}
-                    >
-                        <div className="default-state">
-                            <ShiftIcon className="w-5 h-5" />
-                            <span>TURNO 6H</span>
-                        </div>
-                        <div className="loading-state">
-                            <div className="spinner"></div>
-                            <span>SALVANDO</span>
-                        </div>
-                    </button>
+                    {!hideShiftButton && (
+                        <button
+                            id={specialTurnBtnId}
+                            onClick={handleToggleSpecialTeamClick}
+                            disabled={isTogglingSpecialTeam}
+                            className={`turno-button text-base ${employee.turno === '6H' ? 'active' : ''} ${isTogglingSpecialTeam ? 'loading' : ''}`}
+                        >
+                            <div className="default-state">
+                                <ShiftIcon className="w-5 h-5" />
+                                <span>TURNO 6H</span>
+                            </div>
+                            <div className="loading-state">
+                                <div className="spinner"></div>
+                                <span>SALVANDO</span>
+                            </div>
+                        </button>
+                    )}
                     <button
                         onClick={handleAbsentButtonClick}
                         className={`absent-button text-base ${employee.absent ? 'marked' : ''}`}
@@ -272,28 +275,27 @@ const EmployeeCard: React.FC<EmployeeCardProps> = memo(({ employee, onStatusChan
                 <div id={domId ? "tutorial-card-time" : undefined} className="inline-block">
                     {isEditingTime ? (
                         <div className="flex items-center justify-center gap-2 py-2">
-                             <input 
-                                type="datetime-local" 
+                            <input
+                                type="datetime-local"
                                 value={editTimeValue}
                                 onChange={(e) => setEditTimeValue(e.target.value)}
                                 className="border border-gray-300 rounded px-2 py-1 text-black dark:text-white bg-white dark:bg-gray-700 text-sm w-[200px]"
-                             />
-                             <button onClick={handleTimeSave} className="bg-green-500 text-white rounded-full p-2 hover:bg-green-600 transition shadow-md" aria-label="Salvar horário">
+                            />
+                            <button onClick={handleTimeSave} className="bg-green-500 text-white rounded-full p-2 hover:bg-green-600 transition shadow-md" aria-label="Salvar horário">
                                 <CheckIcon className="h-5 w-5" />
-                             </button>
-                             <button onClick={handleTimeCancel} className="bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition shadow-md" aria-label="Cancelar edição de horário">
+                            </button>
+                            <button onClick={handleTimeCancel} className="bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition shadow-md" aria-label="Cancelar edição de horário">
                                 <XIcon className="h-5 w-5" />
-                             </button>
+                            </button>
                         </div>
                     ) : (
-                        <div 
+                        <div
                             onClick={handleTimeClick}
-                            className={`py-4 px-6 inline-block rounded-lg font-bold text-base min-w-[240px] relative group ${
-                                employee.time ? 'bg-gradient-to-r from-orange to-amber-500 text-white' : 'bg-light-bg dark:bg-dark-bg text-light-text-secondary dark:text-dark-text-secondary'
-                            } ${isAdmin && employee.time ? 'cursor-pointer hover:brightness-110' : ''}`}
+                            className={`py-4 px-6 inline-block rounded-lg font-bold text-base min-w-[240px] relative group ${employee.time ? 'bg-gradient-to-r from-orange to-amber-500 text-white' : 'bg-light-bg dark:bg-dark-bg text-light-text-secondary dark:text-dark-text-secondary'
+                                } ${isAdmin && employee.time ? 'cursor-pointer hover:brightness-110' : ''}`}
                         >
                             {formatTimestamp(employee.time)}
-                            
+
                             {isAdmin && employee.time && (
                                 <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 rounded p-1">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -303,7 +305,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = memo(({ employee, onStatusChan
                             )}
                         </div>
                     )}
-                    
+
                     <div className="mt-3 text-sm font-semibold text-light-text-secondary dark:text-dark-text-secondary uppercase tracking-wider">
                         Data / Hora da Assinatura
                     </div>
