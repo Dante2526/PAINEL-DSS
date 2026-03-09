@@ -59,8 +59,11 @@ const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, i
                         </button>
                     </div>
 
-                    <Footer />
                 </main>
+
+                <div className="mt-auto w-full pb-2 md:pb-4">
+                    <Footer />
+                </div>
             </div>
         </div>
     );
