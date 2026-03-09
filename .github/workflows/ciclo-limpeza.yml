@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       turma_manual:
-        description: 'Qual turma limpar manualmente? (A, B, C ou D)'
+        description: 'Qual turma limpar manualmente? (A, B, C, D ou CCG)'
         required: true
         default: 'A'
   schedule:
@@ -98,9 +98,9 @@ jobs:
              CYCLE_DAY_C=$(( (DIFF_DAYS_C % 4 + 4) % 4 ))
 
              if [[ $CYCLE_DAY_C -eq 0 || $CYCLE_DAY_C -eq 1 ]]; then
-               echo "Hoje é dia de trabalho da TURMA C."
+               echo "Hoje é dia de trabalho da TURMA C e C CG."
                echo "should_run=true" >> $GITHUB_OUTPUT
-               echo "target_team=C" >> $GITHUB_OUTPUT
+               echo "target_team=C CCG" >> $GITHUB_OUTPUT
                exit 0
              fi
 
@@ -128,8 +128,10 @@ jobs:
 
       - name: Rodar script de limpeza
         if: steps.verificar-dia.outputs.should_run == 'true'
-        run: node scripts/limpar-firebase.cjs 
+        run: |
+          for team in ${{ steps.verificar-dia.outputs.target_team }}; do
+            echo "Executando limpeza para: $team"
+            TARGET_TEAM=$team node scripts/limpar-firebase.cjs
+          done
         env:
           FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
-          # Passamos a turma identificada (A, B, C ou D) para o Node
-          TARGET_TEAM: ${{ steps.verificar-dia.outputs.target_team }}

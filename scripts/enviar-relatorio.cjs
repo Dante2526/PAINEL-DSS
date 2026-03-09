@@ -8,11 +8,11 @@ const EMAIL_USER = process.env.EMAIL_USER;
 const EMAIL_PASS = process.env.EMAIL_PASS;
 const EMAIL_TO = process.env.EMAIL_TO;
 const TARGET_TEAM = process.env.TARGET_TEAM;
-const GITHUB_EVENT_NAME = process.env.GITHUB_EVENT_NAME || 'manual'; 
+const GITHUB_EVENT_NAME = process.env.GITHUB_EVENT_NAME || 'manual';
 
 // Validação de segurança
-if (!TARGET_TEAM || (TARGET_TEAM !== 'A' && TARGET_TEAM !== 'B' && TARGET_TEAM !== 'C' && TARGET_TEAM !== 'D')) {
-  console.error("ERRO: TARGET_TEAM não definido corretamente (A, B, C ou D).");
+if (!TARGET_TEAM || (TARGET_TEAM !== 'A' && TARGET_TEAM !== 'B' && TARGET_TEAM !== 'C' && TARGET_TEAM !== 'D' && TARGET_TEAM !== 'CCG')) {
+  console.error("ERRO: TARGET_TEAM não definido corretamente (A, B, C, D ou CCG).");
   process.exit(1);
 }
 
@@ -20,17 +20,20 @@ let colEmployeesName = '';
 let colRegistrosName = '';
 
 if (TARGET_TEAM === 'A') {
-    colEmployeesName = 'turma a';
-    colRegistrosName = 'registrosDSS A';
+  colEmployeesName = 'turma a';
+  colRegistrosName = 'registrosDSS A';
 } else if (TARGET_TEAM === 'B') {
-    colEmployeesName = 'turma b';
-    colRegistrosName = 'registrosDSS B';
+  colEmployeesName = 'turma b';
+  colRegistrosName = 'registrosDSS B';
 } else if (TARGET_TEAM === 'C') {
-    colEmployeesName = 'turma c';
-    colRegistrosName = 'registrosDSS C';
+  colEmployeesName = 'turma c';
+  colRegistrosName = 'registrosDSS C';
 } else if (TARGET_TEAM === 'D') {
-    colEmployeesName = 'turma d';
-    colRegistrosName = 'registrosDSS D';
+  colEmployeesName = 'turma d';
+  colRegistrosName = 'registrosDSS D';
+} else if (TARGET_TEAM === 'CCG') {
+  colEmployeesName = 'turma c cg';
+  colRegistrosName = 'registrosDSS C CG';
 }
 
 console.log(`>>> GERANDO RELATÓRIO PARA A TURMA: ${TARGET_TEAM} <<<`);
@@ -67,10 +70,10 @@ async function verificarEnvioDuplicado() {
     const dataUltimoEnvio = docSnap.data().ultimo_envio;
     if (dataUltimoEnvio === dataPlantao && GITHUB_EVENT_NAME === 'schedule') {
       console.log(`>>> AVISO: O relatório da Turma ${TARGET_TEAM} já foi enviado hoje (${dataPlantao}).`);
-      return true; 
+      return true;
     }
   }
-  return false; 
+  return false;
 }
 
 // --- FUNÇÃO PARA REGISTRAR QUE FOI ENVIADO ---
@@ -96,7 +99,7 @@ async function gerarRelatorio() {
     const empRef = db.collection(colEmployeesName);
     const empSnapshot = await empRef.get();
     totalFuncionarios = empSnapshot.size;
-    
+
     empSnapshot.forEach(doc => {
       const emp = doc.data();
       if (emp.absent === true || emp.ausente === true) {
@@ -123,11 +126,11 @@ async function gerarRelatorio() {
       if (reg.TURNO === "6H") registros6H.push(reg);
       else registros7H.push(reg);
     });
-  } catch (error) {}
+  } catch (error) { }
 
   const ulStyle = 'style="padding-left: 20px; margin-top: 5px; margin-bottom: 10px;"';
   let htmlBody = `<div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #000; text-align: left;">`;
-  
+
   const totalPresentes = cat_7H_EstouBem.length + cat_7H_EstouMal.length + cat_6H_EstouBem.length + cat_6H_EstouMal.length;
   const totalAusentesDeclarados = cat_7H_Ausentes.length + cat_6H_Ausentes.length;
   const totalPendentes = cat_7H_Pendentes.length + cat_6H_Pendentes.length;
@@ -159,7 +162,7 @@ async function gerarRelatorio() {
   if (cat_6H_Pendentes.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_6H_Pendentes.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }
   htmlBody += `<h3>AUSENTES</h3>`;
   if (cat_6H_Ausentes.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_6H_Ausentes.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }
-  
+
   // REGISTROS DSS
   htmlBody += `<br><h2>REGISTROS DSS (TURNO 7H)</h2><hr>`;
   if (registros7H.length === 0) { htmlBody += `Nenhum registro de assunto encontrado para 7H.`; } else { htmlBody += `<ul ${ulStyle}>`; registros7H.forEach(reg => { const n = reg.name ? limparTexto(reg.name) : "Nome não informado"; htmlBody += `<li style="margin-bottom: 10px;"><strong>${n}</strong> (Matrícula: ${reg.matricula})<br><span style="font-style: italic; color: #000;">Assunto: ${limparTexto(reg.assunto)}</span></li>`; }); htmlBody += `</ul>`; }
@@ -175,10 +178,10 @@ async function gerarRelatorio() {
 async function enviarEmail(htmlRelatorio) {
   console.log(`Enviando e-mail para ${EMAIL_TO}...`);
   const dataPlantao = getDataDoPlantao();
-  
+
   // --- ASSUNTO DO EMAIL CORRIGIDO (Removido o "Plantão") ---
   const novoAssunto = `Relatório DSS - TURMA ${TARGET_TEAM} (${dataPlantao})`;
-  
+
   const mailOptions = { from: EMAIL_USER, to: EMAIL_TO, subject: novoAssunto, html: htmlRelatorio };
   try {
     await transporter.sendMail(mailOptions);
@@ -197,7 +200,7 @@ async function main() {
     const jaEnviado = await verificarEnvioDuplicado();
     if (jaEnviado) {
       console.log("Processo abortado com sucesso.");
-      process.exit(0); 
+      process.exit(0);
     }
     const htmlRelatorio = await gerarRelatorio();
     await enviarEmail(htmlRelatorio);

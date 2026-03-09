@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       turma_manual:
-        description: 'Gerar relatório de qual turma? (A, B, C ou D)'
+        description: 'Gerar relatório de qual turma? (A, B, C, D ou CCG)'
         required: true
         default: 'A'
   schedule:
@@ -98,7 +98,7 @@ jobs:
 
              if [[ $CYCLE_C -eq 0 || $CYCLE_C -eq 1 ]]; then
                 echo "should_run=true" >> $GITHUB_OUTPUT
-                echo "target_team=C" >> $GITHUB_OUTPUT
+                echo "target_team=C CCG" >> $GITHUB_OUTPUT
                 exit 0
              fi
 
@@ -124,11 +124,14 @@ jobs:
 
       - name: Rodar script de envio de e-mail
         if: steps.verificar-dia.outputs.should_run == 'true'
-        run: node scripts/enviar-relatorio.cjs 
+        run: |
+          for team in ${{ steps.verificar-dia.outputs.target_team }}; do
+            echo "Enviando relatório para a equipe: $team"
+            TARGET_TEAM=$team node scripts/enviar-relatorio.cjs
+          done
         env:
           FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
-          TARGET_TEAM: ${{ steps.verificar-dia.outputs.target_team }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}

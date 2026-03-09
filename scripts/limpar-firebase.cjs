@@ -6,8 +6,8 @@ const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
 const TARGET_TEAM = process.env.TARGET_TEAM;
 
 // --- VALIDAÇÃO DE SEGURANÇA ---
-if (!TARGET_TEAM || (TARGET_TEAM !== 'A' && TARGET_TEAM !== 'B' && TARGET_TEAM !== 'C' && TARGET_TEAM !== 'D')) {
-  console.error("ERRO CRÍTICO: TARGET_TEAM não definido ou inválido (Esperado: A, B, C ou D).");
+if (!TARGET_TEAM || (TARGET_TEAM !== 'A' && TARGET_TEAM !== 'B' && TARGET_TEAM !== 'C' && TARGET_TEAM !== 'D' && TARGET_TEAM !== 'CCG')) {
+  console.error("ERRO CRÍTICO: TARGET_TEAM não definido ou inválido (Esperado: A, B, C, D ou CCG).");
   process.exit(1);
 }
 
@@ -22,7 +22,7 @@ let colEmployeesName = '';
 let colRegistrosName = '';
 
 if (TARGET_TEAM === 'A') {
-  colEmployeesName = 'turma a';      
+  colEmployeesName = 'turma a';
   colRegistrosName = 'registrosDSS A';
 } else if (TARGET_TEAM === 'B') {
   colEmployeesName = 'turma b';
@@ -33,6 +33,9 @@ if (TARGET_TEAM === 'A') {
 } else if (TARGET_TEAM === 'D') {
   colEmployeesName = 'turma d';
   colRegistrosName = 'registrosDSS D';
+} else if (TARGET_TEAM === 'CCG') {
+  colEmployeesName = 'turma c cg';
+  colRegistrosName = 'registrosDSS C CG';
 }
 
 console.log(`>>> INICIANDO LIMPEZA PARA A TURMA: ${TARGET_TEAM} <<<`);
@@ -80,7 +83,7 @@ async function limparRegistros() {
   snapshot.forEach(doc => {
     batch.delete(doc.ref);
   });
-  
+
   await batch.commit();
   console.log(`[OK] Apagados ${snapshot.size} registros antigos de "${colRegistrosName}".`);
 }
@@ -89,10 +92,10 @@ async function limparRegistros() {
 async function limparControleEnvio() {
   const docId = `status_envio_${TARGET_TEAM}`;
   console.log(`Apagando trava de envio: controle_envios/${docId}...`);
-  
+
   const docRef = db.collection('controle_envios').doc(docId);
   await docRef.delete();
-  
+
   console.log(`[OK] Trava de envio removida para a Turma ${TARGET_TEAM}.`);
 }
 
