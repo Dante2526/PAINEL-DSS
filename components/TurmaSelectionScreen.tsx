@@ -53,7 +53,7 @@ const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, i
                     <div className="flex justify-center w-full max-w-[280px] md:max-w-[460px] mx-auto mb-4 md:mb-6">
                         <button
                             onClick={() => onSelect('CCG')}
-                            className="flex items-center justify-center whitespace-nowrap w-full md:w-[calc(50%-0.5rem)] px-4 py-4 md:py-6 font-extrabold text-lg md:text-xl text-white bg-gradient-to-br from-pink-500 to-rose-700 rounded-2xl md:rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-rose-300 dark:focus:ring-rose-800"
+                            className="flex items-center justify-center whitespace-nowrap w-[calc(50%-0.375rem)] md:w-[calc(50%-0.5rem)] px-4 py-4 md:py-6 font-extrabold text-lg md:text-xl text-white bg-gradient-to-br from-pink-500 to-rose-700 rounded-2xl md:rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-rose-300 dark:focus:ring-rose-800"
                         >
                             TURMA C CG
                         </button>
