@@ -11,7 +11,7 @@ interface TurmaSelectionScreenProps {
 
 const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, isDarkMode, onToggleDarkMode }) => {
     return (
-        <div className="bg-light-bg-secondary dark:bg-dark-bg h-[100dvh] w-full text-light-text dark:text-dark-text transition-colors flex flex-col items-center p-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))] overflow-y-auto">
+        <div className="bg-light-bg-secondary dark:bg-dark-bg h-[100dvh] w-full text-light-text dark:text-dark-text transition-colors flex flex-col items-center p-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] overflow-hidden">
             <div className="absolute top-4 right-4 md:top-8 md:right-8 selection-screen-toggle z-[100]">
                 <DarkModeToggle isDarkMode={isDarkMode} onToggle={onToggleDarkMode} />
             </div>
