@@ -123,32 +123,27 @@ const getTutorialSteps = (isCCG: boolean): TutorialStep[] => {
         {
             targetId: 'tutorial-change-turma-btn',
             title: 'Trocar de Turma',
-            content: 'Precisa visualizar a outra turma? Use este botão para voltar à tela de seleção a qualquer momento.',
-            disableHorizontalScroll: true
+            content: 'Precisa visualizar a outra turma? Use este botão para voltar à tela de seleção a qualquer momento.'
         },
         {
             targetId: 'tutorial-stats',
             title: 'Estatísticas em Tempo Real',
-            content: 'Acompanhe quantos colaboradores estão bem, mal ou ausentes instantaneamente.',
-            disableHorizontalScroll: true
+            content: 'Acompanhe quantos colaboradores estão bem, mal ou ausentes instantaneamente.'
         },
         {
             targetId: 'tutorial-dark-mode',
             title: 'Modo Escuro (BB-8)',
-            content: 'Clique no pequeno droide BB-8 para alternar entre o modo Claro e Escuro. Ideal para ambientes com pouca luz.',
-            disableHorizontalScroll: true
+            content: 'Clique no pequeno droide BB-8 para alternar entre o modo Claro e Escuro. Ideal para ambientes com pouca luz.'
         },
         {
             targetId: 'tutorial-help-btn',
             title: 'Ajuda e Tutorial',
-            content: 'Perdido? Clique neste botão a qualquer momento para rever este tutorial interativo e relembrar as funcionalidades.',
-            disableHorizontalScroll: true
+            content: 'Perdido? Clique neste botão a qualquer momento para rever este tutorial interativo e relembrar as funcionalidades.'
         },
         {
             targetId: 'tutorial-admin-btn',
             title: 'Área Administrativa',
-            content: 'Acesso restrito para limpar os dados diários, gerar relatórios em PDF/Texto e cadastrar novos usuários.',
-            disableHorizontalScroll: true
+            content: 'Acesso restrito para limpar os dados diários, gerar relatórios em PDF/Texto e cadastrar novos usuários.'
         }
     );
 
