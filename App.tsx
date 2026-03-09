@@ -2411,7 +2411,8 @@ const App: React.FC = () => {
 
         if (step.targetId === 'tutorial-return-turn-btn' ||
             ['tutorial-stats', 'tutorial-dark-mode', 'tutorial-admin-btn', 'tutorial-change-turma-btn', 'tutorial-help-btn'].includes(step.targetId)) {
-            targetIdForZoom = 'tutorial-special-demo-area';
+            // Se for Turma CCG, não existe tutorial-special-demo-area, então focalizamos na área do header principal ou na primeira carta
+            targetIdForZoom = selectedTurma === 'CCG' ? 'app-header' : 'tutorial-special-demo-area';
         }
 
         const element = document.getElementById(targetIdForZoom);
