@@ -172,6 +172,11 @@ const adminTutorialSteps: TutorialStep[] = [
         content: 'Cadastre novos colaboradores manualmente no sistema.'
     },
     {
+        targetId: 'admin-import-user-btn',
+        title: 'Importar Colaborador',
+        content: 'Transfira rapidamente um colaborador de outra turma para a turma atual. Muito útil para realocações e coberturas de falta.'
+    },
+    {
         targetId: 'admin-demo-btn',
         title: 'Modo Demonstração',
         content: 'Preenche o sistema com dados fictícios para testes. Recurso destinado ao uso técnico do Desenvolvedor Near.'
