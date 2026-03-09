@@ -70,78 +70,90 @@ function isValidTurma(value: string): value is TurmaType {
 }
 // --------------------------------
 
-const tutorialSteps: TutorialStep[] = [
-    {
-        targetId: 'app-header',
-        title: 'Controle de Zoom',
-        content: 'O painel se adapta a você! Use o movimento de pinça (dois dedos na tela) para dar zoom e ajustar o tamanho ideal para sua visualização.',
-        disableHorizontalScroll: true,
-        noHighlight: true
-    },
-    {
-        targetId: 'tutorial-manual-register-bar',
-        title: 'Registro Manual',
-        content: 'Use esta barra superior para registrar o Assunto do DSS do dia e a matrícula do responsável. O nome aparecerá automaticamente ao lado.'
-    },
-    {
-        targetId: 'tutorial-first-card',
-        title: 'Cartão do Colaborador',
-        content: 'Este é o cartão individual. O funcionário deve marcar "ASS. DSS" e "ESTOU BEM" ao chegar. Se marcar "ESTOU MAL", um alerta será enviado imediatamente para a gestão.'
-    },
-    {
-        targetId: 'tutorial-card-actions',
-        title: 'Botões de Ação',
-        content: 'Use "TURNO 6H" para mover o colaborador para uma coluna somente para esse turno. Use "AUSENTE" para marcar que o colaborador faltou. Use "DELETAR" para remover permanentemente o usuário (Aparece somente para-ADM).',
-        scrollTargetId: 'tutorial-first-card'
-    },
-    {
-        targetId: 'tutorial-card-time',
-        title: 'Registro de Horário',
-        content: 'Aqui fica registrado o momento exato em que o colaborador assinou sua DSS',
-        scrollTargetId: 'tutorial-first-card'
-    },
-    {
-        targetId: 'tutorial-special-demo-area',
-        title: 'Turno Diferenciado (6H)',
-        content: 'Painel exclusivo para a turma do turno de 6H. Funciona da mesma forma que o painel principal, mas com controle separado.'
-    },
-    {
-        targetId: 'tutorial-return-turn-btn',
-        title: 'Retornar ao Turno Normal',
-        content: 'Ao Clicar neste botão na coluna do horário especial, o colaborador é movido de volta para o turno normal.',
-        scrollTargetId: 'tutorial-special-demo-area'
-    },
-    {
-        targetId: 'tutorial-change-turma-btn',
-        title: 'Trocar de Turma',
-        content: 'Precisa visualizar a outra turma? Use este botão para voltar à tela de seleção a qualquer momento.',
-        disableHorizontalScroll: true
-    },
-    {
-        targetId: 'tutorial-stats',
-        title: 'Estatísticas em Tempo Real',
-        content: 'Acompanhe quantos colaboradores estão bem, mal ou ausentes instantaneamente.',
-        disableHorizontalScroll: true
-    },
-    {
-        targetId: 'tutorial-dark-mode',
-        title: 'Modo Escuro (BB-8)',
-        content: 'Clique no pequeno droide BB-8 para alternar entre o modo Claro e Escuro. Ideal para ambientes com pouca luz.',
-        disableHorizontalScroll: true
-    },
-    {
-        targetId: 'tutorial-help-btn',
-        title: 'Ajuda e Tutorial',
-        content: 'Perdido? Clique neste botão a qualquer momento para rever este tutorial interativo e relembrar as funcionalidades.',
-        disableHorizontalScroll: true
-    },
-    {
-        targetId: 'tutorial-admin-btn',
-        title: 'Área Administrativa',
-        content: 'Acesso restrito para limpar os dados diários, gerar relatórios em PDF/Texto e cadastrar novos usuários.',
-        disableHorizontalScroll: true
+const getTutorialSteps = (isCCG: boolean): TutorialStep[] => {
+    const baseSteps: TutorialStep[] = [
+        {
+            targetId: 'app-header',
+            title: 'Controle de Zoom',
+            content: 'O painel se adapta a você! Use o movimento de pinça (dois dedos na tela) para dar zoom e ajustar o tamanho ideal para sua visualização.',
+            disableHorizontalScroll: true,
+            noHighlight: true
+        },
+        {
+            targetId: 'tutorial-manual-register-bar',
+            title: 'Registro Manual',
+            content: 'Use esta barra superior para registrar o Assunto do DSS do dia e a matrícula do responsável. O nome aparecerá automaticamente ao lado.'
+        },
+        {
+            targetId: 'tutorial-first-card',
+            title: 'Cartão do Colaborador',
+            content: 'Este é o cartão individual. O funcionário deve marcar "ASS. DSS" e "ESTOU BEM" ao chegar. Se marcar "ESTOU MAL", um alerta será enviado imediatamente para a gestão.'
+        },
+        {
+            targetId: 'tutorial-card-actions',
+            title: 'Botões de Ação',
+            content: `Use "AUSENTE" para marcar que o colaborador faltou. Use "DELETAR" para remover permanentemente o usuário (Aparece somente para-ADM).${!isCCG ? ' Use "TURNO 6H" para mover o colaborador para uma coluna somente para esse turno.' : ''}`,
+            scrollTargetId: 'tutorial-first-card'
+        },
+        {
+            targetId: 'tutorial-card-time',
+            title: 'Registro de Horário',
+            content: 'Aqui fica registrado o momento exato em que o colaborador assinou sua DSS',
+            scrollTargetId: 'tutorial-first-card'
+        }
+    ];
+
+    if (!isCCG) {
+        baseSteps.push(
+            {
+                targetId: 'tutorial-special-demo-area',
+                title: 'Turno Diferenciado (6H)',
+                content: 'Painel exclusivo para a turma do turno de 6H. Funciona da mesma forma que o painel principal, mas com controle separado.'
+            },
+            {
+                targetId: 'tutorial-return-turn-btn',
+                title: 'Retornar ao Turno Normal',
+                content: 'Ao Clicar neste botão na coluna do horário especial, o colaborador é movido de volta para o turno normal.',
+                scrollTargetId: 'tutorial-special-demo-area'
+            }
+        );
     }
-];
+
+    baseSteps.push(
+        {
+            targetId: 'tutorial-change-turma-btn',
+            title: 'Trocar de Turma',
+            content: 'Precisa visualizar a outra turma? Use este botão para voltar à tela de seleção a qualquer momento.',
+            disableHorizontalScroll: true
+        },
+        {
+            targetId: 'tutorial-stats',
+            title: 'Estatísticas em Tempo Real',
+            content: 'Acompanhe quantos colaboradores estão bem, mal ou ausentes instantaneamente.',
+            disableHorizontalScroll: true
+        },
+        {
+            targetId: 'tutorial-dark-mode',
+            title: 'Modo Escuro (BB-8)',
+            content: 'Clique no pequeno droide BB-8 para alternar entre o modo Claro e Escuro. Ideal para ambientes com pouca luz.',
+            disableHorizontalScroll: true
+        },
+        {
+            targetId: 'tutorial-help-btn',
+            title: 'Ajuda e Tutorial',
+            content: 'Perdido? Clique neste botão a qualquer momento para rever este tutorial interativo e relembrar as funcionalidades.',
+            disableHorizontalScroll: true
+        },
+        {
+            targetId: 'tutorial-admin-btn',
+            title: 'Área Administrativa',
+            content: 'Acesso restrito para limpar os dados diários, gerar relatórios em PDF/Texto e cadastrar novos usuários.',
+            disableHorizontalScroll: true
+        }
+    );
+
+    return baseSteps;
+};
 
 const adminTutorialSteps: TutorialStep[] = [
     {
@@ -2695,7 +2707,7 @@ const App: React.FC = () => {
             <InteractiveTutorial
                 isOpen={activeModal === ModalType.Tutorial}
                 onClose={handleCloseModal}
-                steps={tutorialSteps}
+                steps={getTutorialSteps(selectedTurma === 'CCG')}
                 scale={modalScale}
                 onStepChange={handleTutorialStepChange}
             />
