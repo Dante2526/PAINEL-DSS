@@ -45,7 +45,7 @@ const CheckboxItem: React.FC<CheckboxItemProps> = ({ label, icon, type, checked,
 );
 
 
-const EmployeeCard: React.FC<EmployeeCardProps> = memo(({ employee, onStatusChange, onToggleSpecialTeam, isTogglingSpecialTeam, isAdmin, onDelete, onTimeChange, onMatriculaChange, domId, specialTurnBtnId, hideShiftButton }) => {
+const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, onToggleSpecialTeam, isTogglingSpecialTeam, isAdmin, onDelete, onTimeChange, onMatriculaChange, domId, specialTurnBtnId, hideShiftButton }) => {
     const [isEditingTime, setIsEditingTime] = useState(false);
     const [editTimeValue, setEditTimeValue] = useState('');
 
@@ -313,6 +313,30 @@ const EmployeeCard: React.FC<EmployeeCardProps> = memo(({ employee, onStatusChan
             </div>
         </div>
     );
-});
+};
 
-export default EmployeeCard;
+const arePropsEqual = (prevProps: EmployeeCardProps, nextProps: EmployeeCardProps) => {
+    return (
+        prevProps.isTogglingSpecialTeam === nextProps.isTogglingSpecialTeam &&
+        prevProps.isAdmin === nextProps.isAdmin &&
+        prevProps.hideShiftButton === nextProps.hideShiftButton &&
+        prevProps.domId === nextProps.domId &&
+        prevProps.specialTurnBtnId === nextProps.specialTurnBtnId &&
+        prevProps.onStatusChange === nextProps.onStatusChange &&
+        prevProps.onToggleSpecialTeam === nextProps.onToggleSpecialTeam &&
+        prevProps.onDelete === nextProps.onDelete &&
+        prevProps.onTimeChange === nextProps.onTimeChange &&
+        prevProps.onMatriculaChange === nextProps.onMatriculaChange &&
+        prevProps.employee.id === nextProps.employee.id &&
+        prevProps.employee.absent === nextProps.employee.absent &&
+        prevProps.employee.assDss === nextProps.employee.assDss &&
+        prevProps.employee.bem === nextProps.employee.bem &&
+        prevProps.employee.mal === nextProps.employee.mal &&
+        prevProps.employee.name === nextProps.employee.name &&
+        prevProps.employee.matricula === nextProps.employee.matricula &&
+        prevProps.employee.time === nextProps.employee.time &&
+        prevProps.employee.turno === nextProps.employee.turno
+    );
+};
+
+export default memo(EmployeeCard, arePropsEqual);

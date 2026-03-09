@@ -191,7 +191,7 @@ const ManualRegisterSection: React.FC<{
     onRegister: () => void;
     employeesForLookup: (Pick<Employee, 'name' | 'matricula'>)[];
     administrators: Administrator[];
-}> = ({ subject, matricula, onSubjectChange, onMatriculaChange, onRegister, employeesForLookup, administrators }) => {
+}> = React.memo(({ subject, matricula, onSubjectChange, onMatriculaChange, onRegister, employeesForLookup, administrators }) => {
     const foundName = useMemo(() => {
         if (!matricula) return '';
         const admin = administrators.find(a => a.matricula === matricula);
@@ -201,9 +201,9 @@ const ManualRegisterSection: React.FC<{
         return employee ? employee.name : '';
     }, [matricula, employeesForLookup, administrators]);
 
-    const handleMatriculaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleMatriculaChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         onMatriculaChange(e.target.value.replace(/[^0-9]/g, ''));
-    };
+    }, [onMatriculaChange]);
 
     return (
         <div className="w-full bg-light-card dark:bg-dark-card rounded-3xl p-6 shadow-lg mb-8 shrink-0">
@@ -249,7 +249,15 @@ const ManualRegisterSection: React.FC<{
             </div>
         </div>
     );
-};
+}, (prev, next) =>
+    prev.subject === next.subject &&
+    prev.matricula === next.matricula &&
+    prev.onSubjectChange === next.onSubjectChange &&
+    prev.onMatriculaChange === next.onMatriculaChange &&
+    prev.onRegister === next.onRegister &&
+    prev.employeesForLookup.length === next.employeesForLookup.length &&
+    prev.administrators.length === next.administrators.length
+);
 
 const AdminLoginModal: React.FC<{
     isOpen: boolean;
@@ -2215,17 +2223,17 @@ const App: React.FC = () => {
         }
     };
 
-    const handleSelectTurma = (turma: TurmaType) => {
+    const handleSelectTurma = useCallback((turma: TurmaType) => {
         localStorage.setItem('selectedTurma', turma);
         setLoading(true);
         setEmployees([]); // Limpa dados antigos para evitar exibir dados da turma errada
         setSelectedTurma(turma);
-    };
+    }, []);
 
-    const handleSelectLayout = (layout: 'standard' | 'custom') => {
+    const handleSelectLayout = useCallback((layout: 'standard' | 'custom') => {
         localStorage.setItem('selectedLayout', layout);
         setSelectedLayout(layout);
-    };
+    }, []);
 
     const handleReturnToSelection = useCallback(() => {
         localStorage.removeItem('selectedTurma');
