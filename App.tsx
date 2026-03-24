@@ -2257,6 +2257,7 @@ const App: React.FC = () => {
         bem: employees.filter(e => e.bem).length,
         mal: employees.filter(e => e.mal).length,
         absent: employees.filter(e => e.absent).length,
+        pendente: employees.filter(e => !e.bem && !e.assDss && !e.mal && !e.absent).length,
         total: employees.length,
     }), [employees]);
 

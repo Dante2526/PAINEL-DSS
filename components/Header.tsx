@@ -9,6 +9,7 @@ interface HeaderProps {
         bem: number;
         mal: number;
         absent: number;
+        pendente: number;
         total: number;
     };
     loading: boolean;
@@ -83,6 +84,7 @@ const Header: React.FC<HeaderProps> = React.memo(({ stats, loading, onAdminClick
                     <StatCard label="Estou Bem" value={stats.bem} colorClass="text-success" />
                     <StatCard label="Estou Mal" value={stats.mal} colorClass="text-danger" />
                     <StatCard label="Ausente" value={stats.absent} colorClass="text-warning" />
+                    <StatCard label="Pendente" value={stats.pendente} colorClass="text-gray-500 dark:text-gray-400" />
                     <StatCard label="Total" value={stats.total} colorClass="text-neutral" />
                 </div>
             </div>
