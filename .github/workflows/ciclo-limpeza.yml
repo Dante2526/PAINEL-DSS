@@ -55,9 +55,9 @@ jobs:
 
           # ====================================================
           # BLOCO MADRUGADA (1h BRT / 04h UTC) -> TURMAS A e B
-          # Aceita 04 ou 05 para margem de segurança
+          # Aceita de 04 a 07 para margem de atraso do GitHub Actions
           # ====================================================
-          if [[ "$CURRENT_HOUR_UTC" -eq 4 || "$CURRENT_HOUR_UTC" -eq 5 ]]; then
+          if [[ "$CURRENT_HOUR_UTC" -ge 4 && "$CURRENT_HOUR_UTC" -le 7 ]]; then
             echo ">>> Horário de limpeza das Turmas A e B (1h BRT) <<<"
           
             # >>> VERIFICAÇÃO TURMA A <<<
@@ -89,9 +89,9 @@ jobs:
 
           # ====================================================
           # BLOCO TARDE (16h BRT / 19h UTC) -> TURMAS C e D
-          # Aceita 19 ou 20 para margem de segurança
+          # Aceita de 19 a 21 para margem de atraso do GitHub Actions (16h as 18h BRT)
           # ====================================================
-          if [[ "$CURRENT_HOUR_UTC" -eq 19 || "$CURRENT_HOUR_UTC" -eq 20 ]]; then
+          if [[ "$CURRENT_HOUR_UTC" -ge 19 && "$CURRENT_HOUR_UTC" -le 21 ]]; then
              echo ">>> Horário de limpeza das Turmas C e D (16h BRT) <<<"
 
              # >>> VERIFICAÇÃO TURMA C <<<
