@@ -1,5 +1,8 @@
 name: Limpar Checkboxes (Manual e Agendado 2x2 - A, B, C e D)
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   # É aqui que definimos a entrada manual
   workflow_dispatch:

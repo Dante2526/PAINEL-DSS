@@ -44,4 +44,5 @@ export enum ModalType {
   DemoPassword,
   ImportEmployee,
   UserExistsWarning,
+  ConfirmDeactivate6H, // Added for hiding 6H shift
 }

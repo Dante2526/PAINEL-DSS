@@ -306,8 +306,10 @@ const AdminOptionsModal: React.FC<{
     onImportUser: () => void;
     onEnterDemo: () => void;
     onStartAdminTutorial: () => void;
+    onToggle6H: () => void;
+    is6HActive: boolean;
     scale: number;
-}> = ({ isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onImportUser, onEnterDemo, onStartAdminTutorial, scale }) => {
+}> = ({ isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onImportUser, onEnterDemo, onStartAdminTutorial, onToggle6H, is6HActive, scale }) => {
     if (!isOpen) return null;
 
     const AdminButton: React.FC<{ id: string; onClick: () => void; className: string; icon: React.ReactNode; label: string }> = ({ id, onClick, className, icon, label }) => (
@@ -349,7 +351,7 @@ const AdminOptionsModal: React.FC<{
                         icon={<SortIcon className="w-7 h-7" />}
                         label="Reorganizar"
                     />
-                    <div className="col-span-2">
+                    <div className="col-span-2 grid grid-cols-2 gap-4">
                         <AdminButton
                             id="admin-import-user-btn"
                             onClick={onImportUser}
@@ -357,6 +359,15 @@ const AdminOptionsModal: React.FC<{
                             icon={<ExchangeIcon className="w-7 h-7" />}
                             label="Importar Colab."
                         />
+                        <button
+                            onClick={onToggle6H}
+                            className={`p-4 rounded-xl flex flex-col items-center justify-center gap-2 transition shadow-lg h-24 ${is6HActive ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-green-500 hover:bg-green-600 text-white'}`}
+                        >
+                            <ShiftIcon className="w-7 h-7" />
+                            <span className="font-bold text-xs uppercase tracking-wider text-center leading-tight">
+                                {is6HActive ? "Desativar 6H" : "Ativar 6H"}
+                            </span>
+                        </button>
                     </div>
                 </div>
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-2 flex flex-col gap-3">
@@ -994,9 +1005,10 @@ const App: React.FC = () => {
     const [specialMatricula, setSpecialMatricula] = useState('');
     const [specialResponsible, setSpecialResponsible] = useState('');
 
-    // State for safety confirmation (Generic for Mal, Absent, Turno, Delete)
     const [pendingEmployeeId, setPendingEmployeeId] = useState<string | null>(null);
     const [existingUserInfo, setExistingUserInfo] = useState<{ name: string; turma: string } | null>(null);
+
+    const [is6HActive, setIs6HActive] = useState(true);
 
     const [isAdminTutorialOpen, setIsAdminTutorialOpen] = useState(false);
 
@@ -1320,6 +1332,14 @@ const App: React.FC = () => {
                     const registrations = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() })) as ManualRegistration[];
                     const mainReg = registrations.find(r => r.TURNO === '7H');
                     const specialReg = registrations.find(r => r.TURNO === '6H');
+                    
+                    const config6H = querySnapshot.docs.find(d => d.id === 'config_6H');
+                    if (config6H) {
+                        setIs6HActive(config6H.data().active ?? true);
+                    } else {
+                        setIs6HActive(true);
+                    }
+                    
                     setMainSubject(mainReg?.assunto || '');
                     setMainMatricula(mainReg?.matricula || '');
                     setMainResponsible(mainReg?.name || '');
@@ -1889,6 +1909,70 @@ const App: React.FC = () => {
             setActiveModal(ModalType.None);
         }
     }, [pendingEmployeeId, processDeleteUser]);
+
+    const handleToggle6H = useCallback(() => {
+        if (!isAdminRef.current || !selectedTurma) {
+            showNotification('Apenas administradores podem alterar as opções do turno.', 'error');
+            return;
+        }
+        
+        if (is6HActive) {
+            setActiveModal(ModalType.ConfirmDeactivate6H);
+        } else {
+            // Reativar direto
+            processToggle6HState(true);
+        }
+    }, [is6HActive, selectedTurma, showNotification]);
+
+    const processToggle6HState = useCallback(async (active: boolean) => {
+        if (!selectedTurma) return;
+
+        if (isDemoMode) {
+            if (!active) {
+                // Ao desativar, move todos do 6H pro 7H
+                setEmployees(prev => prev.map(e => e.turno === '6H' ? { ...e, turno: '7H' } : e));
+            }
+            setIs6HActive(active);
+            showNotification(active ? 'Turno 6H Ativado (DEMO)' : 'Turno 6H Desativado e funcionários movidos para 7H (DEMO)', 'success');
+            return;
+        }
+
+        if (!db) {
+            showNotification("A conexão com o banco de dados não está disponível.", "error");
+            return;
+        }
+
+        try {
+            const batch = writeBatch(db);
+
+            if (!active) {
+                // Move everyone to 7H
+                const collectionName = getTurmaCollectionName(selectedTurma);
+                const employeesSnap = await getDocs(query(collection(db, collectionName), where("turno", "==", "6H")));
+                employeesSnap.forEach(doc => {
+                    batch.update(doc.ref, { turno: '7H' });
+                });
+            }
+
+            // Save settings explicitly in the registration collection as config_6H
+            const docRef = doc(db, getTurmaRegistrationName(selectedTurma), 'config_6H');
+            batch.set(docRef, { active }, { merge: true });
+
+            await batch.commit();
+
+            showNotification(active ? 'Turno 6H Ativado com sucesso!' : 'Turno 6H Desativado. Todos os funcionários foram movidos para 7H.', 'success');
+            logAuditEvent(adminEmailRef.current, 'TOGGLE_6H_COLUMN', `Turno 6H: ${active ? 'Ativado' : 'Desativado'}`, selectedTurma);
+        } catch (error) {
+            console.error("Error toggling 6H state:", error);
+            const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
+            showNotification(`Falha ao alterar estado do turno: ${message}`, 'error');
+        }
+    }, [selectedTurma, isDemoMode, db, showNotification]);
+
+    const handleConfirmDeactivate6H = useCallback(() => {
+        processToggle6HState(false);
+        setActiveModal(ModalType.None);
+    }, [processToggle6HState]);
 
     const handleManualRegister = useCallback(async (turno: '7H' | '6H') => {
         if (!selectedTurma) return;
@@ -2526,7 +2610,7 @@ const App: React.FC = () => {
                                                             onTimeChange={handleTimeUpdate}
                                                             onMatriculaChange={handleMatriculaUpdate}
                                                             domId={index === 0 ? "tutorial-first-card" : undefined}
-                                                            hideShiftButton={selectedTurma === 'CCG'}
+                                                            hideShiftButton={selectedTurma === 'CCG' || !is6HActive}
                                                         />
                                                     </div>
                                                 ))}
@@ -2554,7 +2638,7 @@ const App: React.FC = () => {
                                                                     onTimeChange={handleTimeUpdate}
                                                                     onMatriculaChange={handleMatriculaUpdate}
                                                                     domId={index === 0 && group.letter === groupedMainTeam[0]?.letter ? "tutorial-first-card" : undefined}
-                                                                    hideShiftButton={selectedTurma === 'CCG'}
+                                                                    hideShiftButton={selectedTurma === 'CCG' || !is6HActive}
                                                                 />
                                                             </div>
                                                         ))}
@@ -2604,7 +2688,7 @@ const App: React.FC = () => {
 
                                 </div>
                             </div>
-                            {selectedTurma !== 'CCG' && (
+                            {selectedTurma !== 'CCG' && is6HActive && (
                                 <SpecialTeamPanel
                                     specialTeam={specialTeam}
                                     onStatusChange={handleStatusChange}
@@ -2635,18 +2719,20 @@ const App: React.FC = () => {
                 onLogin={handleAdminLogin}
                 scale={modalScale}
             />
-            <AdminOptionsModal
-                isOpen={activeModal === ModalType.AdminOptions}
-                onClose={handleCloseModal}
-                onClear={handleClearData}
-                onReorganize={handleReorganize}
-                onAddUser={handleOpenAddUser}
-                onSendReport={handleOpenReport}
-                onImportUser={handleOpenImportEmployee}
-                onEnterDemo={handleOpenDemoPassword}
-                onStartAdminTutorial={handleStartAdminTutorial}
-                scale={modalScale}
-            />
+                            <AdminOptionsModal
+                                isOpen={activeModal === ModalType.AdminOptions}
+                                onClose={handleCloseModal}
+                                onClear={handleClearData}
+                                onReorganize={handleReorganize}
+                                onAddUser={handleOpenAddUser}
+                                onSendReport={handleOpenReport}
+                                onImportUser={handleOpenImportEmployee}
+                                onEnterDemo={handleOpenDemoPassword}
+                                onStartAdminTutorial={handleStartAdminTutorial}
+                                onToggle6H={handleToggle6H}
+                                is6HActive={is6HActive}
+                                scale={modalScale}
+                            />
             <DemoPasswordModal
                 isOpen={activeModal === ModalType.DemoPassword}
                 onClose={handleCloseModal}
@@ -3021,6 +3107,60 @@ const App: React.FC = () => {
                                         setPendingEmployeeId(null);
                                         setActiveModal(ModalType.None);
                                     }}
+                                    className="w-full py-4 font-bold text-light-text dark:text-white bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition"
+                                >
+                                    CANCELAR
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {activeModal === ModalType.ConfirmDeactivate6H && (
+                <div
+                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
+                    onClick={() => setActiveModal(ModalType.None)}
+                >
+                    <div
+                        className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center relative mx-4"
+                        style={{
+                            transform: `scale(${modalScale})`,
+                            animation: 'fade-in-scale 0.3s forwards ease-out'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            onClick={() => setActiveModal(ModalType.None)}
+                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10"
+                        >
+                            &times;
+                        </button>
+
+                        <h2 className="text-xl font-bold text-light-text dark:text-dark-text mb-6">DESATIVAR TURNO 6H</h2>
+
+                        <div className="space-y-6 text-center p-2 flex flex-col items-center">
+                            <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-2 text-danger">
+                                <ShiftIcon className="w-8 h-8" />
+                            </div>
+
+                            <div className="text-lg text-light-text dark:text-dark-text font-medium flex flex-col items-center gap-2">
+                                <span>Tem certeza que deseja desativar o turno 6H?</span>
+                            </div>
+
+                            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-2">
+                                Esta ação moverá todos os funcionários atualmente no turno 6H de volta para o turno 7H, e a coluna será ocultada do painel.
+                            </p>
+
+                            <div className="grid grid-cols-1 gap-3 mt-6 w-full">
+                                <button
+                                    onClick={handleConfirmDeactivate6H}
+                                    className="w-full py-4 font-bold text-white bg-danger rounded-lg hover:bg-red-700 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
+                                >
+                                    SIM, DESATIVAR
+                                </button>
+                                <button
+                                    onClick={() => setActiveModal(ModalType.None)}
                                     className="w-full py-4 font-bold text-light-text dark:text-white bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition"
                                 >
                                     CANCELAR

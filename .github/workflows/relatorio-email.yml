@@ -1,5 +1,8 @@
 name: Enviar Relatório por E-mail (Agendado 2x2 - A, B, C e D)
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   workflow_dispatch:
     inputs:
