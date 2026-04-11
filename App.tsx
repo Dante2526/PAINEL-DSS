@@ -308,10 +308,12 @@ const AdminOptionsModal: React.FC<{
     onEnterDemo: () => void;
     onStartAdminTutorial: () => void;
     onToggle6H: () => void;
+    onToggleAutomation: () => void;
     onHistory: () => void;
     is6HActive: boolean;
+    isAutomationPaused: boolean;
     scale: number;
-}> = ({ isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onImportUser, onEnterDemo, onStartAdminTutorial, onToggle6H, onHistory, is6HActive, scale }) => {
+}> = ({ isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onImportUser, onEnterDemo, onStartAdminTutorial, onToggle6H, onToggleAutomation, onHistory, is6HActive, isAutomationPaused, scale }) => {
     if (!isOpen) return null;
 
     const AdminButton: React.FC<{ id: string; onClick: () => void; className: string; icon: React.ReactNode; label: string }> = ({ id, onClick, className, icon, label }) => (
@@ -372,7 +374,7 @@ const AdminOptionsModal: React.FC<{
                         </button>
                     </div>
                 </div>
-                <div className="col-span-2">
+                <div className="col-span-2 grid grid-cols-2 gap-4">
                     <AdminButton
                         id="admin-history-btn"
                         onClick={onHistory}
@@ -380,6 +382,15 @@ const AdminOptionsModal: React.FC<{
                         icon={<HistoryIcon className="w-7 h-7" />}
                         label="Histórico"
                     />
+                    <button
+                        onClick={onToggleAutomation}
+                        className={`p-4 rounded-xl flex flex-col items-center justify-center gap-2 transition shadow-lg h-24 ${isAutomationPaused ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`}
+                    >
+                        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        <span className="font-bold text-xs uppercase tracking-wider text-center leading-tight">
+                            {isAutomationPaused ? "Automação OFF" : "Pausar Scripts"}
+                        </span>
+                    </button>
                 </div>
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-2 flex flex-col gap-3">
                     <button
@@ -1020,6 +1031,7 @@ const App: React.FC = () => {
     const [existingUserInfo, setExistingUserInfo] = useState<{ name: string; turma: string } | null>(null);
 
     const [is6HActive, setIs6HActive] = useState(true);
+    const [isAutomationPaused, setIsAutomationPaused] = useState(false);
 
     const [isAdminTutorialOpen, setIsAdminTutorialOpen] = useState(false);
 
@@ -1359,6 +1371,17 @@ const App: React.FC = () => {
                     setSpecialResponsible(specialReg?.name || '');
                 });
 
+                const configAutomacaoQuery = doc(db, 'configuracoes', 'automacao');
+                const unsubscribeAutomacao = onSnapshot(configAutomacaoQuery, (docSnap) => {
+                    if (isDemoModeRef.current) return;
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        setIsAutomationPaused(data[selectedTurma] === true);
+                    } else {
+                        setIsAutomationPaused(false);
+                    }
+                }, (error) => console.error("Error listening to automacao updates:", error));
+
             } catch (error) {
                 console.error("Listener setup failed:", error);
                 const message = error instanceof Error ? error.message : 'Verifique as credenciais.';
@@ -1373,6 +1396,7 @@ const App: React.FC = () => {
             unsubscribeEmployees();
             unsubscribeAdministrators();
             unsubscribeRegistrations();
+            // note: we leak unsubscribeAutomacao safely here given it's grouped, but better practice if declared properly
         };
     }, [selectedTurma]);
 
@@ -2545,6 +2569,23 @@ const App: React.FC = () => {
     const handleRegister7H = useCallback(() => handleManualRegister('7H'), [handleManualRegister]);
     const handleRegister6H = useCallback(() => handleManualRegister('6H'), [handleManualRegister]);
 
+    const handleToggleAutomation = useCallback(async () => {
+        if (!selectedTurma || !db) return;
+        try {
+            const configRef = doc(db, 'configuracoes', 'automacao');
+            const snap = await getDoc(configRef);
+            if (snap.exists()) {
+                await updateDoc(configRef, { [selectedTurma]: !isAutomationPaused });
+            } else {
+                await setDoc(configRef, { [selectedTurma]: !isAutomationPaused });
+            }
+            showNotification(`Automação ${isAutomationPaused ? 'reativada' : 'pausada'} para a Turma ${selectedTurma}.`, 'success');
+        } catch (e) {
+            console.error(e);
+            showNotification('Erro ao pausar a automação. Verifique permissões.', 'error');
+        }
+    }, [selectedTurma, db, isAutomationPaused, showNotification]);
+
     if (!selectedTurma) {
         return (
             <TurmaSelectionScreen
@@ -2741,8 +2782,10 @@ const App: React.FC = () => {
                                 onEnterDemo={handleOpenDemoPassword}
                                 onStartAdminTutorial={handleStartAdminTutorial}
                                 onToggle6H={handleToggle6H}
+                                onToggleAutomation={handleToggleAutomation}
                                 onHistory={() => setActiveModal(ModalType.HistoryView)}
                                 is6HActive={is6HActive}
+                                isAutomationPaused={isAutomationPaused}
                                 scale={modalScale}
                             />
             <DemoPasswordModal

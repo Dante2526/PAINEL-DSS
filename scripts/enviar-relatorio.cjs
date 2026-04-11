@@ -201,6 +201,12 @@ async function enviarEmail(htmlRelatorio) {
 async function main() {
   console.log(`Iniciando script de relatório para TURMA ${TARGET_TEAM}...`);
   try {
+    const sysRef = await db.collection('configuracoes').doc('automacao').get();
+    if (sysRef.exists && sysRef.data()[TARGET_TEAM] === true) {
+      console.log(`>>> Ação Cancelada. O envio de e-mails da Turma ${TARGET_TEAM} está PAUSADO pelo painel administrativo.`);
+      process.exit(0);
+    }
+
     const jaEnviado = await verificarEnvioDuplicado();
     if (jaEnviado) {
       console.log("Processo abortado com sucesso.");

@@ -192,6 +192,12 @@ async function limparControleEnvio() {
 // --- FUNÇÃO PRINCIPAL ---
 async function executarLimpezaCompleta() {
   try {
+    const sysRef = await db.collection('configuracoes').doc('automacao').get();
+    if (sysRef.exists && sysRef.data()[TARGET_TEAM] === true) {
+      console.log(`>>> Ação Cancelada. A automação (Limpeza) da Turma ${TARGET_TEAM} está PAUSADA pelo painel administrativo.`);
+      process.exit(0);
+    }
+
     // PASSO 1: Salvar o histórico ANTES de limpar
     await salvarHistorico();
 
