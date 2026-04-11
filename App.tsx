@@ -317,9 +317,9 @@ const AdminOptionsModal: React.FC<{
     if (!isOpen) return null;
 
     const AdminButton: React.FC<{ id: string; onClick: () => void; className: string; icon: React.ReactNode; label: string }> = ({ id, onClick, className, icon, label }) => (
-        <button id={id} onClick={onClick} className={`p-2 md:p-4 rounded-xl flex flex-col items-center justify-center gap-1 md:gap-2 transition shadow-md md:shadow-lg h-[72px] md:h-24 ${className}`}>
-            <div className="scale-[0.8] md:scale-100 origin-bottom">{icon}</div>
-            <span className="font-bold text-[9px] md:text-xs uppercase tracking-wider text-center leading-tight">{label}</span>
+        <button id={id} onClick={onClick} className={`p-3 md:p-4 rounded-xl flex flex-col items-center justify-center gap-1.5 md:gap-2 transition shadow-md md:shadow-lg h-20 md:h-24 ${className}`}>
+            <div className="scale-[0.85] md:scale-100 origin-bottom">{icon}</div>
+            <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">{label}</span>
         </button>
     );
 
@@ -365,10 +365,10 @@ const AdminOptionsModal: React.FC<{
                         />
                         <button
                             onClick={onToggle6H}
-                            className={`p-2 md:p-4 rounded-xl flex flex-col items-center justify-center gap-1 md:gap-2 transition shadow-md md:shadow-lg h-[72px] md:h-24 ${is6HActive ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-green-500 hover:bg-green-600 text-white'}`}
+                            className={`p-3 md:p-4 rounded-xl flex flex-col items-center justify-center gap-1.5 md:gap-2 transition shadow-md md:shadow-lg h-20 md:h-24 ${is6HActive ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-green-500 hover:bg-green-600 text-white'}`}
                         >
-                            <div className="scale-[0.8] md:scale-100 origin-bottom"><ShiftIcon className="w-7 h-7" /></div>
-                            <span className="font-bold text-[9px] md:text-xs uppercase tracking-wider text-center leading-tight">
+                            <div className="scale-[0.85] md:scale-100 origin-bottom"><ShiftIcon className="w-7 h-7" /></div>
+                            <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">
                                 {is6HActive ? "Desativar 6H" : "Ativar 6H"}
                             </span>
                         </button>
@@ -384,10 +384,10 @@ const AdminOptionsModal: React.FC<{
                     />
                     <button
                         onClick={onToggleAutomation}
-                        className={`p-2 md:p-4 rounded-xl flex flex-col items-center justify-center gap-1 md:gap-2 transition shadow-md md:shadow-lg h-[72px] md:h-24 ${isAutomationPaused ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`}
+                        className={`p-3 md:p-4 rounded-xl flex flex-col items-center justify-center gap-1.5 md:gap-2 transition shadow-md md:shadow-lg h-20 md:h-24 ${isAutomationPaused ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`}
                     >
-                        <div className="scale-[0.8] md:scale-100 origin-bottom"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
-                        <span className="font-bold text-[9px] md:text-xs uppercase tracking-wider text-center leading-tight">
+                        <div className="scale-[0.85] md:scale-100 origin-bottom"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
+                        <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">
                             {isAutomationPaused ? "AÇÕES OFF" : "PAUSAR AÇÕES"}
                         </span>
                     </button>
