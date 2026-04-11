@@ -54,12 +54,12 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, scale =
       onClick={onClose}
     >
       <div
-        className={`bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-8 w-full max-h-full overflow-y-auto hide-scrollbar ${sizeClass} text-center relative flex flex-col`}
+        className={`bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-4 md:p-8 w-full max-h-full overflow-y-auto hide-scrollbar ${sizeClass} text-center relative flex flex-col`}
         style={modalStyle}
         onClick={(e) => e.stopPropagation()}
       >
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10 font-bold">&times;</button>
-        <h2 className="text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6 mt-2 shrink-0">{title}</h2>
+        <button onClick={onClose} className="absolute top-2 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10 font-bold">&times;</button>
+        <h2 className="text-lg md:text-xl font-bold uppercase text-light-text dark:text-dark-text mb-3 md:mb-6 mt-1 md:mt-2 shrink-0">{title}</h2>
         <div className="flex-grow flex flex-col min-h-0">
           {children}
         </div>

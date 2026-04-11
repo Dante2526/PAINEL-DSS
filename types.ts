@@ -76,4 +76,5 @@ export enum ModalType {
   UserExistsWarning,
   ConfirmDeactivate6H, // Added for hiding 6H shift
   HistoryView, // Added for history view modal
+  AutomationPassword, // Added for toggling automation securely
 }

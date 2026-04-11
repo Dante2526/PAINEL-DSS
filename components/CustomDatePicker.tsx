@@ -103,13 +103,13 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({ selectedDate, onCha
     return (
         <div className="w-full">
             {/* Calendário sempre visível, embutido inline */}
-            <div className="w-full p-3 bg-white dark:bg-[#1A1C23] border border-gray-100 dark:border-gray-700/50 rounded-2xl">
+            <div className="w-full p-2 md:p-3 bg-white dark:bg-[#1A1C23] border border-gray-100 dark:border-gray-700/50 rounded-2xl">
                 
                 {/* Header: Mês/Ano + Setas */}
-                <div className="flex justify-between items-center mb-3 pb-2 border-b border-gray-100 dark:border-gray-800">
-                    <div className="font-extrabold text-base text-gray-800 dark:text-gray-100 capitalize flex flex-col">
+                <div className="flex justify-between items-center mb-2 pb-1 border-b border-gray-100 dark:border-gray-800">
+                    <div className="font-extrabold text-sm md:text-base text-gray-800 dark:text-gray-100 capitalize flex flex-col leading-tight">
                         {MONTHS[viewDate.getMonth()]}
-                        <span className="text-[10px] text-indigo-500 font-black tracking-widest">{viewDate.getFullYear()}</span>
+                        <span className="text-[9px] md:text-[10px] text-indigo-500 font-black tracking-widest">{viewDate.getFullYear()}</span>
                     </div>
                     <div className="flex gap-1.5">
                         <button 
@@ -141,7 +141,7 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({ selectedDate, onCha
                 {/* Grid de Dias (compacto) */}
                 <div className="grid grid-cols-7 gap-0.5">
                     {calendarDays.map((d, idx) => {
-                        let baseStyle = "h-8 w-full rounded-lg flex items-center justify-center text-xs font-bold transition-all duration-150 outline-none ";
+                        let baseStyle = "h-7 md:h-8 w-full rounded-md md:rounded-lg flex items-center justify-center text-[11px] md:text-xs font-bold transition-all duration-150 outline-none ";
                         
                         if (d.isDisabled) {
                             baseStyle += "text-gray-300 dark:text-gray-600 bg-transparent cursor-not-allowed ";

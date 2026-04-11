@@ -317,16 +317,16 @@ const AdminOptionsModal: React.FC<{
     if (!isOpen) return null;
 
     const AdminButton: React.FC<{ id: string; onClick: () => void; className: string; icon: React.ReactNode; label: string }> = ({ id, onClick, className, icon, label }) => (
-        <button id={id} onClick={onClick} className={`p-4 rounded-xl flex flex-col items-center justify-center gap-2 transition shadow-lg h-24 ${className}`}>
-            {icon}
-            <span className="font-bold text-xs uppercase tracking-wider text-center leading-tight">{label}</span>
+        <button id={id} onClick={onClick} className={`p-2 md:p-4 rounded-xl flex flex-col items-center justify-center gap-1 md:gap-2 transition shadow-md md:shadow-lg h-[72px] md:h-24 ${className}`}>
+            <div className="scale-[0.8] md:scale-100 origin-bottom">{icon}</div>
+            <span className="font-bold text-[9px] md:text-xs uppercase tracking-wider text-center leading-tight">{label}</span>
         </button>
     );
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Painel do Administrador" scale={scale} size="md">
-            <div className="flex flex-col gap-4">
-                <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2 md:gap-4">
+                <div className="grid grid-cols-2 gap-2 md:gap-4">
                     <AdminButton
                         id="admin-clear-btn"
                         onClick={onClear}
@@ -355,7 +355,7 @@ const AdminOptionsModal: React.FC<{
                         icon={<SortIcon className="w-7 h-7" />}
                         label="Reorganizar"
                     />
-                    <div className="col-span-2 grid grid-cols-2 gap-4">
+                    <div className="col-span-2 grid grid-cols-2 gap-2 md:gap-4">
                         <AdminButton
                             id="admin-import-user-btn"
                             onClick={onImportUser}
@@ -365,16 +365,16 @@ const AdminOptionsModal: React.FC<{
                         />
                         <button
                             onClick={onToggle6H}
-                            className={`p-4 rounded-xl flex flex-col items-center justify-center gap-2 transition shadow-lg h-24 ${is6HActive ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-green-500 hover:bg-green-600 text-white'}`}
+                            className={`p-2 md:p-4 rounded-xl flex flex-col items-center justify-center gap-1 md:gap-2 transition shadow-md md:shadow-lg h-[72px] md:h-24 ${is6HActive ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-green-500 hover:bg-green-600 text-white'}`}
                         >
-                            <ShiftIcon className="w-7 h-7" />
-                            <span className="font-bold text-xs uppercase tracking-wider text-center leading-tight">
+                            <div className="scale-[0.8] md:scale-100 origin-bottom"><ShiftIcon className="w-7 h-7" /></div>
+                            <span className="font-bold text-[9px] md:text-xs uppercase tracking-wider text-center leading-tight">
                                 {is6HActive ? "Desativar 6H" : "Ativar 6H"}
                             </span>
                         </button>
                     </div>
                 </div>
-                <div className="col-span-2 grid grid-cols-2 gap-4">
+                <div className="col-span-2 grid grid-cols-2 gap-2 md:gap-4">
                     <AdminButton
                         id="admin-history-btn"
                         onClick={onHistory}
@@ -384,30 +384,30 @@ const AdminOptionsModal: React.FC<{
                     />
                     <button
                         onClick={onToggleAutomation}
-                        className={`p-4 rounded-xl flex flex-col items-center justify-center gap-2 transition shadow-lg h-24 ${isAutomationPaused ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`}
+                        className={`p-2 md:p-4 rounded-xl flex flex-col items-center justify-center gap-1 md:gap-2 transition shadow-md md:shadow-lg h-[72px] md:h-24 ${isAutomationPaused ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`}
                     >
-                        <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        <span className="font-bold text-xs uppercase tracking-wider text-center leading-tight">
+                        <div className="scale-[0.8] md:scale-100 origin-bottom"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
+                        <span className="font-bold text-[9px] md:text-xs uppercase tracking-wider text-center leading-tight">
                             {isAutomationPaused ? "AÇÕES OFF" : "PAUSAR AÇÕES"}
                         </span>
                     </button>
                 </div>
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-2 flex flex-col gap-3">
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-3 md:pt-4 mt-1 md:mt-2 flex flex-col gap-2 md:gap-3">
                     <button
                         id="admin-tutorial-btn"
                         onClick={onStartAdminTutorial}
-                        className="w-full p-3 bg-cyan-500 text-white rounded-xl flex items-center justify-center gap-2 hover:bg-cyan-600 transition shadow-lg"
+                        className="w-full p-2.5 md:p-3 bg-cyan-500 text-white rounded-xl flex items-center justify-center gap-2 hover:bg-cyan-600 transition shadow-md md:shadow-lg"
                     >
-                        <HelpIcon className="w-6 h-6" />
-                        <span className="font-bold text-sm">AJUDA / TUTORIAL</span>
+                        <HelpIcon className="w-5 h-5 md:w-6 md:h-6" />
+                        <span className="font-bold text-xs md:text-sm">AJUDA / TUTORIAL</span>
                     </button>
                     <button
                         id="admin-demo-btn"
                         onClick={onEnterDemo}
-                        className="w-full p-3 bg-gray-700 text-white rounded-xl flex items-center justify-center gap-2 hover:bg-gray-800 transition shadow-lg border border-gray-500"
+                        className="w-full p-2.5 md:p-3 bg-gray-700 text-white rounded-xl flex items-center justify-center gap-2 hover:bg-gray-800 transition shadow-md md:shadow-lg border border-gray-500"
                     >
-                        <MousePointerIcon className="w-5 h-5" />
-                        <span className="font-bold text-sm">MODO DEMONSTRAÇÃO</span>
+                        <MousePointerIcon className="w-4 h-4 md:w-5 md:h-5" />
+                        <span className="font-bold text-xs md:text-sm">MODO DEMONSTRAÇÃO</span>
                     </button>
                 </div>
             </div>
@@ -780,6 +780,45 @@ const DemoPasswordModal: React.FC<{
                     ENTRAR
                 </button>
             </form>
+        </Modal>
+    );
+};
+
+const AutomationPasswordModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    onConfirm: (password: string) => void;
+    scale: number;
+}> = ({ isOpen, onClose, onConfirm, scale }) => {
+    const [password, setPassword] = useState('');
+
+    useEffect(() => {
+        if (isOpen) setPassword('');
+    }, [isOpen]);
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        onConfirm(password);
+    };
+
+    if (!isOpen) return null;
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title="Senha do Sistema" scale={scale}>
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <input
+                    type="password"
+                    placeholder="Digite a senha"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white text-center tracking-widest text-lg"
+                    autoFocus
+                />
+                <button type="submit" className="w-full py-3 bg-red-600/90 hover:bg-red-700 text-white font-bold rounded-lg transition uppercase tracking-widest">
+                    AUTORIZAR
+                </button>
+            </form>
+            <p className="text-xs text-light-text-secondary dark:text-dark-text-secondary mt-4">Essa ação impacta diretamente a automação das ações do painel.</p>
         </Modal>
     );
 };
@@ -2569,10 +2608,13 @@ const App: React.FC = () => {
     const handleRegister7H = useCallback(() => handleManualRegister('7H'), [handleManualRegister]);
     const handleRegister6H = useCallback(() => handleManualRegister('6H'), [handleManualRegister]);
 
-    const handleToggleAutomation = useCallback(async () => {
+    const handleToggleAutomation = useCallback(() => {
+        setActiveModal(ModalType.AutomationPassword);
+    }, []);
+
+    const handleConfirmAutomationPassword = async (password: string) => {
         if (!selectedTurma || !db) return;
         
-        const password = window.prompt("Insira a senha para alterar as ações:");
         if (password !== 'Near2203@') {
             showNotification('Senha incorreta para pausar ações.', 'error');
             return;
@@ -2587,11 +2629,12 @@ const App: React.FC = () => {
                 await setDoc(configRef, { [selectedTurma]: !isAutomationPaused });
             }
             showNotification(`Ações ${isAutomationPaused ? 'reativadas' : 'pausadas'} para a Turma ${selectedTurma}.`, 'success');
+            setActiveModal(ModalType.None);
         } catch (e) {
             console.error(e);
             showNotification('Erro ao pausar as ações. Verifique permissões.', 'error');
         }
-    }, [selectedTurma, db, isAutomationPaused, showNotification]);
+    };
 
     if (!selectedTurma) {
         return (
@@ -2799,6 +2842,12 @@ const App: React.FC = () => {
                 isOpen={activeModal === ModalType.DemoPassword}
                 onClose={handleCloseModal}
                 onConfirm={handleConfirmDemoPassword}
+                scale={modalScale}
+            />
+            <AutomationPasswordModal
+                isOpen={activeModal === ModalType.AutomationPassword}
+                onClose={handleCloseModal}
+                onConfirm={handleConfirmAutomationPassword}
                 scale={modalScale}
             />
             <AddUserModal isOpen={activeModal === ModalType.AddUser} onClose={handleCloseModal} onAdd={handleAddUser} scale={modalScale} />
