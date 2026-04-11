@@ -297,6 +297,13 @@ const AdminLoginModal: React.FC<{
     );
 };
 
+const AdminButton: React.FC<{ id: string; onClick: () => void; className: string; icon: React.ReactNode; label: string }> = ({ id, onClick, className, icon, label }) => (
+    <button id={id} onClick={onClick} className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 transition shadow-md h-[86px] md:h-[82px] ${className}`}>
+        <div className="scale-[0.85] md:scale-90 origin-bottom">{icon}</div>
+        <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">{label}</span>
+    </button>
+);
+
 const AdminOptionsModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
@@ -315,13 +322,6 @@ const AdminOptionsModal: React.FC<{
     scale: number;
 }> = ({ isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onImportUser, onEnterDemo, onStartAdminTutorial, onToggle6H, onToggleAutomation, onHistory, is6HActive, isAutomationPaused, scale }) => {
     if (!isOpen) return null;
-
-    const AdminButton: React.FC<{ id: string; onClick: () => void; className: string; icon: React.ReactNode; label: string }> = ({ id, onClick, className, icon, label }) => (
-        <button id={id} onClick={onClick} className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 transition shadow-md h-[86px] md:h-[82px] ${className}`}>
-            <div className="scale-[0.85] md:scale-90 origin-bottom">{icon}</div>
-            <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">{label}</span>
-        </button>
-    );
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Painel do Administrador" scale={scale} size="md">
@@ -1342,6 +1342,7 @@ const App: React.FC = () => {
         let unsubscribeEmployees = () => { };
         let unsubscribeAdministrators = () => { };
         let unsubscribeRegistrations = () => { };
+        let unsubscribeAutomacao = () => { };
 
         const setupListeners = async () => {
             if (!db) return;
@@ -1411,7 +1412,7 @@ const App: React.FC = () => {
                 });
 
                 const configAutomacaoQuery = doc(db, 'configuracoes', 'automacao');
-                const unsubscribeAutomacao = onSnapshot(configAutomacaoQuery, (docSnap) => {
+                unsubscribeAutomacao = onSnapshot(configAutomacaoQuery, (docSnap) => {
                     if (isDemoModeRef.current) return;
                     if (docSnap.exists()) {
                         const data = docSnap.data();
@@ -1435,7 +1436,7 @@ const App: React.FC = () => {
             unsubscribeEmployees();
             unsubscribeAdministrators();
             unsubscribeRegistrations();
-            // note: we leak unsubscribeAutomacao safely here given it's grouped, but better practice if declared properly
+            unsubscribeAutomacao();
         };
     }, [selectedTurma]);
 
