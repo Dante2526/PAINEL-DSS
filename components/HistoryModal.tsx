@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import Modal from './Modal';
+import CustomDatePicker from './CustomDatePicker';
 import { FileTextIcon, SubjectIcon, ShiftIcon } from './icons';
 import type { HistoryRecord, HistoryEmployee } from '../types';
 import { db } from '../firebase';
@@ -32,8 +33,7 @@ const HistoryModal: React.FC<{
     const [loading, setLoading] = useState(false);
     const [notFound, setNotFound] = useState(false);
 
-    const handleDateChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const dateValue = e.target.value; // YYYY-MM-DD
+    const handleDateChange = async (dateValue: string) => {
         setSelectedDate(dateValue);
         setHistoryData(null);
         setNotFound(false);
@@ -212,12 +212,10 @@ const HistoryModal: React.FC<{
                     <label className="block text-sm font-bold text-light-text-secondary dark:text-dark-text-secondary mb-2 uppercase tracking-wider">
                         Selecione a Data
                     </label>
-                    <input
-                        type="date"
-                        value={selectedDate}
-                        onChange={handleDateChange}
-                        max={new Date().toISOString().split('T')[0]}
-                        className="w-full p-3 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition text-center font-bold text-lg"
+                    <CustomDatePicker 
+                        selectedDate={selectedDate} 
+                        onChange={handleDateChange} 
+                        maxDate={new Date().toISOString().split('T')[0]} 
                     />
                 </div>
 
