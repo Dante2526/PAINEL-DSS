@@ -388,7 +388,7 @@ const AdminOptionsModal: React.FC<{
                     >
                         <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         <span className="font-bold text-xs uppercase tracking-wider text-center leading-tight">
-                            {isAutomationPaused ? "Automação OFF" : "Pausar Scripts"}
+                            {isAutomationPaused ? "AÇÕES OFF" : "PAUSAR AÇÕES"}
                         </span>
                     </button>
                 </div>
@@ -1572,7 +1572,7 @@ const App: React.FC = () => {
     }, [initializeScale, setScale, selectedTurma, selectedLayout]);
 
     const handleConfirmDemoPassword = (password: string) => {
-        if (password === '40402020') {
+        if (password === 'Near2203@') {
             handleEnterDemoMode();
         } else {
             showNotification('Senha incorreta.', 'error');
@@ -2571,6 +2571,13 @@ const App: React.FC = () => {
 
     const handleToggleAutomation = useCallback(async () => {
         if (!selectedTurma || !db) return;
+        
+        const password = window.prompt("Insira a senha para alterar as ações:");
+        if (password !== 'Near2203@') {
+            showNotification('Senha incorreta para pausar ações.', 'error');
+            return;
+        }
+
         try {
             const configRef = doc(db, 'configuracoes', 'automacao');
             const snap = await getDoc(configRef);
@@ -2579,10 +2586,10 @@ const App: React.FC = () => {
             } else {
                 await setDoc(configRef, { [selectedTurma]: !isAutomationPaused });
             }
-            showNotification(`Automação ${isAutomationPaused ? 'reativada' : 'pausada'} para a Turma ${selectedTurma}.`, 'success');
+            showNotification(`Ações ${isAutomationPaused ? 'reativadas' : 'pausadas'} para a Turma ${selectedTurma}.`, 'success');
         } catch (e) {
             console.error(e);
-            showNotification('Erro ao pausar a automação. Verifique permissões.', 'error');
+            showNotification('Erro ao pausar as ações. Verifique permissões.', 'error');
         }
     }, [selectedTurma, db, isAutomationPaused, showNotification]);
 

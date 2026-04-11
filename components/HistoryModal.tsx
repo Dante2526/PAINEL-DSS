@@ -207,11 +207,8 @@ const HistoryModal: React.FC<{
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Histórico DSS" scale={scale} size="md">
             <div className="w-full">
-                {/* Seletor de Data */}
-                <div className="mb-5">
-                    <label className="block text-sm font-bold text-light-text-secondary dark:text-dark-text-secondary mb-2 uppercase tracking-wider">
-                        Selecione a Data
-                    </label>
+                {/* Seletor de Data (Inline) */}
+                <div className="mb-4">
                     <CustomDatePicker 
                         selectedDate={selectedDate} 
                         onChange={handleDateChange} 
