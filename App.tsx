@@ -396,18 +396,18 @@ const AdminOptionsModal: React.FC<{
                     <button
                         id="admin-tutorial-btn"
                         onClick={onStartAdminTutorial}
-                        className="w-full h-14 md:h-12 bg-cyan-500 text-white rounded-xl flex items-center justify-center gap-2 hover:bg-cyan-600 transition shadow-md md:shadow-lg"
+                        className="w-full h-[76px] md:h-12 bg-cyan-500 text-white rounded-xl flex items-center justify-center gap-2 hover:bg-cyan-600 transition shadow-md md:shadow-lg"
                     >
-                        <HelpIcon className="w-5 h-5 md:w-6 md:h-6" />
-                        <span className="font-bold text-xs md:text-sm">AJUDA / TUTORIAL</span>
+                        <HelpIcon className="w-6 h-6 md:w-6 md:h-6" />
+                        <span className="font-bold text-sm">AJUDA / TUTORIAL</span>
                     </button>
                     <button
                         id="admin-demo-btn"
                         onClick={onEnterDemo}
-                        className="w-full h-14 md:h-12 bg-gray-700 text-white rounded-xl flex items-center justify-center gap-2 hover:bg-gray-800 transition shadow-md md:shadow-lg border border-gray-500"
+                        className="w-full h-[76px] md:h-12 bg-gray-700 text-white rounded-xl flex items-center justify-center gap-2 hover:bg-gray-800 transition shadow-md md:shadow-lg border border-gray-500"
                     >
-                        <MousePointerIcon className="w-4 h-4 md:w-5 md:h-5" />
-                        <span className="font-bold text-xs md:text-sm">MODO DEMONSTRAÇÃO</span>
+                        <MousePointerIcon className="w-5 h-5 md:w-5 md:h-5" />
+                        <span className="font-bold text-sm">MODO DEMONSTRAÇÃO</span>
                     </button>
                 </div>
             </div>
