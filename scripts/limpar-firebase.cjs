@@ -41,6 +41,96 @@ if (TARGET_TEAM === 'A') {
 console.log(`>>> INICIANDO LIMPEZA PARA A TURMA: ${TARGET_TEAM} <<<`);
 console.log(`Coleções alvo: '${colEmployeesName}', '${colRegistrosName}' e controle de envios.`);
 
+// --- GERAÇÃO DA DATA VIRTUAL ---
+// Subtrai 6 horas do relógio para garantir que a madrugada pertença ao dia anterior
+function getDataDoPlantao() {
+  const dataVirtual = new Date(new Date().getTime() - (6 * 60 * 60 * 1000));
+  return dataVirtual.toLocaleDateString('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
+    day: '2-digit', month: '2-digit', year: 'numeric'
+  });
+}
+
+function getDataDoPlantaoISO() {
+  const dataVirtual = new Date(new Date().getTime() - (6 * 60 * 60 * 1000));
+  // Formata como YYYY-MM-DD para usar como ID do documento
+  const ano = dataVirtual.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', year: 'numeric' });
+  const mes = dataVirtual.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', month: '2-digit' });
+  const dia = dataVirtual.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit' });
+  return `${ano}-${mes}-${dia}`;
+}
+
+// --- FUNÇÃO 0: Salvar Histórico (ANTES da limpeza) ---
+async function salvarHistorico() {
+  console.log(`>>> Salvando histórico da Turma ${TARGET_TEAM} antes da limpeza...`);
+
+  // 1. Ler todos os funcionários
+  const empSnapshot = await db.collection(colEmployeesName).get();
+  if (empSnapshot.empty) {
+    console.log(`Nenhum funcionário encontrado. Histórico não será salvo.`);
+    return;
+  }
+
+  // 2. Ler registros DSS (assunto/responsável)
+  const regSnapshot = await db.collection(colRegistrosName).get();
+  const registros7H = [];
+  const registros6H = [];
+  regSnapshot.forEach(doc => {
+    const reg = doc.data();
+    const entry = {
+      assunto: reg.assunto || '',
+      matricula: reg.matricula || '',
+      name: reg.name || ''
+    };
+    if (reg.TURNO === '6H') registros6H.push(entry);
+    else registros7H.push(entry);
+  });
+
+  // 3. Compactar funcionários no formato minificado
+  const funcionarios = [];
+  empSnapshot.forEach(doc => {
+    const emp = doc.data();
+
+    // Determinar status compacto
+    let status = 'PEN'; // Pendente (default)
+    if (emp.absent === true) status = 'AUS';
+    else if (emp.mal === true) status = 'MAL';
+    else if (emp.bem === true || emp.assDss === true) status = 'BEM';
+
+    funcionarios.push({
+      m: emp.matricula || '',
+      n: (emp.name || '').replace(/\s+/g, ' ').trim(),
+      s: status,
+      t: emp.time || null,
+      turno: emp.turno || '7H'
+    });
+  });
+
+  // 4. Montar o documento compacto
+  const dataISO = getDataDoPlantaoISO();
+  const dataBR = getDataDoPlantao();
+  const docId = `${TARGET_TEAM}_${dataISO}`;
+
+  const historicoDoc = {
+    data: dataBR,
+    dataISO: dataISO,
+    turma: TARGET_TEAM,
+    registros7H: registros7H,
+    registros6H: registros6H,
+    r: funcionarios,
+    totalFuncionarios: funcionarios.length,
+    totalPresentes: funcionarios.filter(f => f.s === 'BEM' || f.s === 'MAL').length,
+    totalAusentes: funcionarios.filter(f => f.s === 'AUS').length,
+    totalMal: funcionarios.filter(f => f.s === 'MAL').length,
+    totalPendentes: funcionarios.filter(f => f.s === 'PEN').length,
+    salvoEm: admin.firestore.FieldValue.serverTimestamp()
+  };
+
+  // 5. Salvar na coleção historico_dss
+  await db.collection('historico_dss').doc(docId).set(historicoDoc);
+  console.log(`[OK] Histórico salvo: historico_dss/${docId} (${funcionarios.length} funcionários)`);
+}
+
 // --- FUNÇÃO 1: Limpar a coleção de funcionários ---
 async function limparEmployees() {
   console.log(`Verificando coleção "${colEmployeesName}"...`);
@@ -88,7 +178,7 @@ async function limparRegistros() {
   console.log(`[OK] Apagados ${snapshot.size} registros antigos de "${colRegistrosName}".`);
 }
 
-// --- FUNÇÃO 3: Limpar o controle de envio (NOVA) ---
+// --- FUNÇÃO 3: Limpar o controle de envio ---
 async function limparControleEnvio() {
   const docId = `status_envio_${TARGET_TEAM}`;
   console.log(`Apagando trava de envio: controle_envios/${docId}...`);
@@ -102,10 +192,14 @@ async function limparControleEnvio() {
 // --- FUNÇÃO PRINCIPAL ---
 async function executarLimpezaCompleta() {
   try {
+    // PASSO 1: Salvar o histórico ANTES de limpar
+    await salvarHistorico();
+
+    // PASSO 2: Executar a limpeza em paralelo
     await Promise.all([
       limparEmployees(),
       limparRegistros(),
-      limparControleEnvio() // Adicionado aqui
+      limparControleEnvio()
     ]);
     console.log(">>> LIMPEZA CONCLUÍDA COM SUCESSO <<<");
 

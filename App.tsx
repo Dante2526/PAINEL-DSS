@@ -9,7 +9,8 @@ import Footer from './components/Footer';
 import InteractiveTutorial, { TutorialStep } from './components/InteractiveTutorial';
 import TurmaSelectionScreen from './components/TurmaSelectionScreen';
 import LayoutSelectionScreen from './components/LayoutSelectionScreen';
-import { SubjectIcon, UserIcon, EraserIcon, FileTextIcon, SortIcon, UserPlusIcon, ShiftIcon, AbsentIcon, TrashIcon, ExchangeIcon, MousePointerIcon, InfoIcon, HelpIcon } from './components/icons';
+import HistoryModal from './components/HistoryModal';
+import { SubjectIcon, UserIcon, EraserIcon, FileTextIcon, SortIcon, UserPlusIcon, ShiftIcon, AbsentIcon, TrashIcon, ExchangeIcon, MousePointerIcon, InfoIcon, HelpIcon, HistoryIcon } from './components/icons';
 import { Employee, StatusType, ModalType, ManualRegistration, Administrator } from './types';
 import type { NotificationData } from './components/Notification';
 import { db, auth, isConfigured } from './firebase';
@@ -307,9 +308,10 @@ const AdminOptionsModal: React.FC<{
     onEnterDemo: () => void;
     onStartAdminTutorial: () => void;
     onToggle6H: () => void;
+    onHistory: () => void;
     is6HActive: boolean;
     scale: number;
-}> = ({ isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onImportUser, onEnterDemo, onStartAdminTutorial, onToggle6H, is6HActive, scale }) => {
+}> = ({ isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onImportUser, onEnterDemo, onStartAdminTutorial, onToggle6H, onHistory, is6HActive, scale }) => {
     if (!isOpen) return null;
 
     const AdminButton: React.FC<{ id: string; onClick: () => void; className: string; icon: React.ReactNode; label: string }> = ({ id, onClick, className, icon, label }) => (
@@ -369,6 +371,15 @@ const AdminOptionsModal: React.FC<{
                             </span>
                         </button>
                     </div>
+                </div>
+                <div className="col-span-2">
+                    <AdminButton
+                        id="admin-history-btn"
+                        onClick={onHistory}
+                        className="bg-indigo-500 text-white hover:bg-indigo-600 w-full"
+                        icon={<HistoryIcon className="w-7 h-7" />}
+                        label="Histórico"
+                    />
                 </div>
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-2 flex flex-col gap-3">
                     <button
@@ -2730,6 +2741,7 @@ const App: React.FC = () => {
                                 onEnterDemo={handleOpenDemoPassword}
                                 onStartAdminTutorial={handleStartAdminTutorial}
                                 onToggle6H={handleToggle6H}
+                                onHistory={() => setActiveModal(ModalType.HistoryView)}
                                 is6HActive={is6HActive}
                                 scale={modalScale}
                             />
@@ -2754,6 +2766,14 @@ const App: React.FC = () => {
                 matricula6H={specialMatricula}
                 adminEmail={adminEmail}
                 turma={selectedTurma}
+            />
+
+            <HistoryModal
+                isOpen={activeModal === ModalType.HistoryView}
+                onClose={handleCloseModal}
+                scale={modalScale}
+                turma={selectedTurma}
+                showNotification={showNotification}
             />
 
             <ImportEmployeeModal

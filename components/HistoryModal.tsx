@@ -1,0 +1,364 @@
+import React, { useState, useMemo } from 'react';
+import Modal from './Modal';
+import { FileTextIcon, SubjectIcon, ShiftIcon } from './icons';
+import type { HistoryRecord, HistoryEmployee } from '../types';
+import { db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
+
+// Cores do status compacto
+const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
+    BEM: { label: 'ASS.DSS + BEM', color: 'text-green-700 dark:text-green-400', bg: 'bg-green-50 dark:bg-green-900/20', border: 'border-green-200 dark:border-green-800' },
+    MAL: { label: 'ESTOU MAL', color: 'text-red-700 dark:text-red-400', bg: 'bg-red-50 dark:bg-red-900/20', border: 'border-red-200 dark:border-red-800' },
+    AUS: { label: 'AUSENTE', color: 'text-amber-700 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-900/20', border: 'border-amber-200 dark:border-amber-800' },
+    PEN: { label: 'PENDENTE', color: 'text-gray-600 dark:text-gray-400', bg: 'bg-gray-50 dark:bg-gray-800', border: 'border-gray-200 dark:border-gray-700' },
+};
+
+const STATUS_DOT_COLORS: Record<string, string> = {
+    BEM: 'bg-green-500',
+    MAL: 'bg-red-500',
+    AUS: 'bg-amber-500',
+    PEN: 'bg-gray-400',
+};
+
+const HistoryModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    scale: number;
+    turma: string | null;
+    showNotification: (msg: string, type: 'success' | 'error') => void;
+}> = ({ isOpen, onClose, scale, turma, showNotification }) => {
+    const [selectedDate, setSelectedDate] = useState('');
+    const [historyData, setHistoryData] = useState<HistoryRecord | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [notFound, setNotFound] = useState(false);
+
+    const handleDateChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const dateValue = e.target.value; // YYYY-MM-DD
+        setSelectedDate(dateValue);
+        setHistoryData(null);
+        setNotFound(false);
+
+        if (!dateValue || !turma || !db) return;
+
+        setLoading(true);
+        try {
+            const docId = `${turma}_${dateValue}`;
+            const docRef = doc(db, 'historico_dss', docId);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                setHistoryData(docSnap.data() as HistoryRecord);
+                setNotFound(false);
+            } else {
+                setHistoryData(null);
+                setNotFound(true);
+            }
+        } catch (error) {
+            console.error('Erro ao buscar histórico:', error);
+            showNotification('Erro ao buscar histórico.', 'error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Separar funcionários por turno
+    const { team7H, team6H } = useMemo(() => {
+        if (!historyData) return { team7H: [], team6H: [] };
+        return {
+            team7H: historyData.r.filter(emp => emp.turno !== '6H'),
+            team6H: historyData.r.filter(emp => emp.turno === '6H'),
+        };
+    }, [historyData]);
+
+    const generateExportText = () => {
+        if (!historyData) return '';
+
+        let report = `HISTÓRICO DSS - TURMA ${historyData.turma}\n`;
+        report += `Data: ${historyData.data}\n`;
+        report += `─────────────────────────────────\n\n`;
+
+        report += `RESUMO GERAL\n`;
+        report += `Total de Funcionários: ${historyData.totalFuncionarios}\n`;
+        report += `Presentes (DSS + Bem/Mal): ${historyData.totalPresentes}\n`;
+        report += `Ausentes: ${historyData.totalAusentes}\n`;
+        report += `Pendentes: ${historyData.totalPendentes}\n`;
+        if (historyData.totalMal > 0) report += `Estou Mal: ${historyData.totalMal}\n`;
+        report += `\n`;
+
+        // Registros DSS 7H
+        report += `REGISTROS DSS (TURNO 7H)\n`;
+        if (historyData.registros7H.length > 0) {
+            historyData.registros7H.forEach(reg => {
+                report += `Assunto: ${reg.assunto || 'NÃO INFORMADO'}\n`;
+                if (reg.name) report += `Responsável: ${reg.name} (Matrícula: ${reg.matricula || '---'})\n`;
+            });
+        } else {
+            report += `Nenhum registro encontrado.\n`;
+        }
+        report += `\n`;
+
+        // Registros DSS 6H
+        if (turma !== 'CCG' && historyData.registros6H.length > 0) {
+            report += `REGISTROS DSS (TURNO 6H)\n`;
+            historyData.registros6H.forEach(reg => {
+                report += `Assunto: ${reg.assunto || 'NÃO INFORMADO'}\n`;
+                if (reg.name) report += `Responsável: ${reg.name} (Matrícula: ${reg.matricula || '---'})\n`;
+            });
+            report += `\n`;
+        }
+
+        const formatTeam = (team: HistoryEmployee[], turnoLabel: string) => {
+            report += `EQUIPE TURNO ${turnoLabel}\n`;
+            const statuses: { key: string; label: string }[] = [
+                { key: 'BEM', label: 'STATUS: "ASS.DSS + ESTOU BEM"' },
+                { key: 'MAL', label: '"ESTOU MAL"' },
+                { key: 'AUS', label: 'AUSENTES' },
+                { key: 'PEN', label: 'PENDENTES' },
+            ];
+            statuses.forEach(({ key, label }) => {
+                const filtered = team.filter(e => e.s === key);
+                report += `${label}\n`;
+                report += filtered.length > 0
+                    ? filtered.map(e => `${e.n} (Matrícula: ${e.m})`).join('\n')
+                    : 'Nenhum';
+                report += `\n\n`;
+            });
+        };
+
+        formatTeam(team7H, '7H');
+        if (turma !== 'CCG' && team6H.length > 0) {
+            formatTeam(team6H, '6H');
+        }
+
+        return report;
+    };
+
+    const handleCopy = () => {
+        const text = generateExportText();
+        navigator.clipboard.writeText(text);
+        showNotification('Histórico copiado para a área de transferência!', 'success');
+    };
+
+    const handleDownload = () => {
+        const text = generateExportText();
+        const blob = new Blob(['\uFEFF' + text], { type: 'text/plain;charset=utf-8' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `historico-dss-${historyData?.turma || 'turma'}-${selectedDate}.txt`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        showNotification('Histórico baixado com sucesso!', 'success');
+    };
+
+    if (!isOpen) return null;
+
+    // Formatar data para exibição
+    const formattedDate = selectedDate
+        ? new Date(selectedDate + 'T12:00:00').toLocaleDateString('pt-BR', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        })
+        : '';
+
+    const renderEmployeeGroup = (employees: HistoryEmployee[], turnoLabel: string) => {
+        if (employees.length === 0) return null;
+
+        const grouped = {
+            BEM: employees.filter(e => e.s === 'BEM'),
+            MAL: employees.filter(e => e.s === 'MAL'),
+            AUS: employees.filter(e => e.s === 'AUS'),
+            PEN: employees.filter(e => e.s === 'PEN'),
+        };
+
+        return (
+            <div className="mt-4">
+                <div className="text-xs font-bold text-white bg-gray-600 dark:bg-gray-500 px-3 py-1 rounded-full w-fit mb-3">
+                    TURNO {turnoLabel} — {employees.length} colaboradores
+                </div>
+                <div className="space-y-2">
+                    {Object.entries(grouped).map(([status, emps]) => {
+                        if (emps.length === 0) return null;
+                        const config = STATUS_CONFIG[status];
+                        return (
+                            <div key={status} className={`${config.bg} border ${config.border} rounded-xl p-3`}>
+                                <div className={`flex items-center gap-1.5 mb-2 ${config.color} font-bold text-[10px] uppercase tracking-wide`}>
+                                    <span className={`w-2 h-2 rounded-full ${STATUS_DOT_COLORS[status]} ${status === 'MAL' ? 'animate-pulse' : ''}`}></span>
+                                    {config.label} ({emps.length})
+                                </div>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {emps.map((emp, i) => (
+                                        <span
+                                            key={`${emp.m}-${i}`}
+                                            className={`text-[10px] px-2 py-1 rounded border ${config.border} ${config.color} font-medium bg-white/50 dark:bg-black/20`}
+                                            title={`Matrícula: ${emp.m}${emp.t ? ` | Horário: ${emp.t}` : ''}`}
+                                        >
+                                            {emp.n}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    };
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title="Histórico DSS" scale={scale} size="md">
+            <div className="w-full">
+                {/* Seletor de Data */}
+                <div className="mb-5">
+                    <label className="block text-sm font-bold text-light-text-secondary dark:text-dark-text-secondary mb-2 uppercase tracking-wider">
+                        Selecione a Data
+                    </label>
+                    <input
+                        type="date"
+                        value={selectedDate}
+                        onChange={handleDateChange}
+                        max={new Date().toISOString().split('T')[0]}
+                        className="w-full p-3 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition text-center font-bold text-lg"
+                    />
+                </div>
+
+                {/* Loading */}
+                {loading && (
+                    <div className="flex flex-col items-center gap-3 py-10">
+                        <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-500 rounded-full animate-spin"></div>
+                        <span className="text-sm text-light-text-secondary dark:text-dark-text-secondary">Buscando histórico...</span>
+                    </div>
+                )}
+
+                {/* Não encontrado */}
+                {notFound && !loading && (
+                    <div className="text-center py-10">
+                        <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+                            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 20a8 8 0 100-16 8 8 0 000 16z" />
+                            </svg>
+                        </div>
+                        <p className="text-light-text-secondary dark:text-dark-text-secondary font-medium">
+                            Nenhum registro encontrado para esta data.
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                            O histórico só inclui dias em que houve limpeza automática.
+                        </p>
+                    </div>
+                )}
+
+                {/* Resultados */}
+                {historyData && !loading && (
+                    <div className="space-y-4">
+                        {/* Data formatada */}
+                        <div className="text-sm font-semibold text-gray-500 dark:text-gray-400 capitalize border-b border-gray-200 dark:border-gray-700 pb-2">
+                            {formattedDate}
+                        </div>
+
+                        {/* Registro DSS Cards */}
+                        <div className="flex gap-3">
+                            {/* 7H Card */}
+                            <div className="flex-1 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-xl border border-blue-100 dark:border-blue-800 text-left relative overflow-hidden group">
+                                <div className="absolute right-0 top-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                                    <SubjectIcon className="w-12 h-12 text-blue-600" />
+                                </div>
+                                <div className="text-[10px] font-bold text-white bg-blue-500 px-2 py-0.5 rounded-full w-fit mb-2">TURNO 7H</div>
+                                <div className="mb-2 relative z-10">
+                                    <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Tema DSS</span>
+                                    <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight">
+                                        {historyData.registros7H.length > 0 ? historyData.registros7H[0].assunto || 'NÃO INFORMADO' : 'NÃO INFORMADO'}
+                                    </span>
+                                </div>
+                                <div className="relative z-10">
+                                    <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Responsável</span>
+                                    <span className="text-xs text-gray-700 dark:text-gray-300 truncate block">
+                                        {historyData.registros7H.length > 0 && historyData.registros7H[0].name ? historyData.registros7H[0].name : '---'}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* 6H Card (somente se não for CCG) */}
+                            {turma !== 'CCG' && (
+                                <div className="flex-1 bg-orange-50 dark:bg-orange-900/20 p-3 rounded-xl border border-orange-100 dark:border-orange-800 text-left relative overflow-hidden group">
+                                    <div className="absolute right-0 top-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                                        <ShiftIcon className="w-12 h-12 text-orange-600" />
+                                    </div>
+                                    <div className="text-[10px] font-bold text-white bg-orange-500 px-2 py-0.5 rounded-full w-fit mb-2">TURNO 6H</div>
+                                    <div className="mb-2 relative z-10">
+                                        <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Tema DSS</span>
+                                        <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight">
+                                            {historyData.registros6H.length > 0 ? historyData.registros6H[0].assunto || 'NÃO INFORMADO' : 'NÃO INFORMADO'}
+                                        </span>
+                                    </div>
+                                    <div className="relative z-10">
+                                        <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Responsável</span>
+                                        <span className="text-xs text-gray-700 dark:text-gray-300 truncate block">
+                                            {historyData.registros6H.length > 0 && historyData.registros6H[0].name ? historyData.registros6H[0].name : '---'}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Estatísticas */}
+                        <div className="grid grid-cols-4 gap-2">
+                            <div className="bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg p-2 flex flex-col items-center justify-center shadow-sm">
+                                <span className="text-xl font-bold text-green-600 dark:text-green-400">{historyData.totalPresentes}</span>
+                                <span className="text-[8px] uppercase text-gray-500 font-bold tracking-tight">Presentes</span>
+                            </div>
+                            <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-lg p-2 flex flex-col items-center justify-center shadow-sm">
+                                <span className="text-xl font-bold text-red-600 dark:text-red-400">{historyData.totalMal}</span>
+                                <span className="text-[8px] uppercase text-red-500/80 font-bold tracking-tight">Mal</span>
+                            </div>
+                            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30 rounded-lg p-2 flex flex-col items-center justify-center shadow-sm">
+                                <span className="text-xl font-bold text-amber-600 dark:text-amber-400">{historyData.totalAusentes}</span>
+                                <span className="text-[8px] uppercase text-amber-500/80 font-bold tracking-tight">Ausentes</span>
+                            </div>
+                            <div className="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-2 flex flex-col items-center justify-center opacity-80 shadow-sm">
+                                <span className="text-xl font-bold text-gray-700 dark:text-gray-300">{historyData.totalPendentes}</span>
+                                <span className="text-[8px] uppercase text-gray-500 font-bold tracking-tight">Pendentes</span>
+                            </div>
+                        </div>
+
+                        {/* Listas de funcionários */}
+                        {renderEmployeeGroup(team7H, '7H')}
+                        {turma !== 'CCG' && renderEmployeeGroup(team6H, '6H')}
+
+                        {/* Botões de exportação */}
+                        <div className="grid grid-cols-2 gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                            <button
+                                onClick={handleCopy}
+                                className="w-full py-3 bg-indigo-500 text-white font-bold rounded-xl hover:bg-indigo-600 transition flex items-center justify-center gap-2 shadow-md text-sm"
+                            >
+                                <FileTextIcon className="w-4 h-4" />
+                                COPIAR
+                            </button>
+                            <button
+                                onClick={handleDownload}
+                                className="w-full py-3 bg-gray-700 text-white font-bold rounded-xl hover:bg-gray-800 transition flex items-center justify-center gap-2 shadow-md text-sm"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                BAIXAR
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Estado inicial (sem data selecionada) */}
+                {!selectedDate && !loading && (
+                    <div className="text-center py-10">
+                        <div className="mx-auto w-16 h-16 bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mb-4">
+                            <svg className="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <p className="text-light-text-secondary dark:text-dark-text-secondary font-medium">
+                            Selecione uma data acima para consultar o histórico.
+                        </p>
+                    </div>
+                )}
+            </div>
+        </Modal>
+    );
+};
+
+export default HistoryModal;

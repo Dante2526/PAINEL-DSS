@@ -29,6 +29,36 @@ export interface ManualRegistration {
 
 export type StatusType = 'assDss' | 'bem' | 'mal' | 'absent';
 
+export type HistoryStatus = 'BEM' | 'MAL' | 'AUS' | 'PEN';
+
+export interface HistoryEmployee {
+  m: string;      // matrícula
+  n: string;      // nome
+  s: HistoryStatus; // status compacto
+  t: string | null; // horário
+  turno: string;    // 7H ou 6H
+}
+
+export interface HistoryRegistro {
+  assunto: string;
+  matricula: string;
+  name: string;
+}
+
+export interface HistoryRecord {
+  data: string;           // data formatada (DD/MM/YYYY)
+  dataISO: string;        // data ISO (YYYY-MM-DD)
+  turma: string;
+  registros7H: HistoryRegistro[];
+  registros6H: HistoryRegistro[];
+  r: HistoryEmployee[];   // array de funcionários compactados
+  totalFuncionarios: number;
+  totalPresentes: number;
+  totalAusentes: number;
+  totalMal: number;
+  totalPendentes: number;
+}
+
 export enum ModalType {
   None,
   AdminLogin,
@@ -45,4 +75,5 @@ export enum ModalType {
   ImportEmployee,
   UserExistsWarning,
   ConfirmDeactivate6H, // Added for hiding 6H shift
+  HistoryView, // Added for history view modal
 }
