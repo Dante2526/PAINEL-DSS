@@ -19,31 +19,55 @@ export const exportToPng = async (elementId: string, filename: string) => {
                 // 1. Force background and remove any external transforms
                 clonedElement.style.transform = 'none';
                 clonedElement.style.display = 'block';
-                clonedElement.style.padding = '12px'; // Safety margin
+                clonedElement.style.padding = '12px';
 
-                // 2. Fix line-clamp issues (html2canvas doesn't support -webkit-line-clamp well)
-                const clampedTexts = clonedElement.querySelectorAll('.line-clamp-2');
+                // 2. Remove overflow:hidden from ALL elements so text doesn't get clipped
+                // This is the main culprit for cut-off text in cards
+                const allElements = clonedElement.querySelectorAll('*');
+                allElements.forEach((el: any) => {
+                    const computed = getComputedStyle(el);
+                    if (computed.overflow === 'hidden' || computed.overflowX === 'hidden' || computed.overflowY === 'hidden') {
+                        // Preserve overflow:hidden only on elements that are purely decorative (absolute icons)
+                        const isAbsolute = computed.position === 'absolute';
+                        if (!isAbsolute) {
+                            el.style.overflow = 'visible';
+                            el.style.overflowX = 'visible';
+                            el.style.overflowY = 'visible';
+                        }
+                    }
+                });
+
+                // 3. Fix line-clamp issues -- remove the webkit clamp entirely
+                const clampedTexts = clonedElement.querySelectorAll('.line-clamp-2, .line-clamp-1, .line-clamp-3');
                 clampedTexts.forEach((el: any) => {
                     el.style.display = 'block';
                     el.style.webkitLineClamp = 'unset';
-                    el.style.maxHeight = '2.8em';
-                    el.style.overflow = 'hidden';
+                    el.style.maxHeight = 'none';
+                    el.style.overflow = 'visible';
                     el.style.lineHeight = '1.4';
                 });
 
-                // 3. Fix Flex/Grid gaps and overlaps
+                // 4. Fix truncate (single-line ellipsis) -- show full text
+                const truncatedTexts = clonedElement.querySelectorAll('.truncate');
+                truncatedTexts.forEach((el: any) => {
+                    el.style.overflow = 'visible';
+                    el.style.textOverflow = 'clip';
+                    el.style.whiteSpace = 'normal';
+                });
+
+                // 5. Fix Flex/Grid gaps and overlaps
                 const flexContainers = clonedElement.querySelectorAll('.flex');
                 flexContainers.forEach((el: any) => {
-                    // html2canvas sometimes fails to calculate gap correctly
-                    if (getComputedStyle(el).gap !== 'normal') {
-                        el.style.gap = '8px'; // standard fallback
+                    const computed = getComputedStyle(el);
+                    if (computed.gap && computed.gap !== 'normal') {
+                        el.style.gap = computed.gap;
                     }
                 });
-                
-                // 4. Ensure SVGs and icons are fully opaque
-                const icons = clonedElement.querySelectorAll('svg');
-                icons.forEach((svg: any) => {
-                    svg.style.opacity = '1';
+
+                // 6. Make sure the decorative background icons inside cards don't bleed out visually
+                const absoluteIcons = clonedElement.querySelectorAll('.absolute');
+                absoluteIcons.forEach((el: any) => {
+                    el.style.overflow = 'hidden';
                 });
             }
         });
