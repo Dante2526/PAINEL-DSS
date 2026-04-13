@@ -1,4 +1,4 @@
-import html2canvas from 'html2canvas';
+import * as htmlToImage from 'html-to-image';
 import { jsPDF } from 'jspdf';
 import * as XLSX from 'xlsx';
 
@@ -7,75 +7,27 @@ export const exportToPng = async (elementId: string, filename: string) => {
         const element = document.getElementById(elementId);
         if (!element) throw new Error('Element not found');
 
-        const canvas = await html2canvas(element, {
-            scale: 3, // High definition
-            useCORS: true,
-            logging: false,
+        // Apply temporary padding to ensure shadows/borders aren't clipped
+        const originalPadding = element.style.padding;
+        element.style.padding = '16px';
+        
+        const dataUrl = await htmlToImage.toPng(element, {
+            quality: 1,
+            pixelRatio: 3,
             backgroundColor: document.documentElement.classList.contains('dark') ? '#1A202C' : '#f8fafc',
-            onclone: (clonedDoc) => {
-                const clonedElement = clonedDoc.getElementById(elementId);
-                if (!clonedElement) return;
-
-                // 1. Force background and remove any external transforms
-                clonedElement.style.transform = 'none';
-                clonedElement.style.display = 'block';
-                clonedElement.style.padding = '12px';
-
-                // 2. Remove overflow:hidden from ALL elements so text doesn't get clipped
-                // This is the main culprit for cut-off text in cards
-                const allElements = clonedElement.querySelectorAll('*');
-                allElements.forEach((el: any) => {
-                    const computed = getComputedStyle(el);
-                    if (computed.overflow === 'hidden' || computed.overflowX === 'hidden' || computed.overflowY === 'hidden') {
-                        // Preserve overflow:hidden only on elements that are purely decorative (absolute icons)
-                        const isAbsolute = computed.position === 'absolute';
-                        if (!isAbsolute) {
-                            el.style.overflow = 'visible';
-                            el.style.overflowX = 'visible';
-                            el.style.overflowY = 'visible';
-                        }
-                    }
-                });
-
-                // 3. Fix line-clamp issues -- remove the webkit clamp entirely
-                const clampedTexts = clonedElement.querySelectorAll('.line-clamp-2, .line-clamp-1, .line-clamp-3');
-                clampedTexts.forEach((el: any) => {
-                    el.style.display = 'block';
-                    el.style.webkitLineClamp = 'unset';
-                    el.style.maxHeight = 'none';
-                    el.style.overflow = 'visible';
-                    el.style.lineHeight = '1.4';
-                });
-
-                // 4. Fix truncate (single-line ellipsis) -- show full text
-                const truncatedTexts = clonedElement.querySelectorAll('.truncate');
-                truncatedTexts.forEach((el: any) => {
-                    el.style.overflow = 'visible';
-                    el.style.textOverflow = 'clip';
-                    el.style.whiteSpace = 'normal';
-                });
-
-                // 5. Fix Flex/Grid gaps and overlaps
-                const flexContainers = clonedElement.querySelectorAll('.flex');
-                flexContainers.forEach((el: any) => {
-                    const computed = getComputedStyle(el);
-                    if (computed.gap && computed.gap !== 'normal') {
-                        el.style.gap = computed.gap;
-                    }
-                });
-
-                // 6. Make sure the decorative background icons inside cards don't bleed out visually
-                const absoluteIcons = clonedElement.querySelectorAll('.absolute');
-                absoluteIcons.forEach((el: any) => {
-                    el.style.overflow = 'hidden';
-                });
+            style: {
+                transform: 'scale(1)',
+                transformOrigin: 'top left',
+                margin: '0',
             }
         });
 
-        const imgData = canvas.toDataURL('image/png');
+        // Revert padding
+        element.style.padding = originalPadding;
+
         const link = document.createElement('a');
         link.download = `${filename}.png`;
-        link.href = imgData;
+        link.href = dataUrl;
         link.click();
     } catch (error) {
         console.error('Error generating PNG:', error);
@@ -88,34 +40,35 @@ export const exportToPdf = async (elementId: string, filename: string) => {
         const element = document.getElementById(elementId);
         if (!element) throw new Error('Element not found');
 
-        const canvas = await html2canvas(element, {
-            scale: 2,
-            useCORS: true,
+        // Apply temporary padding
+        const originalPadding = element.style.padding;
+        element.style.padding = '16px';
+
+        const dataUrl = await htmlToImage.toPng(element, {
+            quality: 1,
+            pixelRatio: 2,
             backgroundColor: document.documentElement.classList.contains('dark') ? '#1A202C' : '#f8fafc',
-            onclone: (clonedDoc) => {
-                const clonedElement = clonedDoc.getElementById(elementId);
-                if (clonedElement) {
-                    clonedElement.style.transform = 'none';
-                    clonedElement.style.padding = '12px';
-                    
-                    const clampedTexts = clonedElement.querySelectorAll('.line-clamp-2');
-                    clampedTexts.forEach((el: any) => {
-                        el.style.display = 'block';
-                        el.style.webkitLineClamp = 'unset';
-                        el.style.maxHeight = '2.8em';
-                    });
-                }
+            style: {
+                transform: 'scale(1)',
+                transformOrigin: 'top left',
+                margin: '0',
             }
         });
 
-        const imgData = canvas.toDataURL('image/png');
+        // Revert padding
+        element.style.padding = originalPadding;
+
+        // Calculate dimensions
+        // The image is generated at pixelRatio: 2, so width/height are 2x the element sizes
+        const imgProps = { width: element.offsetWidth, height: element.offsetHeight };
+        
         const pdf = new jsPDF({
-            orientation: canvas.width > canvas.height ? 'l' : 'p',
+            orientation: imgProps.width > imgProps.height ? 'l' : 'p',
             unit: 'px',
-            format: [canvas.width, canvas.height] 
+            format: [imgProps.width, imgProps.height] 
         });
 
-        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.addImage(dataUrl, 'PNG', 0, 0, imgProps.width, imgProps.height);
         pdf.save(`${filename}.pdf`);
     } catch (error) {
         console.error('Error generating PDF:', error);
