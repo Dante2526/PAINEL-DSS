@@ -10,6 +10,8 @@ import InteractiveTutorial, { TutorialStep } from './components/InteractiveTutor
 import TurmaSelectionScreen from './components/TurmaSelectionScreen';
 import LayoutSelectionScreen from './components/LayoutSelectionScreen';
 import HistoryModal from './components/HistoryModal';
+import ExportDropdown from './components/ExportDropdown';
+import { exportToPng, exportToPdf, exportToDoc, exportToExcel, exportToTxt } from './utils/exportService';
 import { SubjectIcon, UserIcon, EraserIcon, FileTextIcon, SortIcon, UserPlusIcon, ShiftIcon, AbsentIcon, TrashIcon, ExchangeIcon, MousePointerIcon, InfoIcon, HelpIcon, HistoryIcon } from './components/icons';
 import { Employee, StatusType, ModalType, ManualRegistration, Administrator } from './types';
 import type { NotificationData } from './components/Notification';
@@ -613,17 +615,46 @@ const ReportModal: React.FC<{
         onClose();
     };
 
-    const handleDownload = () => {
-        // Add UTF-8 BOM to ensure correct encoding on all devices
-        const blob = new Blob(['\uFEFF' + reportText], { type: 'text/plain;charset=utf-8' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `relatorio-dss-${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}.txt`;
-        a.click();
-        window.URL.revokeObjectURL(url);
-        showNotification('Relatório baixado com sucesso!', 'success');
-        logAuditEvent(adminEmail, 'REPORT_DOWNLOAD', 'Relatório baixado como arquivo .txt', turma);
+    const baseFileName = `relatorio-dss-${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}`;
+
+    const handleExportTxt = () => {
+        exportToTxt(reportText, baseFileName);
+        showNotification('Relatório baixado em TXT!', 'success');
+        logAuditEvent(adminEmail, 'REPORT_DOWNLOAD', 'Relatório baixado como arquivo TXT', turma);
+        onClose();
+    };
+
+    const handleExportDoc = () => {
+        exportToDoc(reportText, baseFileName);
+        showNotification('Relatório baixado em DOC!', 'success');
+        logAuditEvent(adminEmail, 'REPORT_DOWNLOAD', 'Relatório baixado como arquivo DOC', turma);
+        onClose();
+    };
+
+    const handleExportExcel = () => {
+        const formattedData = employees.map(e => ({
+            "NOME": e.name,
+            "MATRÍCULA": e.matricula,
+            "TURNO": e.turno || '7H',
+            "STATUS": e.bem || e.assDss ? "ASS.DSS + BEM" : e.mal ? "ESTOU MAL" : e.absent ? "AUSENTE" : "PENDENTE"
+        }));
+        exportToExcel(formattedData, baseFileName);
+        showNotification('Relatório baixado em Excel!', 'success');
+        logAuditEvent(adminEmail, 'REPORT_DOWNLOAD', 'Relatório baixado como arquivo Excel', turma);
+        onClose();
+    };
+
+    const handleExportPng = async () => {
+        await exportToPng('report-capture-area', baseFileName);
+        showNotification('Relatório salvo como Imagem!', 'success');
+        logAuditEvent(adminEmail, 'REPORT_DOWNLOAD', 'Relatório salvo como imagem PNG', turma);
+        onClose();
+    };
+
+    const handleExportPdf = async () => {
+        await exportToPdf('report-capture-area', baseFileName);
+        showNotification('Relatório salvo em PDF!', 'success');
+        logAuditEvent(adminEmail, 'REPORT_DOWNLOAD', 'Relatório baixado como PDF', turma);
         onClose();
     };
 
@@ -632,7 +663,7 @@ const ReportModal: React.FC<{
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Relatório Diário" scale={scale}>
             {/* Visual Report Container */}
-            <div className="w-full mb-6">
+            <div id="report-capture-area" className="w-full mb-6 bg-light-card dark:bg-dark-card pt-1">
                 <div className="text-sm font-semibold text-gray-500 mb-4 capitalize border-b border-gray-200 dark:border-gray-700 pb-2">
                     {new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                 </div>
@@ -737,13 +768,15 @@ const ReportModal: React.FC<{
                     <FileTextIcon className="w-4 h-4" />
                     COPIAR
                 </button>
-                <button
-                    onClick={handleDownload}
-                    className="w-full py-3 bg-gray-700 text-white font-bold rounded-xl hover:bg-gray-800 transition flex items-center justify-center gap-2 shadow-md text-sm"
-                >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                    BAIXAR
-                </button>
+                <div className="w-full">
+                    <ExportDropdown 
+                        onExportTxt={handleExportTxt}
+                        onExportPng={handleExportPng}
+                        onExportPdf={handleExportPdf}
+                        onExportDoc={handleExportDoc}
+                        onExportExcel={handleExportExcel}
+                    />
+                </div>
             </div>
         </Modal>
     );

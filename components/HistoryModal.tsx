@@ -5,6 +5,8 @@ import { FileTextIcon, SubjectIcon, ShiftIcon } from './icons';
 import type { HistoryRecord, HistoryEmployee } from '../types';
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import ExportDropdown from './ExportDropdown';
+import { exportToPng, exportToPdf, exportToDoc, exportToExcel, exportToTxt } from '../utils/exportService';
 
 // Cores do status compacto
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
@@ -139,16 +141,40 @@ const HistoryModal: React.FC<{
         showNotification('Histórico copiado para a área de transferência!', 'success');
     };
 
-    const handleDownload = () => {
+    const baseFileName = `historico-dss-${historyData?.turma || 'turma'}-${selectedDate}`;
+
+    const handleExportTxt = () => {
         const text = generateExportText();
-        const blob = new Blob(['\uFEFF' + text], { type: 'text/plain;charset=utf-8' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `historico-dss-${historyData?.turma || 'turma'}-${selectedDate}.txt`;
-        a.click();
-        window.URL.revokeObjectURL(url);
-        showNotification('Histórico baixado com sucesso!', 'success');
+        exportToTxt(text, baseFileName);
+        showNotification('Histórico baixado em TXT!', 'success');
+    };
+
+    const handleExportDoc = () => {
+        const text = generateExportText();
+        exportToDoc(text, baseFileName);
+        showNotification('Histórico baixado em DOC!', 'success');
+    };
+
+    const handleExportExcel = () => {
+        if (!historyData) return;
+        const formattedData = historyData.r.map(e => ({
+            "NOME": e.n,
+            "MATRÍCULA": e.m,
+            "TURNO": e.turno || '7H',
+            "STATUS": e.s === 'BEM' ? "ASS.DSS + BEM" : e.s === 'MAL' ? "ESTOU MAL" : e.s === 'AUS' ? "AUSENTE" : "PENDENTE"
+        }));
+        exportToExcel(formattedData, baseFileName);
+        showNotification('Histórico baixado em Excel!', 'success');
+    };
+
+    const handleExportPng = async () => {
+        await exportToPng('history-capture-area', baseFileName);
+        showNotification('Histórico salvo como Imagem!', 'success');
+    };
+
+    const handleExportPdf = async () => {
+        await exportToPdf('history-capture-area', baseFileName);
+        showNotification('Histórico salvo em PDF!', 'success');
     };
 
     if (!isOpen) return null;
@@ -243,7 +269,7 @@ const HistoryModal: React.FC<{
 
                 {/* Resultados */}
                 {historyData && !loading && (
-                    <div className="space-y-4">
+                    <div id="history-capture-area" className="space-y-4 bg-light-card dark:bg-dark-card pt-1">
                         {/* Data formatada */}
                         <div className="text-sm font-semibold text-gray-500 dark:text-gray-400 capitalize border-b border-gray-200 dark:border-gray-700 pb-2">
                             {formattedDate}
@@ -327,13 +353,15 @@ const HistoryModal: React.FC<{
                                 <FileTextIcon className="w-4 h-4" />
                                 COPIAR
                             </button>
-                            <button
-                                onClick={handleDownload}
-                                className="w-full py-3 bg-gray-700 text-white font-bold rounded-xl hover:bg-gray-800 transition flex items-center justify-center gap-2 shadow-md text-sm"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                BAIXAR
-                            </button>
+                            <div className="w-full">
+                                <ExportDropdown
+                                    onExportTxt={handleExportTxt}
+                                    onExportPng={handleExportPng}
+                                    onExportPdf={handleExportPdf}
+                                    onExportDoc={handleExportDoc}
+                                    onExportExcel={handleExportExcel}
+                                />
+                            </div>
                         </div>
                     </div>
                 )}
