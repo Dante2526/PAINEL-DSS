@@ -195,6 +195,7 @@ export const ShieldLogo: React.FC<{ className?: string }> = ({ className }) => (
         fill="url(#shieldGloss)"
         style={{ mixBlendMode: 'overlay' }}
       />
+    </svg>
   </div>
 );
 
