@@ -2,24 +2,51 @@ import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import * as XLSX from 'xlsx';
 
-export const exportToPng = async (elementId: string, filename: string, scale: number = 2) => {
+export const exportToPng = async (elementId: string, filename: string) => {
     try {
         const element = document.getElementById(elementId);
         if (!element) throw new Error('Element not found');
 
-        // Temporarily adjust scale if modal is scaled down to prevent blurry images
-        const originalTransform = element.style.transform;
-        if (originalTransform) element.style.transform = 'none';
-
         const canvas = await html2canvas(element, {
-            scale: scale,
+            scale: 3, // High definition
             useCORS: true,
-            backgroundColor: document.documentElement.classList.contains('dark') ? '#1A202C' : '#ffffff',
-            windowWidth: element.scrollWidth,
-            windowHeight: element.scrollHeight,
-        });
+            logging: false,
+            backgroundColor: document.documentElement.classList.contains('dark') ? '#1A202C' : '#f8fafc',
+            onclone: (clonedDoc) => {
+                const clonedElement = clonedDoc.getElementById(elementId);
+                if (!clonedElement) return;
 
-        if (originalTransform) element.style.transform = originalTransform;
+                // 1. Force background and remove any external transforms
+                clonedElement.style.transform = 'none';
+                clonedElement.style.display = 'block';
+                clonedElement.style.padding = '12px'; // Safety margin
+
+                // 2. Fix line-clamp issues (html2canvas doesn't support -webkit-line-clamp well)
+                const clampedTexts = clonedElement.querySelectorAll('.line-clamp-2');
+                clampedTexts.forEach((el: any) => {
+                    el.style.display = 'block';
+                    el.style.webkitLineClamp = 'unset';
+                    el.style.maxHeight = '2.8em';
+                    el.style.overflow = 'hidden';
+                    el.style.lineHeight = '1.4';
+                });
+
+                // 3. Fix Flex/Grid gaps and overlaps
+                const flexContainers = clonedElement.querySelectorAll('.flex');
+                flexContainers.forEach((el: any) => {
+                    // html2canvas sometimes fails to calculate gap correctly
+                    if (getComputedStyle(el).gap !== 'normal') {
+                        el.style.gap = '8px'; // standard fallback
+                    }
+                });
+                
+                // 4. Ensure SVGs and icons are fully opaque
+                const icons = clonedElement.querySelectorAll('svg');
+                icons.forEach((svg: any) => {
+                    svg.style.opacity = '1';
+                });
+            }
+        });
 
         const imgData = canvas.toDataURL('image/png');
         const link = document.createElement('a');
@@ -37,20 +64,27 @@ export const exportToPdf = async (elementId: string, filename: string) => {
         const element = document.getElementById(elementId);
         if (!element) throw new Error('Element not found');
 
-        const originalTransform = element.style.transform;
-        if (originalTransform) element.style.transform = 'none';
-
         const canvas = await html2canvas(element, {
-            scale: 2, // good quality
+            scale: 2,
             useCORS: true,
-            backgroundColor: document.documentElement.classList.contains('dark') ? '#1A202C' : '#ffffff',
+            backgroundColor: document.documentElement.classList.contains('dark') ? '#1A202C' : '#f8fafc',
+            onclone: (clonedDoc) => {
+                const clonedElement = clonedDoc.getElementById(elementId);
+                if (clonedElement) {
+                    clonedElement.style.transform = 'none';
+                    clonedElement.style.padding = '12px';
+                    
+                    const clampedTexts = clonedElement.querySelectorAll('.line-clamp-2');
+                    clampedTexts.forEach((el: any) => {
+                        el.style.display = 'block';
+                        el.style.webkitLineClamp = 'unset';
+                        el.style.maxHeight = '2.8em';
+                    });
+                }
+            }
         });
 
-        if (originalTransform) element.style.transform = originalTransform;
-
         const imgData = canvas.toDataURL('image/png');
-        
-        // Calculate dimensions to fit the PDF
         const pdf = new jsPDF({
             orientation: canvas.width > canvas.height ? 'l' : 'p',
             unit: 'px',

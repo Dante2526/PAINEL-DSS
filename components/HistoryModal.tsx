@@ -269,7 +269,7 @@ const HistoryModal: React.FC<{
 
                 {/* Resultados */}
                 {historyData && !loading && (
-                    <div id="history-capture-area" className="space-y-4 bg-light-card dark:bg-dark-card pt-1">
+                    <div id="history-capture-area" className="space-y-4 bg-light-card dark:bg-dark-card pt-1 px-4">
                         {/* Data formatada */}
                         <div className="text-sm font-semibold text-gray-500 dark:text-gray-400 capitalize border-b border-gray-200 dark:border-gray-700 pb-2">
                             {formattedDate}

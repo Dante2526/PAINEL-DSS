@@ -49,7 +49,7 @@ const ExportDropdown: React.FC<ExportDropdownProps> = ({
         className="w-full py-3 bg-gray-700 text-white font-bold rounded-xl hover:bg-gray-800 transition flex items-center justify-center gap-2 shadow-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <DownloadIcon className="w-5 h-5" />
-        BAIXAR COMO...
+        BAIXAR
       </button>
 
       {isOpen && (
@@ -90,7 +90,7 @@ const ExportDropdown: React.FC<ExportDropdownProps> = ({
               className="px-4 py-3 text-left text-sm font-semibold flex items-center gap-3 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200"
             >
               <FileTextIcon className="w-5 h-5 text-gray-500" />
-              Texto Simples (TXT)
+              Texto (TXT)
             </button>
           </div>
         </div>

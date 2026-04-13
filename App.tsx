@@ -663,7 +663,7 @@ const ReportModal: React.FC<{
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Relatório Diário" scale={scale}>
             {/* Visual Report Container */}
-            <div id="report-capture-area" className="w-full mb-6 bg-light-card dark:bg-dark-card pt-1">
+            <div id="report-capture-area" className="w-full mb-6 bg-light-card dark:bg-dark-card pt-1 px-4">
                 <div className="text-sm font-semibold text-gray-500 mb-4 capitalize border-b border-gray-200 dark:border-gray-700 pb-2">
                     {new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                 </div>
