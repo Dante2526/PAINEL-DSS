@@ -49,27 +49,76 @@ function limparTexto(texto) {
   return texto.replace(/\s+/g, ' ').trim();
 }
 
-// --- GERAÇÃO DA DATA VIRTUAL ---
+// --- GERAÇÃO DA DATA VIRTUAL (Fallback) ---
 // Subtrai 6 horas do relógio para garantir que a madrugada pertença ao dia anterior
-function getDataDoPlantao() {
+function getDataDoPlantaoFallback(format = 'DD/MM/YYYY') {
   const dataVirtual = new Date(new Date().getTime() - (6 * 60 * 60 * 1000));
-  return dataVirtual.toLocaleDateString('pt-BR', {
-    timeZone: 'America/Sao_Paulo',
-    day: '2-digit', month: '2-digit', year: 'numeric'
+  const options = { timeZone: 'America/Sao_Paulo' };
+  
+  const d = dataVirtual.toLocaleString('pt-BR', { ...options, day: '2-digit' });
+  const m = dataVirtual.toLocaleString('pt-BR', { ...options, month: '2-digit' });
+  
+  if (format === 'ISO') {
+    const y = dataVirtual.toLocaleString('pt-BR', { ...options, year: 'numeric' });
+    return `${y}-${m}-${d}`;
+  }
+
+  const y = dataVirtual.toLocaleString('pt-BR', { ...options, year: format === 'DD/MM/YY' ? '2-digit' : 'numeric' });
+  return `${d}/${m}/${y}`;
+}
+
+// Helper para converter ISO (YYYY-MM-DD) para Humano (DD/MM/YY)
+function isoToDisplay(iso) {
+  if (!iso) return null;
+  const [y, m, d] = iso.split('-');
+  return `${d}/${m}/${y.substring(2)}`;
+}
+
+// --- LÓGICA DE CONSENSO DE DATA ---
+function getConsensusDate(funcionarios) {
+  const counts = {};
+  funcionarios.forEach(f => {
+    if (f.time || f.t) {
+      const timestamp = f.time || f.t;
+      let dateObj = null;
+      if (typeof timestamp.toDate === 'function') dateObj = timestamp.toDate();
+      else if (timestamp instanceof Date) dateObj = timestamp;
+      else if (timestamp.seconds) dateObj = new Date(timestamp.seconds * 1000);
+      else dateObj = new Date(timestamp);
+
+      if (dateObj && !isNaN(dateObj.getTime())) {
+        const options = { timeZone: 'America/Sao_Paulo' };
+        const y = dateObj.toLocaleString('pt-BR', { ...options, year: 'numeric' });
+        const m = dateObj.toLocaleString('pt-BR', { ...options, month: '2-digit' });
+        const d = dateObj.toLocaleString('pt-BR', { ...options, day: '2-digit' });
+        const iso = `${y}-${m}-${d}`;
+        counts[iso] = (counts[iso] || 0) + 1;
+      }
+    }
   });
+
+  let topDate = null;
+  let maxCount = 0;
+  for (const date in counts) {
+    if (counts[date] > maxCount) {
+      maxCount = counts[date];
+      topDate = date;
+    }
+  }
+  return (topDate && maxCount >= 5) ? topDate : null;
 }
 
 // --- FUNÇÃO PARA VERIFICAR SE JÁ FOI ENVIADO HOJE ---
-async function verificarEnvioDuplicado() {
-  const dataPlantao = getDataDoPlantao();
+async function verificarEnvioDuplicado(dataID) {
   const docId = `status_envio_${TARGET_TEAM}`;
   const docRef = db.collection('controle_envios').doc(docId);
   const docSnap = await docRef.get();
 
   if (docSnap.exists) {
     const dataUltimoEnvio = docSnap.data().ultimo_envio;
-    if (dataUltimoEnvio === dataPlantao && GITHUB_EVENT_NAME === 'schedule') {
-      console.log(`>>> AVISO: O relatório da Turma ${TARGET_TEAM} já foi enviado hoje (${dataPlantao}).`);
+    // dataID é YYYY-MM-DD
+    if (dataUltimoEnvio === dataID && GITHUB_EVENT_NAME === 'schedule') {
+      console.log(`>>> AVISO: O relatório da Turma ${TARGET_TEAM} já foi enviado hoje (${dataID}).`);
       return true;
     }
   }
@@ -77,46 +126,39 @@ async function verificarEnvioDuplicado() {
 }
 
 // --- FUNÇÃO PARA REGISTRAR QUE FOI ENVIADO ---
-async function registrarEnvioSucesso() {
-  const dataPlantao = getDataDoPlantao();
+async function registrarEnvioSucesso(dataID) {
   const docId = `status_envio_${TARGET_TEAM}`;
   await db.collection('controle_envios').doc(docId).set({
-    ultimo_envio: dataPlantao,
+    ultimo_envio: dataID,
     atualizado_em: admin.firestore.FieldValue.serverTimestamp()
   });
-  console.log(`>>> Controle de envio atualizado: Turma ${TARGET_TEAM} / ${dataPlantao}`);
+  console.log(`>>> Controle de envio atualizado: Turma ${TARGET_TEAM} / ${dataID}`);
 }
 
-// --- 2. LER DADOS (Resumido para o relatorio) ---
-async function gerarRelatorio() {
-  console.log("Iniciando geração do relatório...");
+// --- 2. LER DADOS ---
+async function gerarRelatorio(empSnapshot, dataExibicao) {
+  console.log("Iniciando geração do corpo do relatório...");
   const cat_7H_EstouBem = [], cat_7H_EstouMal = [], cat_7H_Ausentes = [], cat_7H_Pendentes = [];
   const cat_6H_EstouBem = [], cat_6H_EstouMal = [], cat_6H_Ausentes = [], cat_6H_Pendentes = [];
   const registros7H = [], registros6H = [];
-  let totalFuncionarios = 0;
+  const totalFuncionarios = empSnapshot.size;
 
-  try {
-    const empRef = db.collection(colEmployeesName);
-    const empSnapshot = await empRef.get();
-    totalFuncionarios = empSnapshot.size;
-
-    empSnapshot.forEach(doc => {
-      const emp = doc.data();
-      if (emp.absent === true || emp.ausente === true) {
-        if (emp.turno === "6H") cat_6H_Ausentes.push(emp);
-        else cat_7H_Ausentes.push(emp);
-      } else if (emp.mal === true) {
-        if (emp.turno === "6H") cat_6H_EstouMal.push(emp);
-        else cat_7H_EstouMal.push(emp);
-      } else if (emp.assDss === true && emp.bem === true) {
-        if (emp.turno === "6H") cat_6H_EstouBem.push(emp);
-        else cat_7H_EstouBem.push(emp);
-      } else {
-        if (emp.turno === "6H") cat_6H_Pendentes.push(emp);
-        else cat_7H_Pendentes.push(emp);
-      }
-    });
-  } catch (error) { return `<h1>Erro.</h1>`; }
+  empSnapshot.forEach(doc => {
+    const emp = doc.data();
+    if (emp.absent === true || emp.ausente === true) {
+      if (emp.turno === "6H") cat_6H_Ausentes.push(emp);
+      else cat_7H_Ausentes.push(emp);
+    } else if (emp.mal === true) {
+      if (emp.turno === "6H") cat_6H_EstouMal.push(emp);
+      else cat_7H_EstouMal.push(emp);
+    } else if (emp.assDss === true && emp.bem === true) {
+      if (emp.turno === "6H") cat_6H_EstouBem.push(emp);
+      else cat_7H_EstouBem.push(emp);
+    } else {
+      if (emp.turno === "6H") cat_6H_Pendentes.push(emp);
+      else cat_7H_Pendentes.push(emp);
+    }
+  });
 
   try {
     const regRef = db.collection(colRegistrosName);
@@ -135,7 +177,8 @@ async function gerarRelatorio() {
   const totalAusentesDeclarados = cat_7H_Ausentes.length + cat_6H_Ausentes.length;
   const totalPendentes = cat_7H_Pendentes.length + cat_6H_Pendentes.length;
 
-  htmlBody += `<h2>RESUMO GERAL - TURMA ${TARGET_TEAM}</h2><hr><ul ${ulStyle}>`;
+  // CABEÇALHO COM DATA
+  htmlBody += `<h2>RESUMO GERAL - TURMA ${TARGET_TEAM} - ${dataExibicao}</h2><hr><ul ${ulStyle}>`;
   htmlBody += `<li><strong>Total de Funcionários:</strong> ${totalFuncionarios}</li>`;
   htmlBody += `<li><strong>Presentes (DSS + Bem/Mal):</strong> ${totalPresentes}</li>`;
   htmlBody += `<li><strong>Pendentes:</strong> ${totalPendentes}</li>`;
@@ -152,7 +195,6 @@ async function gerarRelatorio() {
   htmlBody += `<h3>AUSENTES</h3>`;
   if (cat_7H_Ausentes.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_7H_Ausentes.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }
 
-  // EQUIPE TURNO 6H (Apenas se não for CCG)
   if (TARGET_TEAM !== 'CCG') {
     htmlBody += `<br><h2>EQUIPE TURNO 6H</h2><hr>`;
     htmlBody += `<h3>STATUS: "ASS.DSS + ESTOU BEM"</h3>`;
@@ -165,7 +207,6 @@ async function gerarRelatorio() {
     if (cat_6H_Ausentes.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_6H_Ausentes.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }
   }
 
-  // REGISTROS DSS
   htmlBody += `<br><h2>REGISTROS DSS (TURNO 7H)</h2><hr>`;
   if (registros7H.length === 0) { htmlBody += `Nenhum registro de assunto encontrado para 7H.`; } else { htmlBody += `<ul ${ulStyle}>`; registros7H.forEach(reg => { const n = reg.name ? limparTexto(reg.name) : "Nome não informado"; htmlBody += `<li style="margin-bottom: 10px;"><strong>${n}</strong> (Matrícula: ${reg.matricula})<br><span style="font-style: italic; color: #000;">Assunto: ${limparTexto(reg.assunto)}</span></li>`; }); htmlBody += `</ul>`; }
 
@@ -179,18 +220,14 @@ async function gerarRelatorio() {
 }
 
 // --- 4. FUNÇÃO DE ENVIAR O E-MAIL ---
-async function enviarEmail(htmlRelatorio) {
+async function enviarEmail(htmlRelatorio, dataExibicao, dataID) {
   console.log(`Enviando e-mail para ${EMAIL_TO}...`);
-  const dataPlantao = getDataDoPlantao();
-
-  // --- ASSUNTO DO EMAIL CORRIGIDO (Removido o "Plantão") ---
-  const novoAssunto = `Relatório DSS - TURMA ${TARGET_TEAM} (${dataPlantao})`;
-
-  const mailOptions = { from: EMAIL_USER, to: EMAIL_TO, subject: novoAssunto, html: htmlRelatorio };
+  const subject = `Relatório DSS - TURMA ${TARGET_TEAM} (${dataExibicao})`;
+  const mailOptions = { from: EMAIL_USER, to: EMAIL_TO, subject, html: htmlRelatorio };
   try {
     await transporter.sendMail(mailOptions);
     console.log("E-mail enviado com sucesso!");
-    await registrarEnvioSucesso();
+    await registrarEnvioSucesso(dataID);
   } catch (error) {
     console.error("Erro ao enviar e-mail:", error);
     process.exit(1);
@@ -207,13 +244,30 @@ async function main() {
       process.exit(0);
     }
 
-    const jaEnviado = await verificarEnvioDuplicado();
-    if (jaEnviado) {
-      console.log("Processo abortado com sucesso.");
+    const empSnapshot = await db.collection(colEmployeesName).get();
+    if (empSnapshot.empty) {
+      console.log("Nenhum funcionário encontrado. Abortando relatório.");
       process.exit(0);
     }
-    const htmlRelatorio = await gerarRelatorio();
-    await enviarEmail(htmlRelatorio);
+
+    // Calcular Data Inteligente
+    const funcionariosData = [];
+    empSnapshot.forEach(doc => funcionariosData.push(doc.data()));
+    
+    const consensusISO = getConsensusDate(funcionariosData);
+    const dataID = consensusISO || getDataDoPlantaoFallback('ISO');
+    const dataExibicao = consensusISO ? isoToDisplay(consensusISO) : getDataDoPlantaoFallback('DD/MM/YY');
+
+    console.log(`Data Identificada: ${dataExibicao} (ID: ${dataID})`);
+
+    const jaEnviado = await verificarEnvioDuplicado(dataID);
+    if (jaEnviado) {
+      console.log("Processo abortado: Relatório já enviado hoje.");
+      process.exit(0);
+    }
+
+    const htmlRelatorio = await gerarRelatorio(empSnapshot, dataExibicao);
+    await enviarEmail(htmlRelatorio, dataExibicao, dataID);
     console.log("Script de relatório concluído.");
   } catch (error) {
     console.error('ERRO GERAL NO SCRIPT DE RELATÓRIO:', error);
