@@ -249,7 +249,14 @@ async function limparControleEnvio() {
 async function executarLimpezaCompleta() {
   try {
     const sysRef = await db.collection('configuracoes').doc('automacao').get();
-    if (sysRef.exists && sysRef.data()[TARGET_TEAM] === true) {
+    
+    // Lógica Robusta: Checa a chave exata (ex: CCG) e a variação com espaço (ex: C CG) caso exista no banco
+    const isPausedInDb = sysRef.exists && (
+      sysRef.data()[TARGET_TEAM] === true || 
+      (TARGET_TEAM === 'CCG' && sysRef.data()['C CG'] === true)
+    );
+
+    if (isPausedInDb) {
       console.log(`>>> Ação Cancelada. A automação (Limpeza) da Turma ${TARGET_TEAM} está PAUSADA pelo painel administrativo.`);
       process.exit(0);
     }

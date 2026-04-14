@@ -1,0 +1,27 @@
+name: Reset Total - Turma CCG (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmacao:
+        description: 'Digite "APAGAR-CCG" para confirmar o reset total da turma'
+        required: true
+        default: 'NAO'
+
+jobs:
+  executar-reset:
+    runs-on: ubuntu-latest
+    
+    if: github.event.inputs.confirmacao == 'APAGAR-CCG'
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Instalar dependências
+        run: npm install
+
+      - name: Rodar script de reset
+        run: node scripts/reset-turma-ccg.cjs
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
