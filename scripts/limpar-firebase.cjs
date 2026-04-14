@@ -41,23 +41,68 @@ if (TARGET_TEAM === 'A') {
 console.log(`>>> INICIANDO LIMPEZA PARA A TURMA: ${TARGET_TEAM} <<<`);
 console.log(`Coleções alvo: '${colEmployeesName}', '${colRegistrosName}' e controle de envios.`);
 
-// --- GERAÇÃO DA DATA VIRTUAL ---
+// --- GERAÇÃO DA DATA VIRTUAL (Fallback) ---
 // Subtrai 6 horas do relógio para garantir que a madrugada pertença ao dia anterior
-function getDataDoPlantao() {
+function getDataDoPlantaoFallback(isoOnly = false) {
   const dataVirtual = new Date(new Date().getTime() - (6 * 60 * 60 * 1000));
+  
+  if (isoOnly) {
+    const ano = dataVirtual.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', year: 'numeric' });
+    const mes = dataVirtual.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', month: '2-digit' });
+    const dia = dataVirtual.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit' });
+    return `${ano}-${mes}-${dia}`;
+  }
+
   return dataVirtual.toLocaleDateString('pt-BR', {
     timeZone: 'America/Sao_Paulo',
     day: '2-digit', month: '2-digit', year: 'numeric'
   });
 }
 
-function getDataDoPlantaoISO() {
-  const dataVirtual = new Date(new Date().getTime() - (6 * 60 * 60 * 1000));
-  // Formata como YYYY-MM-DD para usar como ID do documento
-  const ano = dataVirtual.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', year: 'numeric' });
-  const mes = dataVirtual.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', month: '2-digit' });
-  const dia = dataVirtual.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit' });
-  return `${ano}-${mes}-${dia}`;
+// --- LÓGICA DE CONSENSO DE DATA ---
+function getConsensusDate(funcionarios) {
+  const counts = {};
+  
+  funcionarios.forEach(f => {
+    if (f.t) {
+      let dateObj = null;
+      // Trata se for Timestamp do Firebase, String ou objeto Date
+      if (typeof f.t.toDate === 'function') {
+        dateObj = f.t.toDate();
+      } else if (f.t instanceof Date) {
+        dateObj = f.t;
+      } else if (f.t.seconds) { // Estrutura básica de Timestamp se não for convertida
+        dateObj = new Date(f.t.seconds * 1000);
+      } else {
+        dateObj = new Date(f.t);
+      }
+
+      if (dateObj && !isNaN(dateObj.getTime())) {
+        const ano = dateObj.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', year: 'numeric' });
+        const mes = dateObj.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', month: '2-digit' });
+        const dia = dateObj.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit' });
+        const iso = `${ano}-${mes}-${dia}`;
+        counts[iso] = (counts[iso] || 0) + 1;
+      }
+    }
+  });
+
+  let topDate = null;
+  let maxCount = 0;
+  for (const date in counts) {
+    if (counts[date] > maxCount) {
+      maxCount = counts[date];
+      topDate = date;
+    }
+  }
+
+  // Se houver uma data com 5 ou mais assinaturas, esse é o nosso dia
+  if (topDate && maxCount >= 5) {
+    console.log(`[Consenso] Data identificada por assinaturas: ${topDate} (${maxCount} funcionários)`);
+    return topDate;
+  }
+
+  return null;
 }
 
 // --- FUNÇÃO 0: Salvar Histórico (ANTES da limpeza) ---
@@ -106,9 +151,20 @@ async function salvarHistorico() {
     });
   });
 
-  // 4. Montar o documento compacto
-  const dataISO = getDataDoPlantaoISO();
-  const dataBR = getDataDoPlantao();
+  // 4. Determinar a data correta (Consenso vs Fallback)
+  let dataISO = getConsensusDate(funcionarios);
+  let dataBR = '';
+
+  if (dataISO) {
+    // Converte YYYY-MM-DD para DD/MM/YYYY para o campo 'data'
+    const [y, m, d] = dataISO.split('-');
+    dataBR = `${d}/${m}/${y}`;
+  } else {
+    console.log(`[Aviso] Consenso não atingido. Usando data de execução.`);
+    dataISO = getDataDoPlantaoFallback(true);
+    dataBR = getDataDoPlantaoFallback(false);
+  }
+
   const docId = `${TARGET_TEAM}_${dataISO}`;
 
   const historicoDoc = {
