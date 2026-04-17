@@ -44,11 +44,15 @@ const HistoryModal: React.FC<{
     const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
     const [fetchingMore, setFetchingMore] = useState(false);
     const [hasMore, setHasMore] = useState(true);
+    const [autoFetchCount, setAutoFetchCount] = useState(0);
 
     // Efeito para debounce da busca
     React.useEffect(() => {
         const timer = setTimeout(() => {
-            setDebouncedSearch(searchTerm);
+            setDebouncedSearch(prev => {
+                if (prev !== searchTerm) setAutoFetchCount(0);
+                return searchTerm;
+            });
         }, 500);
         return () => clearTimeout(timer);
     }, [searchTerm]);
@@ -100,6 +104,7 @@ const HistoryModal: React.FC<{
             setAllRecords([]);
             setLastVisible(null);
             setHasMore(true);
+            setAutoFetchCount(0);
             loadHistoryBatch();
         }
     }, [isOpen, turma]);
@@ -114,6 +119,20 @@ const HistoryModal: React.FC<{
             return hasIn7H || hasIn6H;
         });
     }, [allRecords, debouncedSearch]);
+
+    // Busca automática profunda (Auto-fetch)
+    React.useEffect(() => {
+        if (
+            debouncedSearch.trim() && 
+            filteredResults.length === 0 && 
+            hasMore && 
+            !fetchingMore && 
+            autoFetchCount < 4
+        ) {
+            setAutoFetchCount(prev => prev + 1);
+            loadHistoryBatch(true);
+        }
+    }, [debouncedSearch, filteredResults.length, hasMore, fetchingMore, autoFetchCount]);
 
     const handleDateChange = async (dateValue: string) => {
         setSelectedDate(dateValue);
@@ -344,9 +363,9 @@ const HistoryModal: React.FC<{
                     <div className="space-y-3 mb-6 animate-in fade-in zoom-in-95 duration-200">
                         <div className="flex items-center justify-between px-1">
                             <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
-                                {isSearching ? 'Buscando...' : `${filteredResults.length} resultados encontrados`}
+                                {(isSearching || searchTerm !== debouncedSearch) ? 'Buscando...' : `${filteredResults.length} resultados encontrados`}
                             </h3>
-                            {isSearching && (
+                            {(isSearching || searchTerm !== debouncedSearch) && (
                                 <div className="w-4 h-4 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
                             )}
                         </div>
@@ -366,10 +385,21 @@ const HistoryModal: React.FC<{
                                         <span className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 uppercase">
                                             {new Date(rec.dataISO + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
                                         </span>
-                                        <span className="text-[10px] font-medium text-gray-400">{rec.turma}</span>
+                                        <div className="flex items-center gap-2">
+                                            {rec.registros7H?.some(r => (r.assunto || '').toLowerCase().includes(debouncedSearch.toLowerCase())) && (
+                                                <span className="text-[9px] bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">7H</span>
+                                            )}
+                                            {rec.registros6H?.some(r => (r.assunto || '').toLowerCase().includes(debouncedSearch.toLowerCase())) && (
+                                                <span className="text-[9px] bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">6H</span>
+                                            )}
+                                            <span className="text-[10px] font-medium text-gray-400">{rec.turma}</span>
+                                        </div>
                                     </div>
                                     <span className="text-sm font-semibold text-gray-800 dark:text-gray-100 line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                                        {rec.registros7H?.[0]?.assunto || rec.registros6H?.[0]?.assunto || 'Tema não informado'}
+                                        {rec.registros7H?.some(r => (r.assunto || '').toLowerCase().includes(debouncedSearch.toLowerCase())) 
+                                            ? rec.registros7H.find(r => (r.assunto || '').toLowerCase().includes(debouncedSearch.toLowerCase()))?.assunto 
+                                            : rec.registros6H?.find(r => (r.assunto || '').toLowerCase().includes(debouncedSearch.toLowerCase()))?.assunto 
+                                            || rec.registros7H?.[0]?.assunto || rec.registros6H?.[0]?.assunto || 'Tema não informado'}
                                     </span>
                                 </button>
                             ))}
@@ -389,7 +419,7 @@ const HistoryModal: React.FC<{
                                     {fetchingMore ? (
                                         <>
                                             <div className="w-3 h-3 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
-                                            BUSCANDO NO PASSADO...
+                                            BUSCANDO NO PASSADO... {autoFetchCount > 0 ? `(AUTO ${autoFetchCount}/4)` : ''}
                                         </>
                                     ) : (
                                         'NÃO ENCONTROU? BUSCAR MAIS ANTIGOS (2025...)'
@@ -411,7 +441,7 @@ const HistoryModal: React.FC<{
                 )}
 
                 {/* Não encontrado */}
-                {notFound && !loading && (
+                {notFound && !loading && !searchTerm && (
                     <div className="text-center py-10">
                         <div className="mx-auto w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
                             <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -527,7 +557,7 @@ const HistoryModal: React.FC<{
                 )}
 
                 {/* Estado inicial (sem data selecionada) */}
-                {!selectedDate && !loading && (
+                {!selectedDate && !loading && !searchTerm && (
                     <div className="text-center py-10">
                         <div className="mx-auto w-16 h-16 bg-indigo-50 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mb-4">
                             <svg className="w-8 h-8 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
