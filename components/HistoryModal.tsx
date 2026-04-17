@@ -112,10 +112,16 @@ const HistoryModal: React.FC<{
     // Resultados filtrados pelo tema
     const filteredResults = useMemo(() => {
         if (!debouncedSearch.trim()) return [];
-        const term = debouncedSearch.toLowerCase();
+        const searchTerms = debouncedSearch.toLowerCase().split(' ').filter(t => t.trim().length > 0);
         return allRecords.filter(rec => {
-            const hasIn7H = rec.registros7H?.some(r => (r.assunto || '').toLowerCase().includes(term));
-            const hasIn6H = rec.registros6H?.some(r => (r.assunto || '').toLowerCase().includes(term));
+            const hasIn7H = rec.registros7H?.some(r => {
+                const text = (r.assunto || '').toLowerCase();
+                return searchTerms.every(term => text.includes(term));
+            });
+            const hasIn6H = rec.registros6H?.some(r => {
+                const text = (r.assunto || '').toLowerCase();
+                return searchTerms.every(term => text.includes(term));
+            });
             return hasIn7H || hasIn6H;
         });
     }, [allRecords, debouncedSearch]);
@@ -371,7 +377,18 @@ const HistoryModal: React.FC<{
                         </div>
 
                         <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
-                            {filteredResults.map((rec) => (
+                            {filteredResults.map((rec) => {
+                                const searchTerms = debouncedSearch.toLowerCase().split(' ').filter(t => t.trim().length > 0);
+                                const isMatch = (assunto: string) => {
+                                    if (!assunto) return false;
+                                    const text = assunto.toLowerCase();
+                                    return searchTerms.every(term => text.includes(term));
+                                };
+                                const match7H = rec.registros7H?.some(r => isMatch(r.assunto));
+                                const match6H = rec.registros6H?.some(r => isMatch(r.assunto));
+                                const matchedAssunto = rec.registros7H?.find(r => isMatch(r.assunto))?.assunto || rec.registros6H?.find(r => isMatch(r.assunto))?.assunto || rec.registros7H?.[0]?.assunto || rec.registros6H?.[0]?.assunto || 'Tema não informado';
+
+                                return (
                                 <button
                                     key={rec.dataISO}
                                     onClick={() => {
@@ -386,23 +403,21 @@ const HistoryModal: React.FC<{
                                             {new Date(rec.dataISO + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
                                         </span>
                                         <div className="flex items-center gap-2">
-                                            {rec.registros7H?.some(r => (r.assunto || '').toLowerCase().includes(debouncedSearch.toLowerCase())) && (
+                                            {match7H && (
                                                 <span className="text-[9px] bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">7H</span>
                                             )}
-                                            {rec.registros6H?.some(r => (r.assunto || '').toLowerCase().includes(debouncedSearch.toLowerCase())) && (
+                                            {match6H && (
                                                 <span className="text-[9px] bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">6H</span>
                                             )}
                                             <span className="text-[10px] font-medium text-gray-400">{rec.turma}</span>
                                         </div>
                                     </div>
                                     <span className="text-sm font-semibold text-gray-800 dark:text-gray-100 line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                                        {rec.registros7H?.some(r => (r.assunto || '').toLowerCase().includes(debouncedSearch.toLowerCase())) 
-                                            ? rec.registros7H.find(r => (r.assunto || '').toLowerCase().includes(debouncedSearch.toLowerCase()))?.assunto 
-                                            : rec.registros6H?.find(r => (r.assunto || '').toLowerCase().includes(debouncedSearch.toLowerCase()))?.assunto 
-                                            || rec.registros7H?.[0]?.assunto || rec.registros6H?.[0]?.assunto || 'Tema não informado'}
+                                        {matchedAssunto}
                                     </span>
                                 </button>
-                            ))}
+                                );
+                            })}
 
                             {!isSearching && filteredResults.length === 0 && (
                                 <div className="text-center py-8 bg-gray-50 dark:bg-gray-800/30 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
