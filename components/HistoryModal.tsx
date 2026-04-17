@@ -4,9 +4,10 @@ import CustomDatePicker from './CustomDatePicker';
 import { FileTextIcon, SubjectIcon, ShiftIcon } from './icons';
 import type { HistoryRecord, HistoryEmployee } from '../types';
 import { db } from '../firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, orderBy, limit, getDocs, startAfter, startAt, endAt, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
 import ExportDropdown from './ExportDropdown';
 import { exportToPng, exportToPdf, exportToDoc, exportToExcel, exportToTxt } from '../utils/exportService';
+import { SearchIcon } from './icons';
 
 // Cores do status compacto
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
@@ -34,6 +35,85 @@ const HistoryModal: React.FC<{
     const [historyData, setHistoryData] = useState<HistoryRecord | null>(null);
     const [loading, setLoading] = useState(false);
     const [notFound, setNotFound] = useState(false);
+
+    // Estados para Busca por Tema
+    const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const [isSearching, setIsSearching] = useState(false);
+    const [allRecords, setAllRecords] = useState<HistoryRecord[]>([]);
+    const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+    const [fetchingMore, setFetchingMore] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
+
+    // Efeito para debounce da busca
+    React.useEffect(() => {
+        const timer = setTimeout(() => {
+            setDebouncedSearch(searchTerm);
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
+    // Função para carregar lote de histórico
+    const loadHistoryBatch = async (isManualLoadMore = false) => {
+        if (!turma || !db || (fetchingMore && isManualLoadMore)) return;
+        
+        setIsSearching(true);
+        if (isManualLoadMore) setFetchingMore(true);
+
+        try {
+            // Utilizamos a ordem natural do __name__ (ID do doc "B_2025-10-10") descrescente
+            // para evitar erro de índice composto no Firestore entre 'turma' e 'dataISO'
+            let q = query(
+                collection(db, 'historico_dss'),
+                orderBy('__name__', 'desc'),
+                limit(90) // Lotes de ~3 meses
+            );
+
+            if (isManualLoadMore && lastVisible) {
+                q = query(q, startAfter(lastVisible), endAt(`${turma}_`));
+            } else {
+                q = query(q, startAt(`${turma}_\uf8ff`), endAt(`${turma}_`));
+            }
+
+            const snapshot = await getDocs(q);
+            
+            if (snapshot.empty) {
+                setHasMore(false);
+            } else {
+                const newRecords = snapshot.docs.map(doc => doc.data() as HistoryRecord);
+                setAllRecords(prev => isManualLoadMore ? [...prev, ...newRecords] : newRecords);
+                setLastVisible(snapshot.docs[snapshot.docs.length - 1] as QueryDocumentSnapshot<DocumentData>);
+                if (snapshot.docs.length < 90) setHasMore(false);
+            }
+        } catch (error) {
+            console.error('Erro ao buscar lote de histórico:', error);
+            // Evitar notificação de erro intrusiva na busca contínua, log no console é suficiente
+        } finally {
+            setIsSearching(false);
+            setFetchingMore(false);
+        }
+    };
+
+    // Carregar primeiro lote ao abrir ou mudar turma
+    React.useEffect(() => {
+        if (isOpen && turma) {
+            setAllRecords([]);
+            setLastVisible(null);
+            setHasMore(true);
+            loadHistoryBatch();
+        }
+    }, [isOpen, turma]);
+
+    // Resultados filtrados pelo tema
+    const filteredResults = useMemo(() => {
+        if (!debouncedSearch.trim()) return [];
+        const term = debouncedSearch.toLowerCase();
+        return allRecords.filter(rec => {
+            const hasIn7H = rec.registros7H?.some(r => (r.assunto || '').toLowerCase().includes(term));
+            const hasIn6H = rec.registros6H?.some(r => (r.assunto || '').toLowerCase().includes(term));
+            return hasIn7H || hasIn6H;
+        });
+    }, [allRecords, debouncedSearch]);
 
     const handleDateChange = async (dateValue: string) => {
         setSelectedDate(dateValue);
@@ -233,14 +313,94 @@ const HistoryModal: React.FC<{
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Histórico DSS" scale={scale} size="md">
             <div className="w-full">
-                {/* Seletor de Data (Inline) */}
-                <div className="mb-4">
-                    <CustomDatePicker 
-                        selectedDate={selectedDate} 
-                        onChange={handleDateChange} 
-                        maxDate={new Date().toISOString().split('T')[0]} 
-                    />
+                {/* Seletor de Data e Busca por Tema */}
+                <div className="flex flex-col gap-3 mb-6">
+                    <div className="group relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <SearchIcon className="w-4 h-4 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Buscar por tema (ex: Segurança, EPI...)"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-gray-400"
+                        />
+                    </div>
+                    
+                    {!searchTerm && (
+                        <div className="animate-in fade-in slide-in-from-top-1 duration-300">
+                            <CustomDatePicker 
+                                selectedDate={selectedDate} 
+                                onChange={handleDateChange} 
+                                maxDate={new Date().toISOString().split('T')[0]} 
+                            />
+                        </div>
+                    )}
                 </div>
+
+                {/* Lista de Resultados da Busca por Tema */}
+                {searchTerm && (
+                    <div className="space-y-3 mb-6 animate-in fade-in zoom-in-95 duration-200">
+                        <div className="flex items-center justify-between px-1">
+                            <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                                {isSearching ? 'Buscando...' : `${filteredResults.length} resultados encontrados`}
+                            </h3>
+                            {isSearching && (
+                                <div className="w-4 h-4 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
+                            )}
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+                            {filteredResults.map((rec) => (
+                                <button
+                                    key={rec.dataISO}
+                                    onClick={() => {
+                                        setHistoryData(rec);
+                                        setSelectedDate(rec.dataISO);
+                                        setSearchTerm(''); // Limpa busca ao selecionar
+                                    }}
+                                    className="flex flex-col items-start p-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl hover:border-indigo-500 dark:hover:border-indigo-500 hover:shadow-md transition-all text-left group"
+                                >
+                                    <div className="flex items-center justify-between w-full mb-1">
+                                        <span className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 uppercase">
+                                            {new Date(rec.dataISO + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                        </span>
+                                        <span className="text-[10px] font-medium text-gray-400">{rec.turma}</span>
+                                    </div>
+                                    <span className="text-sm font-semibold text-gray-800 dark:text-gray-100 line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                        {rec.registros7H?.[0]?.assunto || rec.registros6H?.[0]?.assunto || 'Tema não informado'}
+                                    </span>
+                                </button>
+                            ))}
+
+                            {!isSearching && filteredResults.length === 0 && (
+                                <div className="text-center py-8 bg-gray-50 dark:bg-gray-800/30 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Nenhum tema encontrado neste período.</p>
+                                </div>
+                            )}
+
+                            {hasMore && (
+                                <button
+                                    onClick={() => loadHistoryBatch(true)}
+                                    disabled={fetchingMore}
+                                    className="w-full py-3 mt-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                                >
+                                    {fetchingMore ? (
+                                        <>
+                                            <div className="w-3 h-3 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
+                                            BUSCANDO NO PASSADO...
+                                        </>
+                                    ) : (
+                                        'NÃO ENCONTROU? BUSCAR MAIS ANTIGOS (2025...)'
+                                    )}
+                                </button>
+                            )}
+                        </div>
+                        
+                        <div className="h-px bg-gradient-to-r from-transparent via-gray-200 dark:via-gray-700 to-transparent my-4"></div>
+                    </div>
+                )}
 
                 {/* Loading */}
                 {loading && (
