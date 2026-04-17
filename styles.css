@@ -30,8 +30,8 @@ body,
 
 /* Chrome, Edge, and Safari */
 *::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 15px;
+    height: 15px;
 }
 
 *::-webkit-scrollbar-track {
