@@ -66,12 +66,11 @@ const HistoryModal: React.FC<{
 
         try {
             // Simplificamos a query para evitar a exigência de índices compostos manuais.
-            // O Firestore exige índices para queries com range/order em múltiplos campos ou no ID.
             // Buscamos apenas pela turma e ordenamos em memória no cliente.
             let q = query(
                 collection(db, 'historico_dss'),
                 where('turma', '==', turma),
-                limit(200) // Carregamos um volume maior para ordenar em memória
+                limit(400) // Lote maior para cobrir ~1 ano ou mais de uma vez
             );
 
             const snapshot = await getDocs(q);
@@ -82,10 +81,11 @@ const HistoryModal: React.FC<{
                 // Ordenar em memória (descendente por dataISO)
                 const newRecords = snapshot.docs
                     .map(doc => doc.data() as HistoryRecord)
+                    .filter(rec => !!rec.dataISO) // Garantir que tem data
                     .sort((a, b) => b.dataISO.localeCompare(a.dataISO));
                 
                 setAllRecords(newRecords);
-                setHasMore(false); // Como buscamos 200 de uma vez para ordenar em memória, tratamos como lote único
+                setHasMore(false);
             }
         } catch (error) {
             console.error('Erro ao buscar lote de histórico:', error);
@@ -354,10 +354,10 @@ const HistoryModal: React.FC<{
                         </div>
                         <input
                             type="text"
-                            placeholder="Buscar por tema (ex: Segurança, EPI...)"
+                            placeholder="BUSCAR POR TEMA (EX: SEGURANÇA, EPI...)"
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-gray-400"
+                            onChange={(e) => setSearchTerm(e.target.value.toUpperCase())}
+                            className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-gray-400 uppercase font-medium"
                         />
                     </div>
                     

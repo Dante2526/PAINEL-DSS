@@ -45,7 +45,8 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({ selectedDate, onCha
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const daysInPrevMonth = new Date(year, month, 0).getDate();
         
-        const todayStr = new Date().toISOString().split('T')[0];
+        const localDate = new Date();
+        const todayStr = `${localDate.getFullYear()}-${String(localDate.getMonth() + 1).padStart(2, '0')}-${String(localDate.getDate()).padStart(2, '0')}`;
         
         const days: DayData[] = [];
         
@@ -176,7 +177,8 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({ selectedDate, onCha
                     <button
                         type="button"
                         onClick={() => {
-                            const todayStr = new Date().toISOString().split('T')[0];
+                            const localDate = new Date();
+                            const todayStr = `${localDate.getFullYear()}-${String(localDate.getMonth() + 1).padStart(2, '0')}-${String(localDate.getDate()).padStart(2, '0')}`;
                             handleSelectDay(todayStr, maxDate ? todayStr > maxDate : false);
                         }}
                         className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer uppercase tracking-wider"
