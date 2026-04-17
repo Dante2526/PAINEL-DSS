@@ -4,7 +4,7 @@ import CustomDatePicker from './CustomDatePicker';
 import { FileTextIcon, SubjectIcon, ShiftIcon } from './icons';
 import type { HistoryRecord, HistoryEmployee } from '../types';
 import { db } from '../firebase';
-import { doc, getDoc, collection, query, where, orderBy, limit, getDocs, startAfter, startAt, endAt, QueryDocumentSnapshot, DocumentData } from 'firebase/firestore';
+import { doc, getDoc, collection, query, where, orderBy, limit, getDocs, startAfter, startAt, endAt, QueryDocumentSnapshot, DocumentData, documentId } from 'firebase/firestore';
 import ExportDropdown from './ExportDropdown';
 import { exportToPng, exportToPdf, exportToDoc, exportToExcel, exportToTxt } from '../utils/exportService';
 import { SearchIcon } from './icons';
@@ -65,11 +65,11 @@ const HistoryModal: React.FC<{
         if (isManualLoadMore) setFetchingMore(true);
 
         try {
-            // Utilizamos a ordem natural do __name__ (ID do doc "B_2025-10-10") descrescente
-            // para evitar erro de índice composto no Firestore entre 'turma' e 'dataISO'
+            // Utilizamos documentId() nativo do Firebase para buscar de forma correta e rápida
+            // preservando a ordem natural e evitando limites confusos das keys
             let q = query(
                 collection(db, 'historico_dss'),
-                orderBy('__name__', 'desc'),
+                orderBy(documentId(), 'desc'),
                 limit(90) // Lotes de ~3 meses
             );
 
