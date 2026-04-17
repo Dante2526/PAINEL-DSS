@@ -1083,6 +1083,14 @@ const App: React.FC = () => {
     const contentWrapperRef = useRef<HTMLDivElement>(null); // New wrapper ref
     const scalableContainerRef = useRef<HTMLDivElement>(null);
     const scaleStateRef = useRef({ currentScale: 1 });
+    const dragScrollRef = useRef({
+        isDragging: false,
+        startX: 0,
+        startY: 0,
+        scrollLeft: 0,
+        scrollTop: 0,
+        moved: false
+    });
     const modalScale = 1;
 
     // Refs para estabilizar callbacks sem dependência de state mutável
@@ -1611,6 +1619,48 @@ const App: React.FC = () => {
             }
         };
 
+        const handleMouseDown = (e: MouseEvent) => {
+            // Não iniciar drag se clicar em botões, inputs ou áreas interativas
+            const target = e.target as HTMLElement;
+            if (target.closest('button, input, select, textarea, a, [role="button"]')) {
+                return;
+            }
+
+            dragScrollRef.current.isDragging = true;
+            dragScrollRef.current.moved = false;
+            dragScrollRef.current.startX = e.pageX - viewport.offsetLeft;
+            dragScrollRef.current.startY = e.pageY - viewport.offsetTop;
+            dragScrollRef.current.scrollLeft = viewport.scrollLeft;
+            dragScrollRef.current.scrollTop = viewport.scrollTop;
+            
+            viewport.style.cursor = 'grabbing';
+            viewport.style.userSelect = 'none';
+        };
+
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!dragScrollRef.current.isDragging) return;
+            
+            e.preventDefault();
+            const x = e.pageX - viewport.offsetLeft;
+            const y = e.pageY - viewport.offsetTop;
+            const walkX = (x - dragScrollRef.current.startX);
+            const walkY = (y - dragScrollRef.current.startY);
+
+            if (Math.abs(walkX) > 5 || Math.abs(walkY) > 5) {
+                dragScrollRef.current.moved = true;
+            }
+
+            viewport.scrollLeft = dragScrollRef.current.scrollLeft - walkX;
+            viewport.scrollTop = dragScrollRef.current.scrollTop - walkY;
+        };
+
+        const handleMouseUp = () => {
+            if (!dragScrollRef.current.isDragging) return;
+            dragScrollRef.current.isDragging = false;
+            viewport.style.cursor = 'grab';
+            viewport.style.removeProperty('user-select');
+        };
+
         let lastWidth = window.innerWidth;
         const handleResize = () => {
             const activeTag = document.activeElement?.tagName;
@@ -1630,15 +1680,26 @@ const App: React.FC = () => {
         viewport.addEventListener('wheel', handleWheel, { passive: false });
         viewport.addEventListener('touchstart', handleTouchStart, { passive: false });
         viewport.addEventListener('touchmove', handleTouchMove, { passive: false });
+        
+        // Mouse Events for Drag-to-Scroll
+        viewport.addEventListener('mousedown', handleMouseDown);
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+        
+        // Set initial cursor
+        viewport.style.cursor = 'grab';
 
         return () => {
             clearTimeout(initTimer);
             window.removeEventListener('load', initializeScale);
             window.removeEventListener('resize', handleResize);
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
             if (viewport) {
                 viewport.removeEventListener('wheel', handleWheel);
                 viewport.removeEventListener('touchstart', handleTouchStart);
                 viewport.removeEventListener('touchmove', handleTouchMove);
+                viewport.removeEventListener('mousedown', handleMouseDown);
             }
         };
 
