@@ -65,29 +65,27 @@ const HistoryModal: React.FC<{
         if (isManualLoadMore) setFetchingMore(true);
 
         try {
-            // Utilizamos documentId() nativo do Firebase para buscar de forma correta e rápida
-            // preservando a ordem natural e evitando limites confusos das keys
+            // Simplificamos a query para evitar a exigência de índices compostos manuais.
+            // O Firestore exige índices para queries com range/order em múltiplos campos ou no ID.
+            // Buscamos apenas pela turma e ordenamos em memória no cliente.
             let q = query(
                 collection(db, 'historico_dss'),
-                orderBy(documentId(), 'desc'),
-                limit(90) // Lotes de ~3 meses
+                where('turma', '==', turma),
+                limit(200) // Carregamos um volume maior para ordenar em memória
             );
-
-            if (isManualLoadMore && lastVisible) {
-                q = query(q, startAfter(lastVisible), endAt(`${turma}_`));
-            } else {
-                q = query(q, startAt(`${turma}_\uf8ff`), endAt(`${turma}_`));
-            }
 
             const snapshot = await getDocs(q);
             
             if (snapshot.empty) {
                 setHasMore(false);
             } else {
-                const newRecords = snapshot.docs.map(doc => doc.data() as HistoryRecord);
-                setAllRecords(prev => isManualLoadMore ? [...prev, ...newRecords] : newRecords);
-                setLastVisible(snapshot.docs[snapshot.docs.length - 1] as QueryDocumentSnapshot<DocumentData>);
-                if (snapshot.docs.length < 90) setHasMore(false);
+                // Ordenar em memória (descendente por dataISO)
+                const newRecords = snapshot.docs
+                    .map(doc => doc.data() as HistoryRecord)
+                    .sort((a, b) => b.dataISO.localeCompare(a.dataISO));
+                
+                setAllRecords(newRecords);
+                setHasMore(false); // Como buscamos 200 de uma vez para ordenar em memória, tratamos como lote único
             }
         } catch (error) {
             console.error('Erro ao buscar lote de histórico:', error);
