@@ -113,16 +113,26 @@ const HistoryModal: React.FC<{
     const filteredResults = useMemo(() => {
         if (!debouncedSearch.trim()) return [];
         const searchTerms = debouncedSearch.toLowerCase().split(' ').filter(t => t.trim().length > 0);
+        
         return allRecords.filter(rec => {
-            const hasIn7H = rec.registros7H?.some(r => {
-                const text = (r.assunto || '').toLowerCase();
-                return searchTerms.every(term => text.includes(term));
+            // Coletar todos os textos pesquisáveis do dia (assuntos e responsáveis)
+            const searchableTexts: string[] = [];
+            
+            rec.registros7H?.forEach(r => {
+                if (r.assunto) searchableTexts.push(r.assunto.toLowerCase());
+                if (r.name) searchableTexts.push(r.name.toLowerCase());
             });
-            const hasIn6H = rec.registros6H?.some(r => {
-                const text = (r.assunto || '').toLowerCase();
-                return searchTerms.every(term => text.includes(term));
+            
+            rec.registros6H?.forEach(r => {
+                if (r.assunto) searchableTexts.push(r.assunto.toLowerCase());
+                if (r.name) searchableTexts.push(r.name.toLowerCase());
             });
-            return hasIn7H || hasIn6H;
+
+            // Um registro é válido se TODAS as palavras da busca (AND logic)
+            // forem encontradas em ALGUM dos textos do dia (assuntos ou nomes)
+            return searchTerms.every(term => 
+                searchableTexts.some(text => text.includes(term))
+            );
         });
     }, [allRecords, debouncedSearch]);
 
