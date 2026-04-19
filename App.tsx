@@ -71,9 +71,20 @@ function getTurmaRegistrationName(turma: TurmaType): string {
 function isValidTurma(value: string): value is TurmaType {
     return ALL_TURMAS.includes(value as TurmaType);
 }
+
+function getShiftLabel(turma: string | null): string {
+    return (turma === 'C' || turma === 'D') ? '18H' : '6H';
+}
+
+function getMainShiftLabel(turma: string | null): string {
+    return (turma === 'C' || turma === 'D') ? '19H' : '7H';
+}
 // --------------------------------
 
-const getTutorialSteps = (isCCG: boolean): TutorialStep[] => {
+const getTutorialSteps = (turma: string | null): TutorialStep[] => {
+    const isCCG = turma === 'CCG';
+    const shiftLabel = getShiftLabel(turma);
+
     const baseSteps: TutorialStep[] = [
         {
             targetId: 'app-header',
@@ -95,7 +106,7 @@ const getTutorialSteps = (isCCG: boolean): TutorialStep[] => {
         {
             targetId: 'tutorial-card-actions',
             title: 'Botões de Ação',
-            content: `Use "AUSENTE" para marcar que o colaborador faltou. Use "DELETAR" para remover permanentemente o usuário (Aparece somente para-ADM).${!isCCG ? ' Use "TURNO 6H" para mover o colaborador para uma coluna somente para esse turno.' : ''}`,
+            content: `Use "AUSENTE" para marcar que o colaborador faltou. Use "DELETAR" para remover permanentemente o usuário (Aparece somente para-ADM).${!isCCG ? ` Use "TURNO ${shiftLabel}" para mover o colaborador para uma coluna somente para esse turno.` : ''}`,
             scrollTargetId: 'tutorial-first-card'
         },
         {
@@ -110,13 +121,13 @@ const getTutorialSteps = (isCCG: boolean): TutorialStep[] => {
         baseSteps.push(
             {
                 targetId: 'tutorial-special-demo-area',
-                title: 'Turno Diferenciado (6H)',
-                content: 'Painel exclusivo para a turma do turno de 6H. Funciona da mesma forma que o painel principal, mas com controle separado.'
+                title: `Turno Diferenciado (${shiftLabel})`,
+                content: `Painel exclusivo para a turma do turno de ${shiftLabel}. Funciona da mesma forma que o painel principal, mas com controle separado.`
             },
             {
                 targetId: 'tutorial-return-turn-btn',
-                title: 'Retornar ao Turno Normal',
-                content: 'Ao Clicar neste botão na coluna do horário especial, o colaborador é movido de volta para o turno normal.',
+                title: `Retornar ao Turno Normal`,
+                content: `Ao Clicar neste botão na coluna do horário especial, o colaborador é movido de volta para o turno normal.`,
                 scrollTargetId: 'tutorial-special-demo-area'
             }
         );
@@ -371,7 +382,7 @@ const AdminOptionsModal: React.FC<{
                         >
                             <div className="scale-[0.85] md:scale-90 origin-bottom"><ShiftIcon className="w-7 h-7" /></div>
                             <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">
-                                {is6HActive ? "Desativar 6H" : "Ativar 6H"}
+                                {is6HActive ? `Desativar ${getShiftLabel(selectedTurma)}` : `Ativar ${getShiftLabel(selectedTurma)}`}
                             </span>
                         </button>
                     </div>
@@ -543,6 +554,9 @@ const ReportModal: React.FC<{
         report += `Ausentes: ${totalAbsent}\n`;
         report += `Pendentes: ${totalPending}\n\n`;
 
+        const shiftLabel = getShiftLabel(turma);
+        const mainShiftLabel = getMainShiftLabel(turma);
+
         // Helper to generate section list
         const getStatusList = (team: Employee[]) => {
             const bem = team.filter(e => e.bem || e.assDss);
@@ -562,18 +576,18 @@ const ReportModal: React.FC<{
             return section;
         };
 
-        report += `EQUIPE TURNO 7H\n`;
+        report += `EQUIPE TURNO ${mainShiftLabel}\n`;
         report += getStatusList(team7H);
         report += `\n\n`;
 
         if (turma !== 'CCG') {
-            report += `EQUIPE TURNO 6H\n`;
+            report += `EQUIPE TURNO ${shiftLabel}\n`;
             report += getStatusList(team6H);
             report += `\n\n`;
         }
 
         // Footer Section with Registries
-        report += `REGISTROS DSS (TURNO 7H)\n`;
+        report += `REGISTROS DSS (TURNO ${mainShiftLabel})\n`;
         report += `Assunto: ${subject7H || 'NÃO INFORMADO'}`;
         if (responsible7H) {
             // Using a new line for Responsible to be clear, including Matricula
@@ -583,7 +597,7 @@ const ReportModal: React.FC<{
         }
 
         if (turma !== 'CCG') {
-            report += `\nREGISTROS DSS (TURNO 6H)\n`;
+            report += `\nREGISTROS DSS (TURNO ${shiftLabel})\n`;
             report += `Assunto: ${subject6H || 'NÃO INFORMADO'}`;
             if (responsible6H) {
                 report += `\nResponsável: ${responsible6H} (Matrícula: ${matricula6H || '---'})\n`;
@@ -675,7 +689,7 @@ const ReportModal: React.FC<{
                         <div className="absolute right-0 top-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
                             <SubjectIcon className="w-12 h-12 text-blue-600" />
                         </div>
-                        <div className="text-[10px] font-bold text-white bg-blue-500 px-2 py-0.5 rounded-full w-fit mb-2">TURNO 7H</div>
+                        <div className="text-[10px] font-bold text-white bg-blue-500 px-2 py-0.5 rounded-full w-fit mb-2">TURNO {getMainShiftLabel(turma)}</div>
                         <div className="mb-2 relative z-10">
                             <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Tema DSS</span>
                             <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight">{subject7H || 'NÃO INFORMADO'}</span>
@@ -691,7 +705,7 @@ const ReportModal: React.FC<{
                         <div className="absolute right-0 top-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
                             <ShiftIcon className="w-12 h-12 text-orange-600" />
                         </div>
-                        <div className="text-[10px] font-bold text-white bg-orange-500 px-2 py-0.5 rounded-full w-fit mb-2">TURNO 6H</div>
+                        <div className="text-[10px] font-bold text-white bg-orange-500 px-2 py-0.5 rounded-full w-fit mb-2">TURNO {getShiftLabel(turma)}</div>
                         <div className="mb-2 relative z-10">
                             <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Tema DSS</span>
                             <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight">{subject6H || 'NÃO INFORMADO'}</span>
@@ -2129,8 +2143,9 @@ const App: React.FC = () => {
 
             await batch.commit();
 
-            showNotification(active ? 'Turno 6H Ativado com sucesso!' : 'Turno 6H Desativado. Todos os funcionários foram movidos para 7H.', 'success');
-            logAuditEvent(adminEmailRef.current, 'TOGGLE_6H_COLUMN', `Turno 6H: ${active ? 'Ativado' : 'Desativado'}`, selectedTurma);
+            const label = getShiftLabel(selectedTurma);
+            showNotification(active ? `Turno ${label} Ativado com sucesso!` : `Turno ${label} Desativado. Todos os funcionários foram movidos para 7H.`, 'success');
+            logAuditEvent(adminEmailRef.current, 'TOGGLE_6H_COLUMN', `Turno ${label}: ${active ? 'Ativado' : 'Desativado'}`, selectedTurma);
         } catch (error) {
             console.error("Error toggling 6H state:", error);
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
@@ -2658,7 +2673,7 @@ const App: React.FC = () => {
 
     const getPendingEmployeeTurno = () => {
         const current = employees.find(e => e.id === pendingEmployeeId)?.turno;
-        return current === '6H' ? '7H' : '6H';
+        return current === '6H' ? getMainShiftLabel(selectedTurma) : getShiftLabel(selectedTurma);
     };
 
     const handleTutorialStepChange = (step: TutorialStep) => {
@@ -2808,6 +2823,7 @@ const App: React.FC = () => {
                                                             onMatriculaChange={handleMatriculaUpdate}
                                                             domId={index === 0 ? "tutorial-first-card" : undefined}
                                                             hideShiftButton={selectedTurma === 'CCG' || !is6HActive}
+                                                            shiftLabel={getShiftLabel(selectedTurma)}
                                                         />
                                                     </div>
                                                 ))}
@@ -2836,6 +2852,7 @@ const App: React.FC = () => {
                                                                     onMatriculaChange={handleMatriculaUpdate}
                                                                     domId={index === 0 && group.letter === groupedMainTeam[0]?.letter ? "tutorial-first-card" : undefined}
                                                                     hideShiftButton={selectedTurma === 'CCG' || !is6HActive}
+                                                                    shiftLabel={getShiftLabel(selectedTurma)}
                                                                 />
                                                             </div>
                                                         ))}
@@ -2902,6 +2919,7 @@ const App: React.FC = () => {
                                     onRegister={handleRegister6H}
                                     employeesForLookup={allEmployeesForLookup}
                                     administrators={administrators}
+                                    turma={selectedTurma}
                                 />
                             )}
                         </div>
@@ -3017,7 +3035,7 @@ const App: React.FC = () => {
             <InteractiveTutorial
                 isOpen={activeModal === ModalType.Tutorial}
                 onClose={handleCloseModal}
-                steps={getTutorialSteps(selectedTurma === 'CCG')}
+                steps={getTutorialSteps(selectedTurma)}
                 scale={modalScale}
                 onStepChange={handleTutorialStepChange}
             />
@@ -3351,7 +3369,7 @@ const App: React.FC = () => {
                             &times;
                         </button>
 
-                        <h2 className="text-xl font-bold text-light-text dark:text-dark-text mb-6">DESATIVAR TURNO 6H</h2>
+                        <h2 className="text-xl font-bold text-light-text dark:text-dark-text mb-6">DESATIVAR TURNO {getShiftLabel(selectedTurma)}</h2>
 
                         <div className="space-y-6 text-center p-2 flex flex-col items-center">
                             <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-2 text-danger">
@@ -3359,11 +3377,11 @@ const App: React.FC = () => {
                             </div>
 
                             <div className="text-lg text-light-text dark:text-dark-text font-medium flex flex-col items-center gap-2">
-                                <span>Tem certeza que deseja desativar o turno 6H?</span>
+                                <span>Tem certeza que deseja desativar o turno {getShiftLabel(selectedTurma)}?</span>
                             </div>
 
                             <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-2">
-                                Esta ação moverá todos os funcionários atualmente no turno 6H de volta para o turno 7H, e a coluna será ocultada do painel.
+                                Esta ação moverá todos os funcionários atualmente no turno {getShiftLabel(selectedTurma)} de volta para o turno {getMainShiftLabel(selectedTurma)}, e a coluna será ocultada do painel.
                             </p>
 
                             <div className="grid grid-cols-1 gap-3 mt-6 w-full">

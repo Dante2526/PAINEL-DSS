@@ -17,6 +17,7 @@ interface EmployeeCardProps {
     domId?: string; // Prop for tutorial targeting wrapper
     specialTurnBtnId?: string; // Prop specifically for the shift button tutorial
     hideShiftButton?: boolean; // Hide shift button for turmas without 6H
+    shiftLabel?: string; // Dynamic label (6H or 18H)
 }
 
 interface CheckboxItemProps {
@@ -45,7 +46,7 @@ const CheckboxItem: React.FC<CheckboxItemProps> = ({ label, icon, type, checked,
 );
 
 
-const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, onToggleSpecialTeam, isTogglingSpecialTeam, isAdmin, onDelete, onTimeChange, onMatriculaChange, domId, specialTurnBtnId, hideShiftButton }) => {
+const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, onToggleSpecialTeam, isTogglingSpecialTeam, isAdmin, onDelete, onTimeChange, onMatriculaChange, domId, specialTurnBtnId, hideShiftButton, shiftLabel = '6H' }) => {
     const [isEditingTime, setIsEditingTime] = useState(false);
     const [editTimeValue, setEditTimeValue] = useState('');
 
@@ -206,7 +207,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, o
                         >
                             <div className="default-state">
                                 <ShiftIcon className="w-5 h-5" />
-                                <span>TURNO 6H</span>
+                                <span>TURNO {shiftLabel}</span>
                             </div>
                             <div className="loading-state">
                                 <div className="spinner"></div>
@@ -320,6 +321,7 @@ const arePropsEqual = (prevProps: EmployeeCardProps, nextProps: EmployeeCardProp
         prevProps.isTogglingSpecialTeam === nextProps.isTogglingSpecialTeam &&
         prevProps.isAdmin === nextProps.isAdmin &&
         prevProps.hideShiftButton === nextProps.hideShiftButton &&
+        prevProps.shiftLabel === nextProps.shiftLabel &&
         prevProps.domId === nextProps.domId &&
         prevProps.specialTurnBtnId === nextProps.specialTurnBtnId &&
         prevProps.onStatusChange === nextProps.onStatusChange &&

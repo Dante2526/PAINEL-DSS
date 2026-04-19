@@ -21,6 +21,7 @@ interface SpecialTeamPanelProps {
     onMatriculaUpdate?: (id: string, newMatricula: string) => void; // Added prop
     employeesForLookup: (Pick<Employee, 'name' | 'matricula'>)[];
     administrators: Administrator[]; // Access to admin list for lookup
+    turma: string | null;
 }
 
 const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = React.memo(({
@@ -38,8 +39,12 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = React.memo(({
     onTimeChange,
     onMatriculaUpdate, // Destructure prop
     employeesForLookup,
-    administrators
+    administrators,
+    turma
 }) => {
+    const shiftLabel = React.useMemo(() => {
+        return (turma === 'C' || turma === 'D') ? '18H' : '6H';
+    }, [turma]);
     const handleMatriculaChangeLocal = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         onMatriculaChange(e.target.value.replace(/[^0-9]/g, ''));
     }, [onMatriculaChange]);
@@ -63,7 +68,7 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = React.memo(({
         <div id="tutorial-special-panel" className="w-[870px] flex-shrink-0 bg-light-card dark:bg-dark-card rounded-3xl p-8 shadow-lg h-fit">
             <div id="tutorial-special-demo-area">
                 <div id="tutorial-special-header">
-                    <h2 className="text-2xl font-bold text-center text-light-text dark:text-dark-text pb-4 mb-6 border-b-2 border-gray-200 dark:border-gray-700">TURNO 6H</h2>
+                    <h2 className="text-2xl font-bold text-center text-light-text dark:text-dark-text pb-4 mb-6 border-b-2 border-gray-200 dark:border-gray-700">TURNO {shiftLabel}</h2>
 
                     <div className="space-y-4 mb-6 pb-6 border-b-2 border-gray-200 dark:border-gray-700">
                         <div className="relative">

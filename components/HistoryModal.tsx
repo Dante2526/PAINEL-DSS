@@ -6,7 +6,7 @@ import type { HistoryRecord, HistoryEmployee } from '../types';
 import { db } from '../firebase';
 import { doc, getDoc, collection, query, where, orderBy, limit, getDocs, startAfter, startAt, endAt, QueryDocumentSnapshot, DocumentData, documentId } from 'firebase/firestore';
 import ExportDropdown from './ExportDropdown';
-import { exportToPng, exportToPdf, exportToDoc, exportToExcel, exportToTxt } from '../utils/exportService';
+import { exportToPng, exportToPdf, exportToDoc, exportToExcel, exportToTxt, PdfReportData } from '../utils/exportService';
 import { SearchIcon } from './icons';
 
 // Cores do status compacto
@@ -35,6 +35,14 @@ const HistoryModal: React.FC<{
     const [historyData, setHistoryData] = useState<HistoryRecord | null>(null);
     const [loading, setLoading] = useState(false);
     const [notFound, setNotFound] = useState(false);
+
+    const shiftLabel = useMemo(() => {
+        return (turma === 'C' || turma === 'D') ? '18H' : '6H';
+    }, [turma]);
+
+    const mainShiftLabel = useMemo(() => {
+        return (turma === 'C' || turma === 'D') ? '19H' : '7H';
+    }, [turma]);
 
     // Estados para Busca por Tema
     const [searchTerm, setSearchTerm] = useState('');
@@ -201,7 +209,7 @@ const HistoryModal: React.FC<{
         report += `\n`;
 
         // Registros DSS 7H
-        report += `REGISTROS DSS (TURNO 7H)\n`;
+        report += `REGISTROS DSS (TURNO ${mainShiftLabel})\n`;
         if (historyData.registros7H.length > 0) {
             historyData.registros7H.forEach(reg => {
                 report += `Assunto: ${reg.assunto || 'NÃO INFORMADO'}\n`;
@@ -214,7 +222,7 @@ const HistoryModal: React.FC<{
 
         // Registros DSS 6H
         if (turma !== 'CCG' && historyData.registros6H.length > 0) {
-            report += `REGISTROS DSS (TURNO 6H)\n`;
+            report += `REGISTROS DSS (TURNO ${shiftLabel})\n`;
             historyData.registros6H.forEach(reg => {
                 report += `Assunto: ${reg.assunto || 'NÃO INFORMADO'}\n`;
                 if (reg.name) report += `Responsável: ${reg.name} (Matrícula: ${reg.matricula || '---'})\n`;
@@ -240,9 +248,9 @@ const HistoryModal: React.FC<{
             });
         };
 
-        formatTeam(team7H, '7H');
+        formatTeam(team7H, mainShiftLabel);
         if (turma !== 'CCG' && team6H.length > 0) {
-            formatTeam(team6H, '6H');
+            formatTeam(team6H, shiftLabel);
         }
 
         return report;
@@ -286,7 +294,22 @@ const HistoryModal: React.FC<{
     };
 
     const handleExportPdf = async () => {
-        await exportToPdf('history-capture-area', baseFileName);
+        if (!historyData) return;
+        const pdfData: PdfReportData = {
+            turma: historyData.turma,
+            dataFormatada: historyData.data,
+            registros7H: historyData.registros7H,
+            registros6H: historyData.registros6H,
+            employees: historyData.r,
+            totalFuncionarios: historyData.totalFuncionarios,
+            totalPresentes: historyData.totalPresentes,
+            totalAusentes: historyData.totalAusentes,
+            totalMal: historyData.totalMal,
+            totalPendentes: historyData.totalPendentes,
+            mainShiftLabel,
+            shiftLabel,
+        };
+        await exportToPdf(pdfData, baseFileName);
         showNotification('Histórico salvo em PDF!', 'success');
     };
 
@@ -416,10 +439,10 @@ const HistoryModal: React.FC<{
                                         </span>
                                         <div className="flex items-center gap-2">
                                             {match7H && (
-                                                <span className="text-[9px] bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">7H</span>
+                                                <span className="text-[9px] bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">{mainShiftLabel}</span>
                                             )}
                                             {match6H && (
-                                                <span className="text-[9px] bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">6H</span>
+                                                <span className="text-[9px] bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">{shiftLabel}</span>
                                             )}
                                             <span className="text-[10px] font-medium text-gray-400">{rec.turma}</span>
                                         </div>
@@ -499,7 +522,7 @@ const HistoryModal: React.FC<{
                                 <div className="absolute right-0 top-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
                                     <SubjectIcon className="w-12 h-12 text-blue-600" />
                                 </div>
-                                <div className="text-[10px] font-bold text-white bg-blue-500 px-2 py-0.5 rounded-full w-fit mb-2">TURNO 7H</div>
+                                <div className="text-[10px] font-bold text-white bg-blue-500 px-2 py-0.5 rounded-full w-fit mb-2">TURNO {mainShiftLabel}</div>
                                 <div className="mb-2 relative z-10">
                                     <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Tema DSS</span>
                                     <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight">
@@ -520,7 +543,7 @@ const HistoryModal: React.FC<{
                                     <div className="absolute right-0 top-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
                                         <ShiftIcon className="w-12 h-12 text-orange-600" />
                                     </div>
-                                    <div className="text-[10px] font-bold text-white bg-orange-500 px-2 py-0.5 rounded-full w-fit mb-2">TURNO 6H</div>
+                                    <div className="text-[10px] font-bold text-white bg-orange-500 px-2 py-0.5 rounded-full w-fit mb-2">TURNO {shiftLabel}</div>
                                     <div className="mb-2 relative z-10">
                                         <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Tema DSS</span>
                                         <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight">
@@ -558,8 +581,8 @@ const HistoryModal: React.FC<{
                         </div>
 
                         {/* Listas de funcionários */}
-                        {renderEmployeeGroup(team7H, '7H')}
-                        {turma !== 'CCG' && renderEmployeeGroup(team6H, '6H')}
+                        {renderEmployeeGroup(team7H, mainShiftLabel)}
+                        {turma !== 'CCG' && renderEmployeeGroup(team6H, shiftLabel)}
 
                         {/* Botões de exportação */}
                         <div className="grid grid-cols-2 gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
