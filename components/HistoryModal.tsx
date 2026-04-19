@@ -196,53 +196,27 @@ const HistoryModal: React.FC<{
     const generateExportText = () => {
         if (!historyData) return '';
 
-        let report = `HISTÓRICO DSS - TURMA ${historyData.turma}\n`;
-        report += `Data: ${historyData.data}\n`;
-        report += `─────────────────────────────────\n\n`;
+        const dataExibicao = (historyData.data || '').split('/').map((s, i) => i === 2 && s.length > 2 ? s.slice(-2) : s).join('/');
 
-        report += `RESUMO GERAL\n`;
-        report += `Total de Funcionários: ${historyData.totalFuncionarios}\n`;
-        report += `Presentes (DSS + Bem/Mal): ${historyData.totalPresentes}\n`;
-        report += `Ausentes: ${historyData.totalAusentes}\n`;
-        report += `Pendentes: ${historyData.totalPendentes}\n`;
-        if (historyData.totalMal > 0) report += `Estou Mal: ${historyData.totalMal}\n`;
-        report += `\n`;
-
-        // Registros DSS 7H
-        report += `REGISTROS DSS (TURNO ${mainShiftLabel})\n`;
-        if (historyData.registros7H.length > 0) {
-            historyData.registros7H.forEach(reg => {
-                report += `Assunto: ${reg.assunto || 'NÃO INFORMADO'}\n`;
-                if (reg.name) report += `Responsável: ${reg.name} (Matrícula: ${reg.matricula || '---'})\n`;
-            });
-        } else {
-            report += `Nenhum registro encontrado.\n`;
-        }
-        report += `\n`;
-
-        // Registros DSS 6H
-        if (turma !== 'CCG' && historyData.registros6H.length > 0) {
-            report += `REGISTROS DSS (TURNO ${shiftLabel})\n`;
-            historyData.registros6H.forEach(reg => {
-                report += `Assunto: ${reg.assunto || 'NÃO INFORMADO'}\n`;
-                if (reg.name) report += `Responsável: ${reg.name} (Matrícula: ${reg.matricula || '---'})\n`;
-            });
-            report += `\n`;
-        }
+        let report = `RESUMO GERAL - TURMA ${historyData.turma} - ${dataExibicao}\n`;
+        report += `• Total de Funcionários: ${historyData.totalFuncionarios}\n`;
+        report += `• Presentes (DSS + Bem/Mal): ${historyData.totalPresentes}\n`;
+        report += `• Pendentes: ${historyData.totalPendentes}\n`;
+        report += `• Ausentes: ${historyData.totalAusentes}\n\n`;
 
         const formatTeam = (team: HistoryEmployee[], turnoLabel: string) => {
             report += `EQUIPE TURNO ${turnoLabel}\n`;
             const statuses: { key: string; label: string }[] = [
                 { key: 'BEM', label: 'STATUS: "ASS.DSS + ESTOU BEM"' },
-                { key: 'MAL', label: '"ESTOU MAL"' },
-                { key: 'AUS', label: 'AUSENTES' },
+                { key: 'MAL', label: 'STATUS "ESTOU MAL"' },
                 { key: 'PEN', label: 'PENDENTES' },
+                { key: 'AUS', label: 'AUSENTES' },
             ];
             statuses.forEach(({ key, label }) => {
                 const filtered = team.filter(e => e.s === key);
                 report += `${label}\n`;
                 report += filtered.length > 0
-                    ? filtered.map(e => `${e.n} (Matrícula: ${e.m})`).join('\n')
+                    ? filtered.map(e => `• ${e.n} (Matrícula: ${e.m})`).join('\n')
                     : 'Nenhum';
                 report += `\n\n`;
             });
@@ -251,6 +225,27 @@ const HistoryModal: React.FC<{
         formatTeam(team7H, mainShiftLabel);
         if (turma !== 'CCG' && team6H.length > 0) {
             formatTeam(team6H, shiftLabel);
+        }
+
+        // Registros DSS
+        report += `REGISTROS DSS (TURNO ${mainShiftLabel})\n`;
+        if (historyData.registros7H.length > 0) {
+            historyData.registros7H.forEach(reg => {
+                report += `• Assunto: ${reg.assunto || 'NÃO INFORMADO'}\n`;
+                if (reg.name) report += `  Responsável: ${reg.name} (Matrícula: ${reg.matricula || '---'})\n`;
+            });
+        } else {
+            report += `Nenhum registro encontrado.\n`;
+        }
+        report += `\n`;
+
+        if (turma !== 'CCG' && historyData.registros6H.length > 0) {
+            report += `REGISTROS DSS (TURNO ${shiftLabel})\n`;
+            historyData.registros6H.forEach(reg => {
+                report += `• Assunto: ${reg.assunto || 'NÃO INFORMADO'}\n`;
+                if (reg.name) report += `  Responsável: ${reg.name} (Matrícula: ${reg.matricula || '---'})\n`;
+            });
+            report += `\n`;
         }
 
         return report;

@@ -542,7 +542,6 @@ const ReportModal: React.FC<{
 }> = ({ isOpen, onClose, employees, showNotification, scale, subject7H, responsible7H, matricula7H, subject6H, responsible6H, matricula6H, adminEmail, turma }) => {
     // Generate text for Clipboard/File functions
     const generateReport = () => {
-        // Filter groups by Turno
         const team7H = employees.filter(e => e.turno !== '6H');
         const team6H = employees.filter(e => e.turno === '6H');
 
@@ -551,17 +550,21 @@ const ReportModal: React.FC<{
         const totalAbsent = employees.filter(e => e.absent).length;
         const totalPending = employees.filter(e => !e.bem && !e.assDss && !e.mal && !e.absent).length;
 
+        const dataExibicao = new Date().toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: '2-digit'
+        }).replace(/\//g, '/');
 
-        let report = `RESUMO GERAL\n`;
-        report += `Total de Funcionários: ${totalEmployees}\n`;
-        report += `Presentes (DSS + Bem/Mal): ${totalPresent}\n`;
-        report += `Ausentes: ${totalAbsent}\n`;
-        report += `Pendentes: ${totalPending}\n\n`;
+        let report = `RESUMO GERAL - TURMA ${turma} - ${dataExibicao}\n`;
+        report += `• Total de Funcionários: ${totalEmployees}\n`;
+        report += `• Presentes (DSS + Bem/Mal): ${totalPresent}\n`;
+        report += `• Pendentes: ${totalPending}\n`;
+        report += `• Ausentes: ${totalAbsent}\n\n`;
 
         const shiftLabel = getShiftLabel(turma);
         const mainShiftLabel = getMainShiftLabel(turma);
 
-        // Helper to generate section list
         const getStatusList = (team: Employee[]) => {
             const bem = team.filter(e => e.bem || e.assDss);
             const mal = team.filter(e => e.mal);
@@ -569,13 +572,13 @@ const ReportModal: React.FC<{
             const pending = team.filter(e => !e.bem && !e.assDss && !e.mal && !e.absent);
 
             let section = `STATUS: "ASS.DSS + ESTOU BEM"\n`;
-            section += bem.length > 0 ? bem.map(e => `${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
-            section += `\n\n"ESTOU MAL"\n`;
-            section += mal.length > 0 ? mal.map(e => `${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
-            section += `\n\nAUSENTES\n`;
-            section += absent.length > 0 ? absent.map(e => `${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
+            section += bem.length > 0 ? bem.map(e => `• ${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
+            section += `\n\nSTATUS "ESTOU MAL"\n`;
+            section += mal.length > 0 ? mal.map(e => `• ${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
             section += `\n\nPENDENTES\n`;
-            section += pending.length > 0 ? pending.map(e => `${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
+            section += pending.length > 0 ? pending.map(e => `• ${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
+            section += `\n\nAUSENTES\n`;
+            section += absent.length > 0 ? absent.map(e => `• ${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
 
             return section;
         };
@@ -584,27 +587,25 @@ const ReportModal: React.FC<{
         report += getStatusList(team7H);
         report += `\n\n`;
 
-        if (turma !== 'CCG') {
+        if (turma !== 'CCG' && team6H.length > 0) {
             report += `EQUIPE TURNO ${shiftLabel}\n`;
             report += getStatusList(team6H);
             report += `\n\n`;
         }
 
-        // Footer Section with Registries
         report += `REGISTROS DSS (TURNO ${mainShiftLabel})\n`;
-        report += `Assunto: ${subject7H || 'NÃO INFORMADO'}`;
+        report += `• Assunto: ${subject7H || 'NÃO INFORMADO'}`;
         if (responsible7H) {
-            // Using a new line for Responsible to be clear, including Matricula
-            report += `\nResponsável: ${responsible7H} (Matrícula: ${matricula7H || '---'})\n`;
+            report += `\n  Responsável: ${responsible7H} (Matrícula: ${matricula7H || '---'})\n`;
         } else {
             report += `\n`;
         }
 
         if (turma !== 'CCG') {
             report += `\nREGISTROS DSS (TURNO ${shiftLabel})\n`;
-            report += `Assunto: ${subject6H || 'NÃO INFORMADO'}`;
+            report += `• Assunto: ${subject6H || 'NÃO INFORMADO'}`;
             if (responsible6H) {
-                report += `\nResponsável: ${responsible6H} (Matrícula: ${matricula6H || '---'})\n`;
+                report += `\n  Responsável: ${responsible6H} (Matrícula: ${matricula6H || '---'})\n`;
             } else {
                 report += `\n`;
             }
@@ -670,9 +671,43 @@ const ReportModal: React.FC<{
     };
 
     const handleExportPdf = async () => {
-        await exportToPdf('report-capture-area', baseFileName);
+        const dataFormatada = new Date().toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: '2-digit'
+        }).replace(/\//g, '/'); // Garante formato DD/MM/YY
+
+        const pdfData: PdfReportData = {
+            turma: turma || '?',
+            dataFormatada: dataFormatada,
+            totalFuncionarios: employees.length,
+            totalPresentes: visualStats.present,
+            totalPendentes: visualStats.missingCount,
+            totalAusentes: visualStats.absentCount,
+            totalMal: visualStats.malCount,
+            employees: employees.map(e => ({
+                n: e.name,
+                m: e.matricula,
+                s: e.bem || e.assDss ? 'BEM' : e.mal ? 'MAL' : e.absent ? 'AUS' : 'PEN',
+                turno: e.turno || '7H'
+            })),
+            registros7H: [{
+                assunto: subject7H || 'NÃO INFORMADO',
+                name: responsible7H || '',
+                matricula: matricula7H || ''
+            }],
+            registros6H: [{
+                assunto: subject6H || 'NÃO INFORMADO',
+                name: responsible6H || '',
+                matricula: matricula6H || ''
+            }],
+            mainShiftLabel: getMainShiftLabel(turma),
+            shiftLabel: getShiftLabel(turma),
+        };
+
+        await exportToPdf(pdfData, baseFileName);
         showNotification('Relatório salvo em PDF!', 'success');
-        logAuditEvent(adminEmail, 'REPORT_DOWNLOAD', 'Relatório baixado como PDF', turma);
+        logAuditEvent(adminEmail, 'REPORT_DOWNLOAD', 'Relatório baixado como PDF estruturado', turma);
         onClose();
     };
 
