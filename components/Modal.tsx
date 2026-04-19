@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useState } from 'react';
+import React, { ReactNode, useEffect, useState, useRef, useCallback } from 'react';
 
 interface ModalProps {
   isOpen: boolean;
@@ -10,25 +10,47 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, scale = 1, size = 'sm' }) => {
-  const [viewportHeight, setViewportHeight] = useState('100vh');
+  const [viewportHeight, setViewportHeight] = useState('100dvh');
+  const initialHeightRef = useRef<number | null>(null);
+  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      initialHeightRef.current = null;
+      return;
+    }
+
+    // Captura a altura inicial (sem teclado) apenas uma vez ao abrir
+    const fullHeight = window.visualViewport?.height ?? window.innerHeight;
+    initialHeightRef.current = fullHeight;
+    setViewportHeight(`${fullHeight}px`);
 
     const updateHeight = () => {
-      if (window.visualViewport) {
-        setViewportHeight(`${window.visualViewport.height}px`);
-      } else {
-        setViewportHeight(`${window.innerHeight}px`);
-      }
-    };
+      // Cancela qualquer update pendente para evitar thrashing
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
 
-    updateHeight();
+      rafRef.current = requestAnimationFrame(() => {
+        const currentHeight = window.visualViewport?.height ?? window.innerHeight;
+        const initial = initialHeightRef.current ?? currentHeight;
+
+        // Se o teclado abriu (viewport encolheu significativamente),
+        // NÃO redimensionar o modal — apenas deixar o CSS scroll lidar com isso.
+        // Só atualiza se for uma mudança de orientação/resize real (diferença < 150px = teclado)
+        const diff = initial - currentHeight;
+        if (diff < 150) {
+          // Mudança pequena ou viewport cresceu (teclado fechou): atualizar normalmente
+          initialHeightRef.current = currentHeight;
+          setViewportHeight(`${currentHeight}px`);
+        }
+        // Se diff >= 150 (teclado abriu), manter a altura original para evitar tremor
+      });
+    };
 
     window.visualViewport?.addEventListener('resize', updateHeight);
     window.addEventListener('resize', updateHeight);
 
     return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
       window.visualViewport?.removeEventListener('resize', updateHeight);
       window.removeEventListener('resize', updateHeight);
     };
