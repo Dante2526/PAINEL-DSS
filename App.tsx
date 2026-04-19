@@ -3522,12 +3522,15 @@ const App: React.FC = () => {
                             </button>
                         </div>
 
-                        <button
-                            onClick={() => setActiveModal(ModalType.None)}
-                            className="mt-8 text-light-text-secondary dark:text-dark-text-secondary font-bold hover:text-primary transition-colors uppercase tracking-widest text-sm"
-                        >
-                            FECHAR
-                        </button>
+                        <div className="mt-10 flex justify-center">
+                            <button
+                                onClick={() => setActiveModal(ModalType.None)}
+                                className="px-10 py-3 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-light-text-secondary dark:text-dark-text-secondary font-bold rounded-2xl transition-all flex items-center gap-2 border border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 shadow-sm"
+                            >
+                                <span className="text-xl leading-none">&times;</span>
+                                <span className="uppercase tracking-widest text-xs">FECHAR AJUDA</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
