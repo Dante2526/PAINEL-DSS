@@ -83,7 +83,7 @@ function getMainShiftLabel(turma: string | null): string {
 
 const getTutorialSteps = (turma: string | null): TutorialStep[] => {
     const isCCG = turma === 'CCG';
-    const shiftLabel = getShiftLabel(turma);
+    const mainShiftLabel = getMainShiftLabel(turma);
 
     const baseSteps: TutorialStep[] = [
         {
@@ -126,8 +126,8 @@ const getTutorialSteps = (turma: string | null): TutorialStep[] => {
             },
             {
                 targetId: 'tutorial-return-turn-btn',
-                title: `Retornar ao Turno Normal`,
-                content: `Ao Clicar neste botão na coluna do horário especial, o colaborador é movido de volta para o turno normal.`,
+                title: `Retornar ao Turno ${mainShiftLabel}`,
+                content: `Ao Clicar neste botão na coluna do horário especial, o colaborador é movido de volta para o turno ${mainShiftLabel}.`,
                 scrollTargetId: 'tutorial-special-demo-area'
             }
         );
@@ -205,7 +205,8 @@ const ManualRegisterSection: React.FC<{
     onRegister: () => void;
     employeesForLookup: (Pick<Employee, 'name' | 'matricula'>)[];
     administrators: Administrator[];
-}> = React.memo(({ subject, matricula, onSubjectChange, onMatriculaChange, onRegister, employeesForLookup, administrators }) => {
+    turma: string | null;
+}> = React.memo(({ subject, matricula, onSubjectChange, onMatriculaChange, onRegister, employeesForLookup, administrators, turma }) => {
     const foundName = useMemo(() => {
         if (!matricula) return '';
         const admin = administrators.find(a => a.matricula === matricula);
@@ -228,7 +229,7 @@ const ManualRegisterSection: React.FC<{
                         type="text"
                         value={subject}
                         onChange={(e) => onSubjectChange(e.target.value)}
-                        placeholder="ASSUNTO DO DSS"
+                        placeholder={`TEMA DSS - TURNO ${getMainShiftLabel(turma)}`}
                         className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition uppercase"
                         autoCapitalize="characters"
                     />
@@ -266,6 +267,7 @@ const ManualRegisterSection: React.FC<{
 }, (prev, next) =>
     prev.subject === next.subject &&
     prev.matricula === next.matricula &&
+    prev.turma === next.turma &&
     prev.onSubjectChange === next.onSubjectChange &&
     prev.onMatriculaChange === next.onMatriculaChange &&
     prev.onRegister === next.onRegister &&
@@ -1998,11 +2000,12 @@ const App: React.FC = () => {
             return;
         }
         const newTurno = employee.turno === '6H' ? '7H' : '6H';
+        const displayTurno = employee.turno === '6H' ? getMainShiftLabel(selectedTurma) : getShiftLabel(selectedTurma);
 
         if (isDemoMode) {
             setTimeout(() => {
                 setEmployees(prev => prev.map(e => e.id === id ? { ...e, turno: newTurno } : e));
-                showNotification(`${employee.name} foi movido para o turno ${newTurno} (DEMO).`, 'success');
+                showNotification(`${employee.name} foi movido para o turno ${displayTurno} (DEMO).`, 'success');
                 setTogglingSpecialTeamId(null);
             }, 500);
             return;
@@ -2019,8 +2022,8 @@ const App: React.FC = () => {
             await updateDoc(docRef, {
                 turno: newTurno
             });
-            showNotification(`${employee.name} foi movido para o turno ${newTurno}.`, 'success');
-            logAuditEvent(adminEmailRef.current, 'TOGGLE_TURNO', `Funcionário: ${employee.name} | Novo turno: ${newTurno}`, selectedTurma);
+            showNotification(`${employee.name} foi movido para o turno ${displayTurno}.`, 'success');
+            logAuditEvent(adminEmailRef.current, 'TOGGLE_TURNO', `Funcionário: ${employee.name} | Novo turno: ${displayTurno}`, selectedTurma);
         } catch (error) {
             console.error("Failed to toggle special team status:", error);
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
@@ -2803,6 +2806,7 @@ const App: React.FC = () => {
                                     onRegister={handleRegister7H}
                                     employeesForLookup={allEmployeesForLookup}
                                     administrators={administrators}
+                                    turma={selectedTurma}
                                 />
 
                                 <div className="flex gap-6 pr-12 relative w-fit">

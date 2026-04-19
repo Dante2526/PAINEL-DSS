@@ -45,6 +45,10 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = React.memo(({
     const shiftLabel = React.useMemo(() => {
         return (turma === 'C' || turma === 'D') ? '18H' : '6H';
     }, [turma]);
+
+    const mainShiftLabel = React.useMemo(() => {
+        return (turma === 'C' || turma === 'D') ? '19H' : '7H';
+    }, [turma]);
     const handleMatriculaChangeLocal = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         onMatriculaChange(e.target.value.replace(/[^0-9]/g, ''));
     }, [onMatriculaChange]);
@@ -77,7 +81,7 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = React.memo(({
                                 type="text"
                                 value={subject}
                                 onChange={(e) => onSubjectChange(e.target.value)}
-                                placeholder="Assunto do DSS"
+                                placeholder={`TEMA DSS - TURNO ${shiftLabel}`}
                                 className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition uppercase"
                                 autoCapitalize="characters"
                             />
@@ -128,6 +132,7 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = React.memo(({
                         onTimeChange={onTimeChange}
                         onMatriculaChange={onMatriculaUpdate} // Pass the function
                         specialTurnBtnId="tutorial-return-turn-btn"
+                        shiftLabel={mainShiftLabel}
                     />
                 )}
             </div>
@@ -145,6 +150,7 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = React.memo(({
                             onDelete={onDeleteUser}
                             onTimeChange={onTimeChange}
                             onMatriculaChange={onMatriculaUpdate} // Pass the function
+                            shiftLabel={mainShiftLabel}
                         />
                     ))}
                 </div>
