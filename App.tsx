@@ -2585,9 +2585,8 @@ const App: React.FC = () => {
     const handleHelpClick = useCallback(() => {
         localStorage.removeItem('hasSeenTutorial');
         localStorage.removeItem('hasSeenAdminTutorial');
-        showNotification('Tutoriais redefinidos. Eles serão exibidos na próxima vez.', 'success');
-        setActiveModal(ModalType.Tutorial);
-    }, [showNotification]);
+        setActiveModal(ModalType.TutorialChoice);
+    }, []);
 
     const stats = useMemo(() => ({
         bem: employees.filter(e => e.bem).length,
@@ -3469,6 +3468,97 @@ const App: React.FC = () => {
                                 </button>
                             </div>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL DE ESCOLHA DE TUTORIAL */}
+            {activeModal === ModalType.TutorialChoice && (
+                <div
+                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+                    onClick={() => setActiveModal(ModalType.None)}
+                >
+                    <div
+                        className="bg-light-card dark:bg-dark-card rounded-3xl shadow-2xl p-10 w-full max-w-lg text-center relative mx-4 border border-white/20"
+                        style={{
+                            transform: `scale(${modalScale})`,
+                            animation: 'fade-in-scale 0.3s forwards ease-out'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <h2 className="text-3xl font-black text-light-text dark:text-white mb-2 tracking-tight">COMO PODEMOS AJUDAR?</h2>
+                        <p className="text-light-text-secondary dark:text-dark-text-secondary mb-8 font-medium">Escolha a melhor forma de aprender a usar o sistema</p>
+
+                        <div className="grid grid-cols-1 gap-4">
+                            <button
+                                onClick={() => setActiveModal(ModalType.Tutorial)}
+                                className="group flex items-center gap-6 p-6 bg-gradient-to-br from-primary to-primary-dark rounded-2xl text-white shadow-lg hover:shadow-primary/30 transition-all transform hover:-translate-y-1 text-left"
+                            >
+                                <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                                    <HelpIcon className="w-8 h-8" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-xl leading-tight">Tour Interativo</h3>
+                                    <p className="text-white/70 text-sm mt-1 leading-relaxed">Passo a passo guiado diretamente na tela do sistema.</p>
+                                </div>
+                            </button>
+
+                            <button
+                                onClick={() => setActiveModal(ModalType.TutorialVideo)}
+                                className="group flex items-center gap-6 p-6 bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl text-white shadow-lg hover:shadow-purple-500/30 transition-all transform hover:-translate-y-1 text-left"
+                            >
+                                <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                                    <div className="w-8 h-8 flex items-center justify-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.91 11.672a.375.375 0 0 1 0 .656l-5.603 3.113a.375.375 0 0 1-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112Z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-xl leading-tight">Vídeo Aula</h3>
+                                    <p className="text-white/70 text-sm mt-1 leading-relaxed">Assista ao treinamento completo em vídeo com áudio explicativo.</p>
+                                </div>
+                            </button>
+                        </div>
+
+                        <button
+                            onClick={() => setActiveModal(ModalType.None)}
+                            className="mt-8 text-light-text-secondary dark:text-dark-text-secondary font-bold hover:text-primary transition-colors uppercase tracking-widest text-sm"
+                        >
+                            FECHAR
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* MODAL DE VÍDEO TUTORIAL */}
+            {activeModal === ModalType.TutorialVideo && (
+                <div
+                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-md"
+                    onClick={() => setActiveModal(ModalType.None)}
+                >
+                    <div
+                        className="w-full max-w-[1280px] aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl relative border border-white/10"
+                        style={{
+                            transform: `scale(${modalScale})`,
+                            animation: 'fade-in-scale 0.3s forwards ease-out'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            onClick={() => setActiveModal(ModalType.None)}
+                            className="absolute top-4 right-4 bg-black/50 hover:bg-black/80 text-white w-12 h-12 rounded-full flex items-center justify-center text-3xl z-10 backdrop-blur-md transition-all shadow-lg"
+                        >
+                            &times;
+                        </button>
+                        
+                        <iframe
+                            src="https://drive.google.com/file/d/17echHUSii5HsYV3uqciHzckJnTbw2Pig/preview"
+                            className="w-full h-full border-none"
+                            allow="autoplay"
+                            title="Vídeo Tutorial Painel DSS"
+                        ></iframe>
                     </div>
                 </div>
             )}

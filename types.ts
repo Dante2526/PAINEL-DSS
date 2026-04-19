@@ -71,10 +71,12 @@ export enum ModalType {
   ConfirmDelete, // Added for Delete confirmation
   InvalidMatricula, // Added for 8-digit validation warning
   Tutorial,
+  TutorialChoice,      // Novo: Escolha entre tour ou vídeo
+  TutorialVideo,       // Novo: Visualização do vídeo aula
   DemoPassword,
   ImportEmployee,
   UserExistsWarning,
-  ConfirmDeactivate6H, // Added for hiding 6H shift
-  HistoryView, // Added for history view modal
-  AutomationPassword, // Added for toggling automation securely
+  ConfirmDeactivate6H,
+  HistoryView,
+  AutomationPassword,
 }
