@@ -83,6 +83,7 @@ function getMainShiftLabel(turma: string | null): string {
 
 const getTutorialSteps = (turma: string | null): TutorialStep[] => {
     const isCCG = turma === 'CCG';
+    const shiftLabel = getShiftLabel(turma);
     const mainShiftLabel = getMainShiftLabel(turma);
 
     const baseSteps: TutorialStep[] = [
