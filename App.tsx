@@ -3539,24 +3539,27 @@ const App: React.FC = () => {
                     onClick={() => setActiveModal(ModalType.None)}
                 >
                     <div
-                        className="w-full max-w-[1280px] aspect-video bg-black rounded-3xl overflow-hidden shadow-2xl relative border border-white/10"
+                        className="w-[95vw] max-w-[1280px] bg-black rounded-lg shadow-2xl relative border border-white/10"
                         style={{
                             transform: `scale(${modalScale})`,
-                            animation: 'fade-in-scale 0.3s forwards ease-out'
+                            animation: 'fade-in-scale 0.3s forwards ease-out',
+                            maxHeight: '85vh',
+                            aspectRatio: '16/9'
                         }}
                         onClick={(e) => e.stopPropagation()}
                     >
                         <button
                             onClick={() => setActiveModal(ModalType.None)}
-                            className="absolute top-4 right-4 bg-black/50 hover:bg-black/80 text-white w-12 h-12 rounded-full flex items-center justify-center text-3xl z-10 backdrop-blur-md transition-all shadow-lg"
+                            className="absolute -top-14 right-0 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl flex items-center justify-center gap-2 font-bold z-10 backdrop-blur-md transition-all shadow-lg border border-white/10"
                         >
-                            &times;
+                            <span className="text-sm">FECHAR VÍDEO</span>
+                            <span className="text-xl">&times;</span>
                         </button>
                         
                         <iframe
-                            src="https://drive.google.com/file/d/17echHUSii5HsYV3uqciHzckJnTbw2Pig/preview"
-                            className="w-full h-full border-none"
-                            allow="autoplay"
+                            src="https://drive.google.com/file/d/17echHUSii5HsYV3uqciHzckJnTbw2Pig/preview?hd=1"
+                            className="w-full h-full rounded-lg"
+                            allow="autoplay; fullscreen"
                             title="Vídeo Tutorial Painel DSS"
                         ></iframe>
                     </div>
