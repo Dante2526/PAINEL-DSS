@@ -1248,7 +1248,6 @@ const App: React.FC = () => {
 
     // modalScale é sempre 1 (definido como constante acima)
 
-    // Effect to check if tutorial should be shown for first-time users
     useEffect(() => {
         // Wait for loading to finish so DOM elements are present
         let timeoutId: NodeJS.Timeout;
@@ -1257,9 +1256,9 @@ const App: React.FC = () => {
             if (!hasSeenTutorial) {
                 // Short delay to ensure rendering frames are complete
                 timeoutId = setTimeout(() => {
-                    setActiveModal(ModalType.Tutorial);
+                    setActiveModal(ModalType.TutorialChoice);
                     localStorage.setItem('hasSeenTutorial', 'true');
-                }, 1000);
+                }, 1500);
             }
         }
         return () => {
@@ -2583,8 +2582,7 @@ const App: React.FC = () => {
     }, []);
 
     const handleHelpClick = useCallback(() => {
-        localStorage.removeItem('hasSeenTutorial');
-        localStorage.removeItem('hasSeenAdminTutorial');
+        // Não removemos mais as flags aqui para evitar loops de tutorial ao recarregar
         setActiveModal(ModalType.TutorialChoice);
     }, []);
 
