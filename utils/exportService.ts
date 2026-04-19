@@ -283,67 +283,83 @@ export const exportToExcel = (dataOrArray: PdfReportData | Array<any>, filename:
 
         if (!Array.isArray(dataOrArray)) {
             const data = dataOrArray as PdfReportData;
-            // Gerar Excel estruturado (igual ao TXT/PDF)
             const rows: any[][] = [];
 
-            // 1. Cabeçalho
+            // 1. Cabeçalho Principal
             rows.push([`RESUMO GERAL - TURMA ${data.turma} - ${data.dataFormatada}`]);
-            rows.push([]); // Espaço
+            rows.push([]);
 
-            // 2. Resumo
+            // 2. Resumo Estatístico
             rows.push(['RESUMO ESTATÍSTICO']);
-            rows.push(['• Total de Funcionários', data.totalFuncionarios]);
-            rows.push(['• Presentes (DSS + Bem/Mal)', data.totalPresentes]);
-            rows.push(['• Pendentes', data.totalPendentes]);
-            rows.push(['• Ausentes', data.totalAusentes]);
-            rows.push([]); // Espaço
+            rows.push(['Total de Funcionários:', data.totalFuncionarios]);
+            rows.push(['Presentes (DSS + Bem/Mal):', data.totalPresentes]);
+            rows.push(['Pendentes:', data.totalPendentes]);
+            rows.push(['Ausentes:', data.totalAusentes]);
+            rows.push([]);
 
-            // 3. Registros DSS
             const mainLabel = data.mainShiftLabel || '7H';
             const secLabel = data.shiftLabel || '6H';
 
-            rows.push([`REGISTROS DSS - TURNO ${mainLabel}`]);
+            // 3. Seção Turno Principal
+            rows.push([`=== EQUIPE TURNO ${mainLabel} ===`]);
+            
+            // Registros DSS do Turno Principal
+            rows.push(['REGISTROS DSS']);
             if (data.registros7H.length > 0) {
                 data.registros7H.forEach(reg => {
                     rows.push(['Assunto:', reg.assunto || 'NÃO INFORMADO']);
                     rows.push(['Responsável:', `${reg.name || '---'} (Matrícula: ${reg.matricula || '---'})`]);
-                    rows.push([]);
                 });
             } else {
-                rows.push(['Nenhum registro encontrado.']);
-                rows.push([]);
+                rows.push(['Nenhum tema registrado.']);
             }
+            rows.push([]);
 
-            if (data.turma !== 'CCG' && data.registros6H.length > 0) {
-                rows.push([`REGISTROS DSS - TURNO ${secLabel}`]);
-                data.registros6H.forEach(reg => {
-                    rows.push(['Assunto:', reg.assunto || 'NÃO INFORMADO']);
-                    rows.push(['Responsável:', `${reg.name || '---'} (Matrícula: ${reg.matricula || '---'})`]);
-                    rows.push([]);
-                });
-            }
-
-            // 4. Tabela de Funcionários
-            rows.push(['LISTAGEM DE COLABORADORES']);
+            // Lista do Turno Principal
             rows.push(['NOME', 'MATRÍCULA', 'TURNO', 'STATUS']);
-
-            data.employees.forEach(e => {
-                let statusLabel = 'PENDENTE';
-                if (e.s === 'BEM') statusLabel = 'ASS.DSS + BEM';
-                else if (e.s === 'MAL') statusLabel = 'ESTOU MAL';
-                else if (e.s === 'AUS') statusLabel = 'AUSENTE';
-                
+            const mainTeam = data.employees.filter(e => e.turno !== '6H');
+            mainTeam.forEach(e => {
+                let statusLabel = e.s === 'BEM' ? 'ASS.DSS + BEM' : e.s === 'MAL' ? 'ESTOU MAL' : e.s === 'AUS' ? 'AUSENTE' : 'PENDENTE';
                 rows.push([e.n, e.m, e.turno || '7H', statusLabel]);
             });
+            rows.push([]);
+            rows.push([]);
+
+            // 4. Seção Turno Secundário (se existir)
+            if (data.turma !== 'CCG') {
+                const secTeam = data.employees.filter(e => e.turno === '6H');
+                if (secTeam.length > 0 || data.registros6H.length > 0) {
+                    rows.push([`=== EQUIPE TURNO ${secLabel} ===`]);
+                    
+                    rows.push(['REGISTROS DSS']);
+                    if (data.registros6H.length > 0) {
+                        data.registros6H.forEach(reg => {
+                            rows.push(['Assunto:', reg.assunto || 'NÃO INFORMADO']);
+                            rows.push(['Responsável:', `${reg.name || '---'} (Matrícula: ${reg.matricula || '---'})`]);
+                        });
+                    } else {
+                        rows.push(['Nenhum tema registrado.']);
+                    }
+                    rows.push([]);
+
+                    if (secTeam.length > 0) {
+                        rows.push(['NOME', 'MATRÍCULA', 'TURNO', 'STATUS']);
+                        secTeam.forEach(e => {
+                            let statusLabel = e.s === 'BEM' ? 'ASS.DSS + BEM' : e.s === 'MAL' ? 'ESTOU MAL' : e.s === 'AUS' ? 'AUSENTE' : 'PENDENTE';
+                            rows.push([e.n, e.m, e.turno || '6H', statusLabel]);
+                        });
+                    }
+                }
+            }
 
             ws = XLSX.utils.aoa_to_sheet(rows);
 
             // Ajustar larguras
             ws['!cols'] = [
-                { wpx: 250 }, // Coluna A (Nomes/Labels)
-                { wpx: 150 }, // Coluna B (Dados)
-                { wpx: 80 },  // Coluna C (Turno)
-                { wpx: 120 }, // Coluna D (Status)
+                { wpx: 300 }, // NOME / Labels
+                { wpx: 150 }, // MATRICULA / Valores
+                { wpx: 100 }, // TURNO
+                { wpx: 150 }, // STATUS
             ];
         } else {
             // Fallback para o modo antigo (array de objetos)
