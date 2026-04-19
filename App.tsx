@@ -336,7 +336,8 @@ const AdminOptionsModal: React.FC<{
     is6HActive: boolean;
     isAutomationPaused: boolean;
     scale: number;
-}> = ({ isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onImportUser, onEnterDemo, onStartAdminTutorial, onToggle6H, onToggleAutomation, onHistory, is6HActive, isAutomationPaused, scale }) => {
+    selectedTurma: string | null;
+}> = ({ isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onImportUser, onEnterDemo, onStartAdminTutorial, onToggle6H, onToggleAutomation, onHistory, is6HActive, isAutomationPaused, scale, selectedTurma }) => {
     if (!isOpen) return null;
 
     return (
@@ -2955,6 +2956,7 @@ const App: React.FC = () => {
                                 is6HActive={is6HActive}
                                 isAutomationPaused={isAutomationPaused}
                                 scale={modalScale}
+                                selectedTurma={selectedTurma}
                             />
             <DemoPasswordModal
                 isOpen={activeModal === ModalType.DemoPassword}
