@@ -354,16 +354,14 @@ const HistoryModal: React.FC<{
                         </div>
                         <input
                             type="text"
-                            inputMode="text"
                             autoComplete="off"
                             autoCorrect="off"
-                            autoCapitalize="characters"
                             spellCheck={false}
                             placeholder="BUSCAR POR TEMA (EX: SEGURANÇA, EPI...)"
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value.toUpperCase())}
-                            className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-gray-400 uppercase font-medium"
-                            style={{ fontSize: '16px' }}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-gray-400 font-medium"
+                            style={{ fontSize: '16px', textTransform: 'uppercase' }}
                         />
                     </div>
                     
