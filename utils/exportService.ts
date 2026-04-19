@@ -82,7 +82,7 @@ export const exportToPdf = async (_elementIdOrData: string | PdfReportData, file
         const secLabel = data.shiftLabel || '6H';
 
         // ═══════════════════════════════════════════
-        // CABEÇALHO ESCURO (igual ao e-mail)
+        // CABEÇALHO ESCURO (CENTRALIZADO)
         // ═══════════════════════════════════════════
         pdf.setFillColor(30, 41, 59);
         pdf.rect(0, 0, pageWidth, 28, 'F');
@@ -90,7 +90,7 @@ export const exportToPdf = async (_elementIdOrData: string | PdfReportData, file
         pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(14);
         pdf.setTextColor(255, 255, 255);
-        pdf.text(`RESUMO GERAL - TURMA ${data.turma} - ${data.dataFormatada}`, margin, 18);
+        pdf.text(`RESUMO GERAL - TURMA ${data.turma} - ${data.dataFormatada}`, pageWidth / 2, 18, { align: 'center' });
 
         y = 36;
 
@@ -107,6 +107,7 @@ export const exportToPdf = async (_elementIdOrData: string | PdfReportData, file
             `Pendentes: ${data.totalPendentes}`,
             `Ausentes: ${data.totalAusentes}`,
         ];
+        
         bullets.forEach(text => {
             checkPageBreak(6);
             pdf.setFont('helvetica', 'normal');
@@ -275,27 +276,87 @@ export const exportToDoc = (text: string, filename: string) => {
     URL.revokeObjectURL(url);
 };
 
-export const exportToExcel = (data: Array<any>, filename: string) => {
+export const exportToExcel = (dataOrArray: PdfReportData | Array<any>, filename: string) => {
     try {
-        // Create a new workbook
         const wb = XLSX.utils.book_new();
-        
-        // Convert the JSON data array to a worksheet
-        const ws = XLSX.utils.json_to_sheet(data);
-        
-        // Adjust column widths automatically based on content
-        const columnWidths = [
-            { wpx: 200 }, // NOME
-            { wpx: 100 }, // MATRICULA
-            { wpx: 100 }, // TURNO
-            { wpx: 150 }, // STATUS
-        ];
-        ws['!cols'] = columnWidths;
+        let ws: XLSX.WorkSheet;
 
-        // Append the worksheet to the workbook
+        if (!Array.isArray(dataOrArray)) {
+            const data = dataOrArray as PdfReportData;
+            // Gerar Excel estruturado (igual ao TXT/PDF)
+            const rows: any[][] = [];
+
+            // 1. Cabeçalho
+            rows.push([`RESUMO GERAL - TURMA ${data.turma} - ${data.dataFormatada}`]);
+            rows.push([]); // Espaço
+
+            // 2. Resumo
+            rows.push(['RESUMO ESTATÍSTICO']);
+            rows.push(['• Total de Funcionários', data.totalFuncionarios]);
+            rows.push(['• Presentes (DSS + Bem/Mal)', data.totalPresentes]);
+            rows.push(['• Pendentes', data.totalPendentes]);
+            rows.push(['• Ausentes', data.totalAusentes]);
+            rows.push([]); // Espaço
+
+            // 3. Registros DSS
+            const mainLabel = data.mainShiftLabel || '7H';
+            const secLabel = data.shiftLabel || '6H';
+
+            rows.push([`REGISTROS DSS - TURNO ${mainLabel}`]);
+            if (data.registros7H.length > 0) {
+                data.registros7H.forEach(reg => {
+                    rows.push(['Assunto:', reg.assunto || 'NÃO INFORMADO']);
+                    rows.push(['Responsável:', `${reg.name || '---'} (Matrícula: ${reg.matricula || '---'})`]);
+                    rows.push([]);
+                });
+            } else {
+                rows.push(['Nenhum registro encontrado.']);
+                rows.push([]);
+            }
+
+            if (data.turma !== 'CCG' && data.registros6H.length > 0) {
+                rows.push([`REGISTROS DSS - TURNO ${secLabel}`]);
+                data.registros6H.forEach(reg => {
+                    rows.push(['Assunto:', reg.assunto || 'NÃO INFORMADO']);
+                    rows.push(['Responsável:', `${reg.name || '---'} (Matrícula: ${reg.matricula || '---'})`]);
+                    rows.push([]);
+                });
+            }
+
+            // 4. Tabela de Funcionários
+            rows.push(['LISTAGEM DE COLABORADORES']);
+            rows.push(['NOME', 'MATRÍCULA', 'TURNO', 'STATUS']);
+
+            data.employees.forEach(e => {
+                let statusLabel = 'PENDENTE';
+                if (e.s === 'BEM') statusLabel = 'ASS.DSS + BEM';
+                else if (e.s === 'MAL') statusLabel = 'ESTOU MAL';
+                else if (e.s === 'AUS') statusLabel = 'AUSENTE';
+                
+                rows.push([e.n, e.m, e.turno || '7H', statusLabel]);
+            });
+
+            ws = XLSX.utils.aoa_to_sheet(rows);
+
+            // Ajustar larguras
+            ws['!cols'] = [
+                { wpx: 250 }, // Coluna A (Nomes/Labels)
+                { wpx: 150 }, // Coluna B (Dados)
+                { wpx: 80 },  // Coluna C (Turno)
+                { wpx: 120 }, // Coluna D (Status)
+            ];
+        } else {
+            // Fallback para o modo antigo (array de objetos)
+            ws = XLSX.utils.json_to_sheet(dataOrArray);
+            ws['!cols'] = [
+                { wpx: 200 },
+                { wpx: 100 },
+                { wpx: 100 },
+                { wpx: 150 },
+            ];
+        }
+
         XLSX.utils.book_append_sheet(wb, ws, "Relatório");
-        
-        // Write file and trigger download
         XLSX.writeFile(wb, `${filename}.xlsx`);
     } catch (error) {
         console.error('Error generating Excel:', error);

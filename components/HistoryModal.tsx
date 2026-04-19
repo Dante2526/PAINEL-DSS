@@ -273,13 +273,21 @@ const HistoryModal: React.FC<{
 
     const handleExportExcel = () => {
         if (!historyData) return;
-        const formattedData = historyData.r.map(e => ({
-            "NOME": e.n,
-            "MATRÍCULA": e.m,
-            "TURNO": e.turno || '7H',
-            "STATUS": e.s === 'BEM' ? "ASS.DSS + BEM" : e.s === 'MAL' ? "ESTOU MAL" : e.s === 'AUS' ? "AUSENTE" : "PENDENTE"
-        }));
-        exportToExcel(formattedData, baseFileName);
+        const pdfData: PdfReportData = {
+            turma: historyData.turma,
+            dataFormatada: historyData.data,
+            registros7H: historyData.registros7H,
+            registros6H: historyData.registros6H,
+            employees: historyData.r,
+            totalFuncionarios: historyData.totalFuncionarios,
+            totalPresentes: historyData.totalPresentes,
+            totalAusentes: historyData.totalAusentes,
+            totalMal: historyData.totalMal,
+            totalPendentes: historyData.totalPendentes,
+            mainShiftLabel,
+            shiftLabel,
+        };
+        exportToExcel(pdfData, baseFileName);
         showNotification('Histórico baixado em Excel!', 'success');
     };
 

@@ -651,15 +651,43 @@ const ReportModal: React.FC<{
     };
 
     const handleExportExcel = () => {
-        const formattedData = employees.map(e => ({
-            "NOME": e.name,
-            "MATRÍCULA": e.matricula,
-            "TURNO": e.turno || '7H',
-            "STATUS": e.bem || e.assDss ? "ASS.DSS + BEM" : e.mal ? "ESTOU MAL" : e.absent ? "AUSENTE" : "PENDENTE"
-        }));
-        exportToExcel(formattedData, baseFileName);
+        const dataFormatada = new Date().toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: '2-digit'
+        }).replace(/\//g, '/');
+
+        const excelData: PdfReportData = {
+            turma: turma || '?',
+            dataFormatada: dataFormatada,
+            totalFuncionarios: employees.length,
+            totalPresentes: visualStats.present,
+            totalPendentes: visualStats.missingCount,
+            totalAusentes: visualStats.absentCount,
+            totalMal: visualStats.malCount,
+            employees: employees.map(e => ({
+                n: e.name,
+                m: e.matricula,
+                s: e.bem || e.assDss ? 'BEM' : e.mal ? 'MAL' : e.absent ? 'AUS' : 'PEN',
+                turno: e.turno || '7H'
+            })),
+            registros7H: [{
+                assunto: subject7H || 'NÃO INFORMADO',
+                name: responsible7H || '',
+                matricula: matricula7H || ''
+            }],
+            registros6H: [{
+                assunto: subject6H || 'NÃO INFORMADO',
+                name: responsible6H || '',
+                matricula: matricula6H || ''
+            }],
+            mainShiftLabel: getMainShiftLabel(turma),
+            shiftLabel: getShiftLabel(turma),
+        };
+
+        exportToExcel(excelData, baseFileName);
         showNotification('Relatório baixado em Excel!', 'success');
-        logAuditEvent(adminEmail, 'REPORT_DOWNLOAD', 'Relatório baixado como arquivo Excel', turma);
+        logAuditEvent(adminEmail, 'REPORT_DOWNLOAD', 'Relatório baixado como Excel estruturado', turma);
         onClose();
     };
 
