@@ -131,10 +131,13 @@ jobs:
 
       - name: Rodar script de limpeza
         if: steps.verificar-dia.outputs.should_run == 'true'
+        # Padrão Ouro: output de steps isolado em variável de ambiente,
+        # evitando injeção de comandos via interpolação direta no bloco 'run'.
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          TARGET_TEAMS: ${{ steps.verificar-dia.outputs.target_team }}
         run: |
-          for team in ${{ steps.verificar-dia.outputs.target_team }}; do
+          for team in $TARGET_TEAMS; do
             echo "Executando limpeza para: $team"
             TARGET_TEAM=$team node scripts/limpar-firebase.cjs
           done
-        env:
-          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}

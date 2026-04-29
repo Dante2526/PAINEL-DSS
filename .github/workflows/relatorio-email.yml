@@ -127,14 +127,17 @@ jobs:
 
       - name: Rodar script de envio de e-mail
         if: steps.verificar-dia.outputs.should_run == 'true'
-        run: |
-          for team in ${{ steps.verificar-dia.outputs.target_team }}; do
-            echo "Enviando relatório para a equipe: $team"
-            TARGET_TEAM=$team node scripts/enviar-relatorio.cjs
-          done
+        # Padrão Ouro: output de steps isolado em variável de ambiente,
+        # evitando injeção de comandos via interpolação direta no bloco 'run'.
         env:
           FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
           EMAIL_USER: ${{ secrets.EMAIL_USER }}
           EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
+          TARGET_TEAMS: ${{ steps.verificar-dia.outputs.target_team }}
+        run: |
+          for team in $TARGET_TEAMS; do
+            echo "Enviando relatório para a equipe: $team"
+            TARGET_TEAM=$team node scripts/enviar-relatorio.cjs
+          done
