@@ -13,7 +13,7 @@ import HistoryModal from './components/HistoryModal';
 import ExportDropdown from './components/ExportDropdown';
 import { exportToPng, exportToPdf, exportToDoc, exportToExcel, exportToTxt } from './utils/exportService';
 import { SubjectIcon, UserIcon, EraserIcon, FileTextIcon, SortIcon, UserPlusIcon, ShiftIcon, AbsentIcon, TrashIcon, ExchangeIcon, MousePointerIcon, InfoIcon, HelpIcon, HistoryIcon } from './components/icons';
-import { Employee, StatusType, ModalType, ManualRegistration, Administrator } from './types';
+import { Employee, StatusType, ModalType, ManualRegistration, Administrator, HistoryRecord, HistoryEmployee, HistoryStatus } from './types';
 import type { NotificationData } from './components/Notification';
 import { db, auth, isConfigured } from './firebase';
 import { FALLBACK_LOGO } from './components/logoConstants';
@@ -2811,6 +2811,43 @@ const App: React.FC = () => {
         }
     };
 
+    const currentLiveHistory = useMemo(() => {
+        if (!selectedTurma) return null;
+        
+        const today = new Date();
+        const dataISO = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+        const dataFormatted = String(today.getDate()).padStart(2, '0') + '/' + String(today.getMonth() + 1).padStart(2, '0') + '/' + today.getFullYear();
+        
+        const r: HistoryEmployee[] = employees.map(emp => {
+            let s: HistoryStatus = 'PEN';
+            if (emp.mal) s = 'MAL';
+            else if (emp.absent) s = 'AUS';
+            else if (emp.assDss && emp.bem) s = 'BEM';
+            return {
+                m: emp.matricula,
+                n: emp.name,
+                s,
+                t: emp.time,
+                turno: emp.turno
+            };
+        });
+
+        const record: HistoryRecord = {
+            data: dataFormatted,
+            dataISO: dataISO,
+            turma: selectedTurma,
+            registros7H: mainSubject || mainResponsible ? [{ assunto: mainSubject, name: mainResponsible || '', matricula: mainMatricula }] : [],
+            registros6H: specialSubject || specialResponsible ? [{ assunto: specialSubject, name: specialResponsible || '', matricula: specialMatricula }] : [],
+            r,
+            totalFuncionarios: stats.totalEmployees,
+            totalPresentes: stats.present,
+            totalAusentes: stats.absent,
+            totalMal: stats.mal,
+            totalPendentes: stats.pending
+        };
+        return record;
+    }, [selectedTurma, employees, mainSubject, mainResponsible, mainMatricula, specialSubject, specialResponsible, specialMatricula, stats]);
+
     if (!selectedTurma) {
         return (
             <TurmaSelectionScreen
@@ -3053,6 +3090,7 @@ const App: React.FC = () => {
                 scale={modalScale}
                 turma={selectedTurma}
                 showNotification={showNotification}
+                currentLiveHistory={currentLiveHistory}
             />
 
             <ImportEmployeeModal

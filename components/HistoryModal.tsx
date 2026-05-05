@@ -30,7 +30,8 @@ const HistoryModal: React.FC<{
     scale: number;
     turma: string | null;
     showNotification: (msg: string, type: 'success' | 'error') => void;
-}> = ({ isOpen, onClose, scale, turma, showNotification }) => {
+    currentLiveHistory?: HistoryRecord | null;
+}> = ({ isOpen, onClose, scale, turma, showNotification, currentLiveHistory }) => {
     const [selectedDate, setSelectedDate] = useState('');
     const [historyData, setHistoryData] = useState<HistoryRecord | null>(null);
     const [loading, setLoading] = useState(false);
@@ -173,8 +174,16 @@ const HistoryModal: React.FC<{
                 setHistoryData(docSnap.data() as HistoryRecord);
                 setNotFound(false);
             } else {
-                setHistoryData(null);
-                setNotFound(true);
+                const today = new Date();
+                const todayISO = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+                
+                if (dateValue === todayISO && currentLiveHistory) {
+                    setHistoryData(currentLiveHistory);
+                    setNotFound(false);
+                } else {
+                    setHistoryData(null);
+                    setNotFound(true);
+                }
             }
         } catch (error) {
             console.error('Erro ao buscar histórico:', error);
