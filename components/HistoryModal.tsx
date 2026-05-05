@@ -4,9 +4,8 @@ import CustomDatePicker from './CustomDatePicker';
 import { FileTextIcon, SubjectIcon, ShiftIcon } from './icons';
 import type { HistoryRecord, HistoryEmployee } from '../types';
 import { db } from '../firebase';
-import { luminaDb, luminaStorage } from '../luminaFirebase';
+import { luminaDb } from '../luminaFirebase';
 import { doc, getDoc, collection, query, where, orderBy, limit, getDocs, startAfter, startAt, endAt, QueryDocumentSnapshot, DocumentData, documentId, addDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import ExportDropdown from './ExportDropdown';
 import { exportToPng, exportToPdf, exportToDoc, exportToExcel, exportToTxt, PdfReportData } from '../utils/exportService';
 import { SearchIcon } from './icons';
@@ -86,7 +85,7 @@ const HistoryModal: React.FC<{
 
     const handleSendToLumina = async () => {
         if (!historyData || !selectedLuminaEventId || !luminaClassId) return;
-        if (!luminaDb || !luminaStorage) {
+        if (!luminaDb) {
             showNotification('Conexão com o Lumina não disponível.', 'error');
             return;
         }
@@ -111,18 +110,21 @@ const HistoryModal: React.FC<{
 
             const pdfBlob = await generatePdfBlob(pdfData);
             const fileName = `DSS_${historyData.turma}_${historyData.dataISO || selectedDate}.pdf`;
+            const sizeKB = `${(pdfBlob.size / 1024).toFixed(0)} KB`;
 
-            // Upload para o Storage do Lumina
-            const storagePath = `evidencia/${selectedLuminaEventId}/${luminaClassId}/${fileName}`;
-            const storageRef = ref(luminaStorage, storagePath);
-            await uploadBytes(storageRef, pdfBlob, { contentType: 'application/pdf' });
-            const downloadURL = await getDownloadURL(storageRef);
+            // Converter Blob para base64 data URL (evita CORS do Firebase Storage)
+            const base64Url = await new Promise<string>((res, rej) => {
+                const reader = new FileReader();
+                reader.onload = () => res(reader.result as string);
+                reader.onerror = rej;
+                reader.readAsDataURL(pdfBlob);
+            });
 
-            // Salvar referência na coleção evidencia do Lumina
+            // Salvar diretamente no Firestore do Lumina (sem Storage, sem CORS)
             await addDoc(collection(luminaDb, 'evidencia'), {
                 subjectId: selectedLuminaEventId,
                 classId: luminaClassId,
-                files: [{ name: fileName, size: `${(pdfBlob.size / 1024).toFixed(0)} KB`, type: 'pdf', url: downloadURL }],
+                files: [{ name: fileName, size: sizeKB, type: 'pdf', url: base64Url }],
                 uploadedBy: `PAINEL DSS - Turma ${historyData.turma}`,
                 uploadedAt: Date.now(),
             });

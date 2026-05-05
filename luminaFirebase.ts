@@ -1,11 +1,9 @@
 // Conexão secundária ao Firebase do projeto Lumina
-// As variáveis de ambiente devem ser definidas na Vercel com o prefixo VITE_LUMINA_
-import { initializeApp, getApps, getApp } from 'firebase/app';
+// As variáveis de ambiente devem ser definidas na Vercel com sufixo _LUMINA
+import { initializeApp, getApps } from 'firebase/app';
 import type { FirebaseApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import type { Firestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
-import type { FirebaseStorage } from 'firebase/storage';
 import { getAuth, signInAnonymously } from 'firebase/auth';
 
 const env = (import.meta as any).env;
@@ -15,12 +13,11 @@ const luminaFirebaseConfig = {
     authDomain: env?.VITE_FIREBASE_AUTH_DOMAIN_LUMINA,
     projectId: env?.VITE_FIREBASE_PROJECT_ID_LUMINA,
     storageBucket: env?.VITE_FIREBASE_STORAGE_BUCKET_LUMINA,
-    messagingSenderId: env?.VITE_FIREBASE_MESS_SENDER_ID_LUMINA || env?.VITE_FIREBASE_MESSAGING_SENDER_ID_LUMINA,
+    messagingSenderId: env?.VITE_FIREBASE_MESSAGING_SENDER_ID_LUMINA,
     appId: env?.VITE_FIREBASE_APP_ID_LUMINA,
 };
 
 let luminaDb: Firestore | null = null;
-let luminaStorage: FirebaseStorage | null = null;
 
 const isLuminaConfigured = !!luminaFirebaseConfig.apiKey;
 
@@ -37,7 +34,6 @@ if (isLuminaConfigured) {
         }
 
         luminaDb = getFirestore(luminaApp);
-        luminaStorage = getStorage(luminaApp);
 
         // Autenticar anonimamente para poder ler/escrever nas regras do Lumina
         const luminaAuth = getAuth(luminaApp);
@@ -45,8 +41,7 @@ if (isLuminaConfigured) {
     } catch (e) {
         console.error('[Lumina] Erro ao inicializar Firebase do Lumina:', e);
         luminaDb = null;
-        luminaStorage = null;
     }
 }
 
-export { luminaDb, luminaStorage, isLuminaConfigured };
+export { luminaDb, isLuminaConfigured };
