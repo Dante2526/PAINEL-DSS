@@ -1,5 +1,5 @@
 // Nome do cache
-const CACHE_NAME = 'painel-dss-v3';
+const CACHE_NAME = 'painel-dss-v4';
 
 // Arquivos para cachear
 const urlsToCache = [
@@ -36,24 +36,35 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Interceptação de requisições
+// Interceptação de requisições — Network First para JS/CSS
 self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+
+  // Para assets de build (JS/CSS), sempre busca da rede primeiro
+  if (url.pathname.match(/\.(js|css)$/)) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // Se encontrou no cache, retorna
         if (response) {
           return response;
         }
-        
-        // Se não, tenta buscar na rede
         return fetch(event.request).catch(() => {
-            // Se falhar (offline) e for uma navegação (HTML), retorna a raiz (/)
-            // Isso corrige o erro 404 ao abrir o app instalado offline
             if (event.request.mode === 'navigate') {
                 return caches.match('/');
             }
         });
       })
   );
-});
+});
