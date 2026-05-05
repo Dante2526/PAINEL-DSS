@@ -224,7 +224,7 @@ export const exportToPdf = async (_elementIdOrData: string | PdfReportData, file
                     pdf.setFont('helvetica', 'italic');
                     pdf.setFontSize(9);
                     pdf.setTextColor(60, 80, 100);
-                    const assuntoLines = pdf.splitTextToSize(`Assunto: ${reg.assunto || 'NÃO INFORMADO'}`, contentWidth - 8);
+                    const assuntoLines = pdf.splitTextToSize(`Assunto: ${reg.assunto || 'NÃO PREENCHIDO'}`, contentWidth - 8);
                     pdf.text(assuntoLines, margin + 6, y);
                     y += assuntoLines.length * 4.5 + 2;
                 });
@@ -307,7 +307,7 @@ export const exportToExcel = (dataOrArray: PdfReportData | Array<any>, filename:
             rows.push(['REGISTROS DSS']);
             if (data.registros7H.length > 0) {
                 data.registros7H.forEach(reg => {
-                    rows.push(['Assunto:', reg.assunto || 'NÃO INFORMADO']);
+                    rows.push(['Assunto:', reg.assunto || 'NÃO PREENCHIDO']);
                     rows.push(['Responsável:', `${reg.name || '---'} (Matrícula: ${reg.matricula || '---'})`]);
                 });
             } else {
@@ -334,7 +334,7 @@ export const exportToExcel = (dataOrArray: PdfReportData | Array<any>, filename:
                     rows.push(['REGISTROS DSS']);
                     if (data.registros6H.length > 0) {
                         data.registros6H.forEach(reg => {
-                            rows.push(['Assunto:', reg.assunto || 'NÃO INFORMADO']);
+                            rows.push(['Assunto:', reg.assunto || 'NÃO PREENCHIDO']);
                             rows.push(['Responsável:', `${reg.name || '---'} (Matrícula: ${reg.matricula || '---'})`]);
                         });
                     } else {

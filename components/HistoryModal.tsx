@@ -240,7 +240,7 @@ const HistoryModal: React.FC<{
         report += `REGISTROS DSS (TURNO ${mainShiftLabel})\n`;
         if (historyData.registros7H.length > 0) {
             historyData.registros7H.forEach(reg => {
-                report += `• Assunto: ${reg.assunto || 'NÃO INFORMADO'}\n`;
+                report += `• Assunto: ${reg.assunto || 'NÃO PREENCHIDO'}\n`;
                 if (reg.name) report += `  Responsável: ${reg.name} (Matrícula: ${reg.matricula || '---'})\n`;
             });
         } else {
@@ -251,7 +251,7 @@ const HistoryModal: React.FC<{
         if (turma !== 'CCG' && historyData.registros6H.length > 0) {
             report += `REGISTROS DSS (TURNO ${shiftLabel})\n`;
             historyData.registros6H.forEach(reg => {
-                report += `• Assunto: ${reg.assunto || 'NÃO INFORMADO'}\n`;
+                report += `• Assunto: ${reg.assunto || 'NÃO PREENCHIDO'}\n`;
                 if (reg.name) report += `  Responsável: ${reg.name} (Matrícula: ${reg.matricula || '---'})\n`;
             });
             report += `\n`;
@@ -433,7 +433,7 @@ const HistoryModal: React.FC<{
                                 };
                                 const match7H = rec.registros7H?.some(r => isMatch(r.assunto));
                                 const match6H = rec.registros6H?.some(r => isMatch(r.assunto));
-                                const matchedAssunto = rec.registros7H?.find(r => isMatch(r.assunto))?.assunto || rec.registros6H?.find(r => isMatch(r.assunto))?.assunto || rec.registros7H?.[0]?.assunto || rec.registros6H?.[0]?.assunto || 'Tema não informado';
+                                const matchedAssunto = rec.registros7H?.find(r => isMatch(r.assunto))?.assunto || rec.registros6H?.find(r => isMatch(r.assunto))?.assunto || rec.registros7H?.[0]?.assunto || rec.registros6H?.[0]?.assunto || 'Tema não preenchido';
 
                                 return (
                                 <button
@@ -538,7 +538,7 @@ const HistoryModal: React.FC<{
                                 <div className="mb-2 relative z-10">
                                     <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Tema DSS</span>
                                     <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight">
-                                        {historyData.registros7H.length > 0 ? historyData.registros7H[0].assunto || 'NÃO INFORMADO' : 'NÃO INFORMADO'}
+                                        {historyData.registros7H.length > 0 ? historyData.registros7H[0].assunto || 'NÃO PREENCHIDO' : 'NÃO PREENCHIDO'}
                                     </span>
                                 </div>
                                 <div className="relative z-10">
@@ -559,7 +559,7 @@ const HistoryModal: React.FC<{
                                     <div className="mb-2 relative z-10">
                                         <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Tema DSS</span>
                                         <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight">
-                                            {historyData.registros6H.length > 0 ? historyData.registros6H[0].assunto || 'NÃO INFORMADO' : 'NÃO INFORMADO'}
+                                            {historyData.registros6H.length > 0 ? historyData.registros6H[0].assunto || 'NÃO PREENCHIDO' : 'NÃO PREENCHIDO'}
                                         </span>
                                     </div>
                                     <div className="relative z-10">

@@ -594,7 +594,7 @@ const ReportModal: React.FC<{
         }
 
         report += `REGISTROS DSS (TURNO ${mainShiftLabel})\n`;
-        report += `• Assunto: ${subject7H || 'NÃO INFORMADO'}`;
+        report += `• Assunto: ${subject7H || 'NÃO PREENCHIDO'}`;
         if (responsible7H) {
             report += `\n  Responsável: ${responsible7H} (Matrícula: ${matricula7H || '---'})\n`;
         } else {
@@ -603,7 +603,7 @@ const ReportModal: React.FC<{
 
         if (turma !== 'CCG') {
             report += `\nREGISTROS DSS (TURNO ${shiftLabel})\n`;
-            report += `• Assunto: ${subject6H || 'NÃO INFORMADO'}`;
+            report += `• Assunto: ${subject6H || 'NÃO PREENCHIDO'}`;
             if (responsible6H) {
                 report += `\n  Responsável: ${responsible6H} (Matrícula: ${matricula6H || '---'})\n`;
             } else {
@@ -672,12 +672,12 @@ const ReportModal: React.FC<{
                 turno: e.turno || '7H'
             })),
             registros7H: [{
-                assunto: subject7H || 'NÃO INFORMADO',
+                assunto: subject7H || 'NÃO PREENCHIDO',
                 name: responsible7H || '',
                 matricula: matricula7H || ''
             }],
             registros6H: [{
-                assunto: subject6H || 'NÃO INFORMADO',
+                assunto: subject6H || 'NÃO PREENCHIDO',
                 name: responsible6H || '',
                 matricula: matricula6H || ''
             }],
@@ -720,12 +720,12 @@ const ReportModal: React.FC<{
                 turno: e.turno || '7H'
             })),
             registros7H: [{
-                assunto: subject7H || 'NÃO INFORMADO',
+                assunto: subject7H || 'NÃO PREENCHIDO',
                 name: responsible7H || '',
                 matricula: matricula7H || ''
             }],
             registros6H: [{
-                assunto: subject6H || 'NÃO INFORMADO',
+                assunto: subject6H || 'NÃO PREENCHIDO',
                 name: responsible6H || '',
                 matricula: matricula6H || ''
             }],
@@ -759,7 +759,7 @@ const ReportModal: React.FC<{
                         <div className="text-[10px] font-bold text-white bg-blue-500 px-2 py-0.5 rounded-full w-fit mb-2">TURNO {getMainShiftLabel(turma)}</div>
                         <div className="mb-2 relative z-10">
                             <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Tema DSS</span>
-                            <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight">{subject7H || 'NÃO INFORMADO'}</span>
+                            <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight">{subject7H || 'NÃO PREENCHIDO'}</span>
                         </div>
                         <div className="relative z-10">
                             <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Responsável</span>
@@ -775,7 +775,7 @@ const ReportModal: React.FC<{
                         <div className="text-[10px] font-bold text-white bg-orange-500 px-2 py-0.5 rounded-full w-fit mb-2">TURNO {getShiftLabel(turma)}</div>
                         <div className="mb-2 relative z-10">
                             <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Tema DSS</span>
-                            <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight">{subject6H || 'NÃO INFORMADO'}</span>
+                            <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight">{subject6H || 'NÃO PREENCHIDO'}</span>
                         </div>
                         <div className="relative z-10">
                             <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Responsável</span>
@@ -2263,7 +2263,7 @@ const App: React.FC = () => {
         const registrationData = {
             matricula,
             name: resolvedName,
-            assunto: subject || 'Não informado',
+            assunto: subject || 'Não preenchido',
             TURNO: turno, // Explicitly using the '7H' or '6H' parameter
         };
 
@@ -2273,7 +2273,7 @@ const App: React.FC = () => {
             await setDoc(docRef, registrationData);
 
             showNotification(`Registro para turno ${turno} salvo com sucesso.`, 'success');
-            logAuditEvent(adminEmail, 'MANUAL_REGISTER', `Registro manual salvo | Turno: ${turno} | Matrícula: ${matricula} | Assunto: ${subject || 'Não informado'}`, selectedTurma);
+            logAuditEvent(adminEmail, 'MANUAL_REGISTER', `Registro manual salvo | Turno: ${turno} | Matrícula: ${matricula} | Assunto: ${subject || 'Não preenchido'}`, selectedTurma);
         } catch (error) {
             console.error("Error saving manual registration:", error);
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
