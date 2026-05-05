@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import Modal from './Modal';
 import CustomDatePicker from './CustomDatePicker';
 import { FileTextIcon, SubjectIcon, ShiftIcon } from './icons';
-import type { HistoryRecord, HistoryEmployee } from '../types';
+import type { HistoryRecord, HistoryEmployee, Administrator } from '../types';
 import { db } from '../firebase';
 import { luminaDb } from '../luminaFirebase';
 import { doc, getDoc, collection, query, where, orderBy, limit, getDocs, startAfter, startAt, endAt, QueryDocumentSnapshot, DocumentData, documentId, addDoc } from 'firebase/firestore';
@@ -33,7 +33,9 @@ const HistoryModal: React.FC<{
     turma: string | null;
     showNotification: (msg: string, type: 'success' | 'error') => void;
     currentLiveHistory?: HistoryRecord | null;
-}> = ({ isOpen, onClose, scale, turma, showNotification, currentLiveHistory }) => {
+    adminEmail?: string;
+    administrators?: Administrator[];
+}> = ({ isOpen, onClose, scale, turma, showNotification, currentLiveHistory, adminEmail, administrators }) => {
     const [selectedDate, setSelectedDate] = useState('');
     const [historyData, setHistoryData] = useState<HistoryRecord | null>(null);
     const [loading, setLoading] = useState(false);
@@ -125,7 +127,10 @@ const HistoryModal: React.FC<{
                 subjectId: selectedLuminaEventId,
                 classId: luminaClassId,
                 files: [{ name: fileName, size: sizeKB, type: 'pdf', url: base64Url }],
-                uploadedBy: `PAINEL DSS - Turma ${historyData.turma}`,
+                uploadedBy: (() => {
+                    const admin = administrators?.find(a => a.email === adminEmail);
+                    return admin ? `${admin.name} - Turma ${historyData.turma}` : `PAINEL DSS - Turma ${historyData.turma}`;
+                })(),
                 uploadedAt: Date.now(),
             });
 

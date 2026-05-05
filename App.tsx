@@ -3091,6 +3091,8 @@ const App: React.FC = () => {
                 turma={selectedTurma}
                 showNotification={showNotification}
                 currentLiveHistory={currentLiveHistory}
+                adminEmail={adminEmail}
+                administrators={administrators}
             />
 
             <ImportEmployeeModal
