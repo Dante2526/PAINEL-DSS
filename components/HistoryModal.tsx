@@ -129,7 +129,7 @@ const HistoryModal: React.FC<{
                 files: [{ name: fileName, size: sizeKB, type: 'pdf', url: base64Url }],
                 uploadedBy: (() => {
                     const admin = administrators?.find(a => a.email === adminEmail);
-                    return admin ? `${admin.name} - Turma ${historyData.turma}` : `PAINEL DSS - Turma ${historyData.turma}`;
+                    return admin ? admin.name : `PAINEL DSS - Turma ${historyData.turma}`;
                 })(),
                 uploadedAt: Date.now(),
             });
