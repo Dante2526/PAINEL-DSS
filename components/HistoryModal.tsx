@@ -4,10 +4,13 @@ import CustomDatePicker from './CustomDatePicker';
 import { FileTextIcon, SubjectIcon, ShiftIcon } from './icons';
 import type { HistoryRecord, HistoryEmployee } from '../types';
 import { db } from '../firebase';
-import { doc, getDoc, collection, query, where, orderBy, limit, getDocs, startAfter, startAt, endAt, QueryDocumentSnapshot, DocumentData, documentId } from 'firebase/firestore';
+import { luminaDb, luminaStorage } from '../luminaFirebase';
+import { doc, getDoc, collection, query, where, orderBy, limit, getDocs, startAfter, startAt, endAt, QueryDocumentSnapshot, DocumentData, documentId, addDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import ExportDropdown from './ExportDropdown';
 import { exportToPng, exportToPdf, exportToDoc, exportToExcel, exportToTxt, PdfReportData } from '../utils/exportService';
 import { SearchIcon } from './icons';
+import { jsPDF } from 'jspdf';
 
 // Cores do status compacto
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
@@ -36,6 +39,214 @@ const HistoryModal: React.FC<{
     const [historyData, setHistoryData] = useState<HistoryRecord | null>(null);
     const [loading, setLoading] = useState(false);
     const [notFound, setNotFound] = useState(false);
+
+    // Estados para envio ao Lumina
+    const [isLuminaPanelOpen, setIsLuminaPanelOpen] = useState(false);
+    const [luminaEvents, setLuminaEvents] = useState<{ id: string; title: string; category: string; timeLeft: number }[]>([]);
+    const [loadingLuminaEvents, setLoadingLuminaEvents] = useState(false);
+    const [selectedLuminaEventId, setSelectedLuminaEventId] = useState<string | null>(null);
+    const [sendingToLumina, setSendingToLumina] = useState(false);
+
+    // Mapear turma do DSS para classId do Lumina
+    const luminaClassId = useMemo(() => {
+        if (!turma) return null;
+        const map: Record<string, string> = {
+            'A': 'Turma A', 'B': 'Turma B', 'C': 'Turma C', 'D': 'Turma D', 'CCG': 'Turma A'
+        };
+        return map[turma] || `Turma ${turma}`;
+    }, [turma]);
+
+    const fetchLuminaEvents = async () => {
+        if (!luminaDb) {
+            showNotification('Conexão com o Lumina não configurada.', 'error');
+            return;
+        }
+        setLoadingLuminaEvents(true);
+        setIsLuminaPanelOpen(true);
+        try {
+            const snap = await getDocs(collection(luminaDb, 'eventos'));
+            const now = Date.now();
+            const events = snap.docs
+                .map(d => {
+                    const data = d.data();
+                    const expDate = data.expirationDate ? new Date(data.expirationDate).getTime() : 0;
+                    const timeLeft = Math.max(0, Math.floor((expDate - now) / 1000));
+                    return { id: d.id, title: data.title || 'Sem título', category: data.category || 'Geral', timeLeft };
+                })
+                .filter(e => e.timeLeft > 0)
+                .sort((a, b) => a.timeLeft - b.timeLeft);
+            setLuminaEvents(events);
+        } catch (e) {
+            console.error(e);
+            showNotification('Erro ao buscar eventos do Lumina.', 'error');
+        } finally {
+            setLoadingLuminaEvents(false);
+        }
+    };
+
+    const handleSendToLumina = async () => {
+        if (!historyData || !selectedLuminaEventId || !luminaClassId) return;
+        if (!luminaDb || !luminaStorage) {
+            showNotification('Conexão com o Lumina não disponível.', 'error');
+            return;
+        }
+
+        setSendingToLumina(true);
+        try {
+            // Gerar PDF em memória usando jsPDF
+            const pdfData: PdfReportData = {
+                turma: historyData.turma,
+                dataFormatada: historyData.data,
+                registros7H: historyData.registros7H,
+                registros6H: historyData.registros6H,
+                employees: historyData.r,
+                totalFuncionarios: historyData.totalFuncionarios,
+                totalPresentes: historyData.totalPresentes,
+                totalAusentes: historyData.totalAusentes,
+                totalMal: historyData.totalMal,
+                totalPendentes: historyData.totalPendentes,
+                mainShiftLabel,
+                shiftLabel,
+            };
+
+            const pdfBlob = await generatePdfBlob(pdfData);
+            const fileName = `DSS_${historyData.turma}_${historyData.dataISO || selectedDate}.pdf`;
+
+            // Upload para o Storage do Lumina
+            const storagePath = `evidencia/${selectedLuminaEventId}/${luminaClassId}/${fileName}`;
+            const storageRef = ref(luminaStorage, storagePath);
+            await uploadBytes(storageRef, pdfBlob, { contentType: 'application/pdf' });
+            const downloadURL = await getDownloadURL(storageRef);
+
+            // Salvar referência na coleção evidencia do Lumina
+            await addDoc(collection(luminaDb, 'evidencia'), {
+                subjectId: selectedLuminaEventId,
+                classId: luminaClassId,
+                files: [{ name: fileName, size: `${(pdfBlob.size / 1024).toFixed(0)} KB`, type: 'pdf', url: downloadURL }],
+                uploadedBy: `PAINEL DSS - Turma ${historyData.turma}`,
+                uploadedAt: Date.now(),
+            });
+
+            showNotification(`Evidência enviada para o Lumina (${luminaClassId})!`, 'success');
+            setIsLuminaPanelOpen(false);
+            setSelectedLuminaEventId(null);
+        } catch (e) {
+            console.error(e);
+            showNotification('Erro ao enviar evidência para o Lumina.', 'error');
+        } finally {
+            setSendingToLumina(false);
+        }
+    };
+
+    // Gera PDF como Blob (sem baixar)
+    const generatePdfBlob = (data: PdfReportData): Promise<Blob> => {
+        return new Promise((resolve, reject) => {
+            try {
+                const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+                const pageWidth = pdf.internal.pageSize.getWidth();
+                const pageHeight = pdf.internal.pageSize.getHeight();
+                const margin = 15;
+                const contentWidth = pageWidth - margin * 2;
+                let y = margin;
+
+                const checkPageBreak = (needed: number) => {
+                    if (y + needed > pageHeight - margin) { pdf.addPage(); y = margin; }
+                };
+
+                const mainLabel = data.mainShiftLabel || '7H';
+                const secLabel = data.shiftLabel || '6H';
+
+                pdf.setFillColor(30, 41, 59);
+                pdf.rect(0, 0, pageWidth, 28, 'F');
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(13);
+                pdf.setTextColor(255, 255, 255);
+                pdf.text(`RESUMO DSS - TURMA ${data.turma} - ${data.dataFormatada}`, pageWidth / 2, 18, { align: 'center' });
+                y = 36;
+
+                const bullets = [
+                    `Total: ${data.totalFuncionarios}`,
+                    `Presentes: ${data.totalPresentes}`,
+                    `Pendentes: ${data.totalPendentes}`,
+                    `Ausentes: ${data.totalAusentes}`,
+                ];
+                bullets.forEach(text => {
+                    checkPageBreak(6);
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.setFontSize(10);
+                    pdf.setTextColor(30, 41, 59);
+                    pdf.text(`• ${text}`, margin + 2, y);
+                    y += 5.5;
+                });
+                y += 4;
+
+                // Registros
+                ([[data.registros7H, mainLabel], [data.registros6H, secLabel]] as [typeof data.registros7H, string][]).forEach(([regs, label]) => {
+                    if (data.turma === 'CCG' && label === secLabel) return;
+                    checkPageBreak(14);
+                    pdf.setDrawColor(200, 210, 220);
+                    pdf.line(margin, y, pageWidth - margin, y);
+                    y += 6;
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.setFontSize(11);
+                    pdf.setTextColor(30, 41, 59);
+                    pdf.text(`REGISTROS DSS (TURNO ${label})`, margin, y);
+                    y += 6;
+                    regs.forEach(reg => {
+                        checkPageBreak(10);
+                        pdf.setFont('helvetica', 'italic');
+                        pdf.setFontSize(9);
+                        pdf.setTextColor(60, 80, 100);
+                        const lines = pdf.splitTextToSize(`Assunto: ${reg.assunto || 'NÃO PREENCHIDO'}`, contentWidth - 8);
+                        pdf.text(lines, margin + 4, y);
+                        y += lines.length * 4.5 + 2;
+                        if (reg.name) {
+                            pdf.text(`Responsável: ${reg.name}`, margin + 4, y);
+                            y += 5;
+                        }
+                    });
+                    y += 4;
+                });
+
+                // Lista colaboradores
+                const team7H = data.employees.filter(e => e.turno !== '6H');
+                const team6H = data.employees.filter(e => e.turno === '6H');
+                [[team7H, mainLabel], [team6H, secLabel]].forEach(([team, label]: any) => {
+                    if (team.length === 0) return;
+                    if (data.turma === 'CCG' && label === secLabel) return;
+                    checkPageBreak(14);
+                    pdf.setDrawColor(200, 210, 220);
+                    pdf.line(margin, y, pageWidth - margin, y);
+                    y += 6;
+                    pdf.setFont('helvetica', 'bold');
+                    pdf.setFontSize(11);
+                    pdf.setTextColor(30, 41, 59);
+                    pdf.text(`EQUIPE TURNO ${label}`, margin, y);
+                    y += 7;
+                    team.forEach((emp: any) => {
+                        checkPageBreak(5);
+                        pdf.setFont('helvetica', 'normal');
+                        pdf.setFontSize(9);
+                        pdf.setTextColor(30, 41, 59);
+                        const statusMap: Record<string, string> = { BEM: 'ASS+BEM', MAL: 'MAL', AUS: 'AUSENTE', PEN: 'PENDENTE' };
+                        pdf.text(`• ${emp.n} (${emp.m}) — ${statusMap[emp.s] || emp.s}`, margin + 4, y);
+                        y += 4.5;
+                    });
+                    y += 3;
+                });
+
+                const footerY = pageHeight - 8;
+                pdf.setFont('helvetica', 'italic');
+                pdf.setFontSize(7);
+                pdf.setTextColor(156, 163, 175);
+                pdf.text(`Gerado em ${new Date().toLocaleString('pt-BR')} — Painel DSS`, pageWidth / 2, footerY, { align: 'center' });
+
+                resolve(pdf.output('blob'));
+            } catch (e) {
+                reject(e);
+            }
+        });
+    };
 
     const shiftLabel = useMemo(() => {
         return (turma === 'C' || turma === 'D') ? '18H' : '6H';
@@ -615,6 +826,106 @@ const HistoryModal: React.FC<{
                                 />
                             </div>
                         </div>
+
+                        {/* Botão enviar ao Lumina */}
+                        <button
+                            onClick={fetchLuminaEvents}
+                            className="w-full mt-2 py-3 bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-bold rounded-xl hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2 shadow-lg text-sm"
+                        >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                            </svg>
+                            ENVIAR EVIDÊNCIA AO LUMINA
+                        </button>
+
+                        {/* Painel de seleção de evento do Lumina */}
+                        {isLuminaPanelOpen && (
+                            <div className="mt-3 border border-violet-200 dark:border-violet-800 rounded-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                                <div className="bg-gradient-to-r from-violet-600 to-indigo-600 px-4 py-3 flex items-center justify-between">
+                                    <div>
+                                        <p className="text-white font-bold text-sm">Selecione o Evento no Lumina</p>
+                                        <p className="text-violet-200 text-[10px] mt-0.5">Evidência será enviada para: <strong>{luminaClassId}</strong></p>
+                                    </div>
+                                    <button
+                                        onClick={() => { setIsLuminaPanelOpen(false); setSelectedLuminaEventId(null); }}
+                                        className="text-violet-200 hover:text-white transition-colors"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                <div className="p-3 bg-violet-50 dark:bg-violet-950/30 space-y-2 max-h-52 overflow-y-auto">
+                                    {loadingLuminaEvents ? (
+                                        <div className="flex items-center justify-center py-6 gap-2">
+                                            <div className="w-5 h-5 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />
+                                            <span className="text-sm text-violet-600">Buscando eventos...</span>
+                                        </div>
+                                    ) : luminaEvents.length === 0 ? (
+                                        <p className="text-center text-sm text-gray-500 py-4">Nenhum evento ativo encontrado no Lumina.</p>
+                                    ) : (
+                                        luminaEvents.map(ev => {
+                                            const isSelected = selectedLuminaEventId === ev.id;
+                                            const h = Math.floor(ev.timeLeft / 3600);
+                                            const m = Math.floor((ev.timeLeft % 3600) / 60);
+                                            const d = Math.floor(ev.timeLeft / 86400);
+                                            const timeStr = d > 0 ? `${d}d ${h % 24}h` : `${h}h ${m}min`;
+                                            return (
+                                                <button
+                                                    key={ev.id}
+                                                    onClick={() => setSelectedLuminaEventId(ev.id)}
+                                                    className={`w-full text-left p-3 rounded-xl border-2 transition-all ${
+                                                        isSelected
+                                                            ? 'border-violet-500 bg-violet-100 dark:bg-violet-900/50'
+                                                            : 'border-transparent bg-white dark:bg-gray-800/60 hover:border-violet-300'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center justify-between">
+                                                        <div>
+                                                            <p className="font-bold text-sm text-gray-800 dark:text-gray-100">{ev.title}</p>
+                                                            <p className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">{ev.category}</p>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 px-2 py-0.5 rounded-full">⏱ {timeStr}</span>
+                                                            {isSelected && (
+                                                                <div className="mt-1 flex justify-end">
+                                                                    <svg className="w-4 h-4 text-violet-500" fill="currentColor" viewBox="0 0 20 20">
+                                                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                                    </svg>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </button>
+                                            );
+                                        })
+                                    )}
+                                </div>
+
+                                <div className="p-3 border-t border-violet-100 dark:border-violet-800 bg-white dark:bg-gray-900">
+                                    <button
+                                        onClick={handleSendToLumina}
+                                        disabled={!selectedLuminaEventId || sendingToLumina}
+                                        className="w-full py-3 bg-violet-600 hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-sm"
+                                    >
+                                        {sendingToLumina ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                Enviando PDF...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                Confirmar Envio
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
 
