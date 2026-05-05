@@ -11,12 +11,12 @@ import { getAuth, signInAnonymously } from 'firebase/auth';
 const env = (import.meta as any).env;
 
 const luminaFirebaseConfig = {
-    apiKey: env?.VITE_LUMINA_FIREBASE_API_KEY,
-    authDomain: env?.VITE_LUMINA_FIREBASE_AUTH_DOMAIN,
-    projectId: env?.VITE_LUMINA_FIREBASE_PROJECT_ID,
-    storageBucket: env?.VITE_LUMINA_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: env?.VITE_LUMINA_FIREBASE_MESSAGING_SENDER_ID,
-    appId: env?.VITE_LUMINA_FIREBASE_APP_ID,
+    apiKey: env?.VITE_FIREBASE_API_KEY_LUMINA,
+    authDomain: env?.VITE_FIREBASE_AUTH_DOMAIN_LUMINA,
+    projectId: env?.VITE_FIREBASE_PROJECT_ID_LUMINA,
+    storageBucket: env?.VITE_FIREBASE_STORAGE_BUCKET_LUMINA,
+    messagingSenderId: env?.VITE_FIREBASE_MESS_SENDER_ID_LUMINA || env?.VITE_FIREBASE_MESSAGING_SENDER_ID_LUMINA,
+    appId: env?.VITE_FIREBASE_APP_ID_LUMINA,
 };
 
 let luminaDb: Firestore | null = null;
