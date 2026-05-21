@@ -12,16 +12,23 @@ const TURMAS = {
 const TURMAS_VALIDAS = Object.keys(TURMAS);
 
 /**
- * Valida e retorna o TARGET_TEAM da variável de ambiente.
- * Encerra o processo com erro se inválido.
+ * Valida o TARGET_TEAM de forma flexível (com opção de lançar erro).
  */
-function getTargetTeam() {
-  const team = process.env.TARGET_TEAM;
+function validateTargetTeam(team, throwError = false) {
   if (!team || !TURMAS_VALIDAS.includes(team)) {
-    console.error(`ERRO CRÍTICO: TARGET_TEAM não definido ou inválido ("${team}"). Esperado: ${TURMAS_VALIDAS.join(', ')}.`);
+    const msg = `ERRO CRÍTICO: TARGET_TEAM inválido ou não informado ("${team}"). Esperado: ${TURMAS_VALIDAS.join(', ')}.`;
+    if (throwError) throw new Error(msg);
+    console.error(msg);
     process.exit(1);
   }
   return team;
+}
+
+/**
+ * Valida e retorna o TARGET_TEAM da variável de ambiente (legado CLI).
+ */
+function getTargetTeam() {
+  return validateTargetTeam(process.env.TARGET_TEAM);
 }
 
 /**
@@ -32,18 +39,22 @@ function getCollections(team) {
 }
 
 /**
- * Inicializa o Firebase Admin com proteção contra JSON inválido.
+ * Inicializa o Firebase Admin com proteção contra JSON inválido (com opção de lançar erro).
  */
-function parseServiceAccount() {
+function parseServiceAccount(throwError = false) {
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
   if (!raw) {
-    console.error("ERRO CRÍTICO: FIREBASE_SERVICE_ACCOUNT_JSON está vazio ou ausente.");
+    const msg = "ERRO CRÍTICO: FIREBASE_SERVICE_ACCOUNT_JSON está vazio ou ausente.";
+    if (throwError) throw new Error(msg);
+    console.error(msg);
     process.exit(1);
   }
   try {
     return JSON.parse(raw);
   } catch (e) {
-    console.error("ERRO CRÍTICO: FIREBASE_SERVICE_ACCOUNT_JSON contém JSON inválido.", e.message);
+    const msg = `ERRO CRÍTICO: FIREBASE_SERVICE_ACCOUNT_JSON contém JSON inválido: ${e.message}`;
+    if (throwError) throw new Error(msg);
+    console.error(msg);
     process.exit(1);
   }
 }
@@ -142,6 +153,7 @@ module.exports = {
   TURMAS,
   TURMAS_VALIDAS,
   BATCH_LIMIT,
+  validateTargetTeam,
   getTargetTeam,
   getCollections,
   parseServiceAccount,

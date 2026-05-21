@@ -10,11 +10,11 @@ on:
         description: 'Gerar relatório de qual turma? (A, B, C, D ou CCG)'
         required: true
         default: 'A'
-  schedule:
-    # 13:12 UTC = 10:12 BRT (Manhã - Foge do pico das 10:00)
-    - cron: '12 13 * * *'
-    # 00:07 UTC = 21:07 BRT (Noite - Foge do pico das 21:00)
-    - cron: '7 0 * * *'
+#  schedule:
+#    # 13:12 UTC = 10:12 BRT (Manhã - Foge do pico das 10:00)
+#    - cron: '12 13 * * *'
+#    # 00:07 UTC = 21:07 BRT (Noite - Foge do pico das 21:00)
+#    - cron: '7 0 * * *'
 
 jobs:
   enviar-relatorio-job:

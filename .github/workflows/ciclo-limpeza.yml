@@ -11,9 +11,9 @@ on:
         description: 'Qual turma limpar manualmente? (A, B, C, D ou CCG)'
         required: true
         default: 'A'
-  schedule:
-    - cron: '5 4 * * *'  # 1h05 da manhã BRT (Limpeza A e B)
-    - cron: '8 19 * * *' # 16h08 da tarde BRT (Limpeza C e D)
+#  schedule:
+#    - cron: '5 4 * * *'  # 1h05 da manhã BRT (Limpeza A e B)
+#    - cron: '8 19 * * *' # 16h08 da tarde BRT (Limpeza C e D)
 
 jobs:
   limpar-dados-firebase:
