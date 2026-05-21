@@ -11,6 +11,15 @@ const TURMAS = {
 
 const TURMAS_VALIDAS = Object.keys(TURMAS);
 
+// Datas âncora para cálculo da escala 2x2 (Trabalho/Folga)
+const ANCHOR_DATES = {
+  A:   "2026-01-08",
+  B:   "2025-11-07",
+  C:   "2026-01-16",
+  D:   "2026-01-26",
+  CCG: "2026-01-16" // CCG compartilha a escala da Turma C
+};
+
 /**
  * Valida o TARGET_TEAM de forma flexível (com opção de lançar erro).
  */
@@ -149,10 +158,53 @@ function isoToDisplay(iso) {
  */
 const BATCH_LIMIT = 500;
 
+/**
+ * Verifica se hoje é dia de trabalho para uma determinada turma com base na escala 2x2.
+ * Aplica recuo de 12 horas (Efeito Cinderela) se a chamada ocorrer de madrugada (entre 00h e 06h BRT).
+ */
+function isDiaDeTrabalho(team) {
+  const anchorStr = ANCHOR_DATES[team];
+  if (!anchorStr) {
+    console.log(`[Escala] Nenhuma escala cadastrada para a Turma ${team}. Processando por padrão.`);
+    return true; 
+  }
+  
+  // Pega o timestamp atual em segundos (UTC epoch)
+  let currentSeconds = Math.floor(Date.now() / 1000);
+  
+  // Obtém a hora atual de Brasília (0-23) para ver se aplica o recuo de madrugada
+  const options = { timeZone: 'America/Sao_Paulo', hour: '2-digit', hour12: false };
+  const brHourStr = new Date().toLocaleString('pt-BR', options);
+  const brHour = parseInt(brHourStr, 10);
+  
+  // Se for madrugada em Brasília (entre 00h e 06h), aplicamos o Efeito Cinderela (recua 12h)
+  if (brHour >= 0 && brHour < 6) {
+    console.log(`[Escala] Madrugada detectada (${brHour}h BRT). Aplicando recuo virtual de 12 horas.`);
+    currentSeconds -= 43200; 
+  }
+  
+  // Data âncora convertida para UTC epoch correspondente ao início daquele dia (meia-noite UTC)
+  const anchorDate = new Date(anchorStr + "T00:00:00Z");
+  const anchorSeconds = Math.floor(anchorDate.getTime() / 1000);
+  
+  // Diferença em dias
+  const diffDays = Math.floor((currentSeconds - anchorSeconds) / 86400);
+  
+  // Cálculo do dia do ciclo (módulo 4 positivo)
+  const cycleDay = ((diffDays % 4) + 4) % 4;
+  
+  const worksToday = (cycleDay === 0 || cycleDay === 1);
+  console.log(`[Escala] Turma ${team}: Diferença = ${diffDays} dias, Dia do ciclo = ${cycleDay} (Trabalho: ${worksToday ? 'Sim' : 'Folga/Não'})`);
+  
+  return worksToday;
+}
+
 module.exports = {
   TURMAS,
   TURMAS_VALIDAS,
   BATCH_LIMIT,
+  ANCHOR_DATES,
+  isDiaDeTrabalho,
   validateTargetTeam,
   getTargetTeam,
   getCollections,

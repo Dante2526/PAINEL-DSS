@@ -6,6 +6,7 @@ const {
   getCollections,
   parseServiceAccount,
   isAutomacaoPausada,
+  isDiaDeTrabalho,
   getConsensusDate,
   getDataDoPlantaoFallback,
   BATCH_LIMIT,
@@ -153,8 +154,9 @@ async function limparControleEnvio(db, team) {
 // --- ENDPOINT SERVERLESS PRINCIPAL ---
 export default async function handler(req, res) {
   // 1. Validar Token de Segurança
-  const { team, token } = req.query;
+  const { team, token, force } = req.query;
   const cronSecretToken = process.env.CRON_SECRET_TOKEN;
+  const forceExecution = force === 'true';
 
   if (!cronSecretToken || token !== cronSecretToken) {
     console.warn(`[Acesso Negado] Token inválido ou não informado.`);
@@ -168,6 +170,16 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error(`[Erro de Parâmetro] ${err.message}`);
     return res.status(400).json({ error: err.message });
+  }
+
+  // 2.5 Verificar Escala de Trabalho (Folga vs Trabalho)
+  const worksToday = isDiaDeTrabalho(validatedTeam);
+  if (!worksToday && !forceExecution) {
+    console.log(`>>> [SERVERLESS] Execução cancelada. Hoje é dia de FOLGA para a Turma ${validatedTeam} <<<`);
+    return res.status(200).json({
+      status: 'skipped_offday',
+      message: `Hoje é dia de FOLGA (fora do ciclo de trabalho 2x2) para a Turma ${validatedTeam}. Nenhuma limpeza foi necessária.`
+    });
   }
 
   console.log(`>>> [SERVERLESS] Iniciando Limpeza & Histórico para a Turma: ${validatedTeam} <<<`);
