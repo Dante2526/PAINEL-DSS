@@ -23,7 +23,7 @@ const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, i
                     <h1 className="text-2xl md:text-3xl font-extrabold text-light-text dark:text-dark-text tracking-tight mb-1 md:mb-1">Painel de Acompanhamento DSS</h1>
                     <p className="text-sm md:text-base font-medium text-light-text-secondary dark:text-dark-text-secondary mb-4 md:mb-6">Selecione a turma para continuar</p>
 
-                    <div className="grid grid-cols-2 gap-3 md:gap-4 w-full max-w-[320px] md:max-w-[460px] mx-auto mb-3 md:mb-4">
+                    <div className="grid grid-cols-2 gap-3 md:gap-4 w-full max-w-[280px] md:max-w-[360px] mx-auto mb-3 md:mb-4">
                         <button
                             onClick={() => onSelect('A')}
                             className="flex items-center justify-center whitespace-nowrap px-4 py-8 md:py-6 font-extrabold text-xl md:text-xl text-white bg-gradient-to-br from-green-500 to-teal-600 rounded-2xl md:rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-green-300 dark:focus:ring-green-800"
@@ -51,7 +51,7 @@ const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, i
                     </div>
 
                     {/* 
-                    <div className="flex justify-center w-full max-w-[320px] md:max-w-[460px] mx-auto mb-4 md:mb-6">
+                    <div className="flex justify-center w-full max-w-[280px] md:max-w-[360px] mx-auto mb-4 md:mb-6">
                         <button
                             onClick={() => onSelect('CCG')}
                             className="flex items-center justify-center whitespace-nowrap w-[calc(50%-0.375rem)] md:w-[calc(50%-0.5rem)] px-4 py-8 md:py-6 font-extrabold text-xl md:text-xl text-white bg-gradient-to-br from-pink-500 to-rose-700 rounded-2xl md:rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-rose-300 dark:focus:ring-rose-800"
