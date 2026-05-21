@@ -25,6 +25,12 @@ jobs:
         with:
           path: .
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
       - name: Verificar Dia de Trabalho (Ciclo 2x2 - A, B, C e D)
         id: verificar-dia
         env:
@@ -55,15 +61,20 @@ jobs:
 
           # ====================================================
           # BLOCO MADRUGADA (1h BRT / 04h UTC) -> TURMAS A e B
-          # Aceita de 04 a 07 para margem de atraso do GitHub Actions
+          # Aceita de 04 a 09 para margem de atraso do GitHub Actions
           # ====================================================
-          if [[ "$CURRENT_HOUR_UTC" -ge 4 && "$CURRENT_HOUR_UTC" -le 7 ]]; then
+          if [[ "$CURRENT_HOUR_UTC" -ge 4 && "$CURRENT_HOUR_UTC" -le 9 ]]; then
             echo ">>> Horário de limpeza das Turmas A e B (1h BRT) <<<"
           
+            # CORREÇÃO DO EFEITO CINDERELA: Subtrai 12 horas (43200 segundos)
+            # Isso garante que a madrugada seja calculada como o dia anterior,
+            # caso o GitHub Actions atrase e cruze a meia-noite UTC.
+            SECONDS_VIRTUAL=$((CURRENT_SECONDS - 43200))
+
             # >>> VERIFICAÇÃO TURMA A <<<
             ANCHOR_A="2026-01-08"
             ANCHOR_SECONDS_A=$(date -d "$ANCHOR_A" +%s)
-            DIFF_DAYS_A=$(((CURRENT_SECONDS - ANCHOR_SECONDS_A) / 86400))
+            DIFF_DAYS_A=$(((SECONDS_VIRTUAL - ANCHOR_SECONDS_A) / 86400))
             CYCLE_DAY_A=$(( (DIFF_DAYS_A % 4 + 4) % 4 ))
 
             if [[ $CYCLE_DAY_A -eq 0 || $CYCLE_DAY_A -eq 1 ]]; then
@@ -76,7 +87,7 @@ jobs:
             # >>> VERIFICAÇÃO TURMA B <<<
             ANCHOR_B="2025-11-07"
             ANCHOR_SECONDS_B=$(date -d "$ANCHOR_B" +%s)
-            DIFF_DAYS_B=$(((CURRENT_SECONDS - ANCHOR_SECONDS_B) / 86400))
+            DIFF_DAYS_B=$(((SECONDS_VIRTUAL - ANCHOR_SECONDS_B) / 86400))
             CYCLE_DAY_B=$(( (DIFF_DAYS_B % 4 + 4) % 4 ))
 
             if [[ $CYCLE_DAY_B -eq 0 || $CYCLE_DAY_B -eq 1 ]]; then
@@ -89,9 +100,9 @@ jobs:
 
           # ====================================================
           # BLOCO TARDE (16h BRT / 19h UTC) -> TURMAS C e D
-          # Aceita de 19 a 21 para margem de atraso do GitHub Actions (16h as 18h BRT)
+          # Aceita de 19 a 20 para margem de atraso do GitHub Actions (16h as 17h59 BRT)
           # ====================================================
-          if [[ "$CURRENT_HOUR_UTC" -ge 19 && "$CURRENT_HOUR_UTC" -le 21 ]]; then
+          if [[ "$CURRENT_HOUR_UTC" -ge 19 && "$CURRENT_HOUR_UTC" -le 20 ]]; then
              echo ">>> Horário de limpeza das Turmas C e D (16h BRT) <<<"
 
              # >>> VERIFICAÇÃO TURMA C <<<
@@ -127,7 +138,7 @@ jobs:
 
       - name: Instalar dependências
         if: steps.verificar-dia.outputs.should_run == 'true'
-        run: npm install
+        run: npm ci --omit=dev
 
       - name: Rodar script de limpeza
         if: steps.verificar-dia.outputs.should_run == 'true'

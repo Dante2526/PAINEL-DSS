@@ -26,6 +26,12 @@ jobs:
         with:
           path: .
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
       - name: Verificar Dia de Trabalho (Ciclo 2x2 - A, B, C e D)
         id: verificar-dia
         env:
@@ -52,9 +58,9 @@ jobs:
 
           # ====================================================================
           # BLOCO MANHÃ (10h BRT / 13h UTC) -> A e B
-          # Janela: Aceita 13, 14, 15 ou 16 UTC (10h até 13h BRT)
+          # Janela: Aceita de 13 a 18 UTC (10h até 15h BRT)
           # ====================================================================
-          if [[ "$CURRENT_HOUR_UTC" -eq 13 || "$CURRENT_HOUR_UTC" -eq 14 || "$CURRENT_HOUR_UTC" -eq 15 || "$CURRENT_HOUR_UTC" -eq 16 ]]; then
+          if [[ "$CURRENT_HOUR_UTC" -ge 13 && "$CURRENT_HOUR_UTC" -le 18 ]]; then
             echo ">>> Horário identificado: MANHÃ (Turmas A/B)"
             
             # Lógica Turma A
@@ -84,9 +90,9 @@ jobs:
 
           # ====================================================================
           # BLOCO NOITE (21h BRT / 00h UTC) -> Turmas C e D
-          # Janela: Aceita 00, 01, 02 ou 03 UTC (21h até 00h BRT)
+          # Janela: Aceita de 00 a 05 UTC (21h até 02h BRT)
           # ====================================================================
-          if [[ "$CURRENT_HOUR_UTC" -eq 0 || "$CURRENT_HOUR_UTC" -eq 1 || "$CURRENT_HOUR_UTC" -eq 2 || "$CURRENT_HOUR_UTC" -eq 3 ]]; then
+          if [[ "$CURRENT_HOUR_UTC" -ge 0 && "$CURRENT_HOUR_UTC" -le 5 ]]; then
              echo ">>> Horário identificado: NOITE (Turmas C ou D)"
              
              # CORREÇÃO DO EFEITO CINDERELA: Subtrai 12 horas (43200 segundos)
@@ -123,7 +129,7 @@ jobs:
 
       - name: Instalar dependências
         if: steps.verificar-dia.outputs.should_run == 'true'
-        run: npm install
+        run: npm ci --omit=dev
 
       - name: Rodar script de envio de e-mail
         if: steps.verificar-dia.outputs.should_run == 'true'

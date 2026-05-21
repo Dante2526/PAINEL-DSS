@@ -1,40 +1,31 @@
 // scripts/enviar-relatorio.cjs
 const admin = require('firebase-admin');
 const nodemailer = require('nodemailer');
+const {
+  getTargetTeam,
+  getCollections,
+  parseServiceAccount,
+  isAutomacaoPausada,
+  getConsensusDate,
+  getDataDoPlantaoFallback,
+  isoToDisplay,
+} = require('./config.cjs');
 
 // --- 1. CONFIGURAÇÕES ---
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+const serviceAccount = parseServiceAccount();
 const EMAIL_USER = process.env.EMAIL_USER;
 const EMAIL_PASS = process.env.EMAIL_PASS;
 const EMAIL_TO = process.env.EMAIL_TO;
-const TARGET_TEAM = process.env.TARGET_TEAM;
+const TARGET_TEAM = getTargetTeam();
 const GITHUB_EVENT_NAME = process.env.GITHUB_EVENT_NAME || 'manual';
 
-// Validação de segurança
-if (!TARGET_TEAM || (TARGET_TEAM !== 'A' && TARGET_TEAM !== 'B' && TARGET_TEAM !== 'C' && TARGET_TEAM !== 'D' && TARGET_TEAM !== 'CCG')) {
-  console.error("ERRO: TARGET_TEAM não definido corretamente (A, B, C, D ou CCG).");
+// Validação de variáveis de e-mail
+if (!EMAIL_USER || !EMAIL_PASS || !EMAIL_TO) {
+  console.error("ERRO CRÍTICO: Variáveis de e-mail ausentes (EMAIL_USER, EMAIL_PASS ou EMAIL_TO).");
   process.exit(1);
 }
 
-let colEmployeesName = '';
-let colRegistrosName = '';
-
-if (TARGET_TEAM === 'A') {
-  colEmployeesName = 'turma a';
-  colRegistrosName = 'registrosDSS A';
-} else if (TARGET_TEAM === 'B') {
-  colEmployeesName = 'turma b';
-  colRegistrosName = 'registrosDSS B';
-} else if (TARGET_TEAM === 'C') {
-  colEmployeesName = 'turma c';
-  colRegistrosName = 'registrosDSS C';
-} else if (TARGET_TEAM === 'D') {
-  colEmployeesName = 'turma d';
-  colRegistrosName = 'registrosDSS D';
-} else if (TARGET_TEAM === 'CCG') {
-  colEmployeesName = 'turma c cg';
-  colRegistrosName = 'registrosDSS C CG';
-}
+const { employees: colEmployeesName, registros: colRegistrosName } = getCollections(TARGET_TEAM);
 
 console.log(`>>> GERANDO RELATÓRIO PARA A TURMA: ${TARGET_TEAM} <<<`);
 admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
@@ -50,65 +41,6 @@ const mainShiftLabel = (TARGET_TEAM === 'C' || TARGET_TEAM === 'D') ? '19H' : '7
 function limparTexto(texto) {
   if (!texto) return '';
   return texto.replace(/\s+/g, ' ').trim();
-}
-
-// --- GERAÇÃO DA DATA VIRTUAL (Fallback) ---
-// Subtrai 6 horas do relógio para garantir que a madrugada pertença ao dia anterior
-function getDataDoPlantaoFallback(format = 'DD/MM/YYYY') {
-  const dataVirtual = new Date(new Date().getTime() - (6 * 60 * 60 * 1000));
-  const options = { timeZone: 'America/Sao_Paulo' };
-  
-  const d = dataVirtual.toLocaleString('pt-BR', { ...options, day: '2-digit' });
-  const m = dataVirtual.toLocaleString('pt-BR', { ...options, month: '2-digit' });
-  
-  if (format === 'ISO') {
-    const y = dataVirtual.toLocaleString('pt-BR', { ...options, year: 'numeric' });
-    return `${y}-${m}-${d}`;
-  }
-
-  const y = dataVirtual.toLocaleString('pt-BR', { ...options, year: format === 'DD/MM/YY' ? '2-digit' : 'numeric' });
-  return `${d}/${m}/${y}`;
-}
-
-// Helper para converter ISO (YYYY-MM-DD) para Humano (DD/MM/YY)
-function isoToDisplay(iso) {
-  if (!iso) return null;
-  const [y, m, d] = iso.split('-');
-  return `${d}/${m}/${y.substring(2)}`;
-}
-
-// --- LÓGICA DE CONSENSO DE DATA ---
-function getConsensusDate(funcionarios) {
-  const counts = {};
-  funcionarios.forEach(f => {
-    if (f.time || f.t) {
-      const timestamp = f.time || f.t;
-      let dateObj = null;
-      if (typeof timestamp.toDate === 'function') dateObj = timestamp.toDate();
-      else if (timestamp instanceof Date) dateObj = timestamp;
-      else if (timestamp.seconds) dateObj = new Date(timestamp.seconds * 1000);
-      else dateObj = new Date(timestamp);
-
-      if (dateObj && !isNaN(dateObj.getTime())) {
-        const options = { timeZone: 'America/Sao_Paulo' };
-        const y = dateObj.toLocaleString('pt-BR', { ...options, year: 'numeric' });
-        const m = dateObj.toLocaleString('pt-BR', { ...options, month: '2-digit' });
-        const d = dateObj.toLocaleString('pt-BR', { ...options, day: '2-digit' });
-        const iso = `${y}-${m}-${d}`;
-        counts[iso] = (counts[iso] || 0) + 1;
-      }
-    }
-  });
-
-  let topDate = null;
-  let maxCount = 0;
-  for (const date in counts) {
-    if (counts[date] > maxCount) {
-      maxCount = counts[date];
-      topDate = date;
-    }
-  }
-  return (topDate && maxCount >= 5) ? topDate : null;
 }
 
 // --- FUNÇÃO PARA VERIFICAR SE JÁ FOI ENVIADO HOJE ---
@@ -171,7 +103,9 @@ async function gerarRelatorio(empSnapshot, dataExibicao) {
       if (reg.TURNO === "6H") registrosSH.push(reg);
       else registros7H.push(reg);
     });
-  } catch (error) { }
+  } catch (error) {
+    console.error("[AVISO] Falha ao ler registros DSS:", error.message);
+  }
 
   const ulStyle = 'style="padding-left: 20px; margin-top: 5px; margin-bottom: 10px;"';
   let htmlBody = `<div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #000; text-align: left;">`;
@@ -241,8 +175,8 @@ async function enviarEmail(htmlRelatorio, dataExibicao, dataID) {
 async function main() {
   console.log(`Iniciando script de relatório para TURMA ${TARGET_TEAM}...`);
   try {
-    const sysRef = await db.collection('configuracoes').doc('automacao').get();
-    if (sysRef.exists && sysRef.data()[TARGET_TEAM] === true) {
+    const isPaused = await isAutomacaoPausada(db, TARGET_TEAM);
+    if (isPaused) {
       console.log(`>>> Ação Cancelada. O envio de e-mails da Turma ${TARGET_TEAM} está PAUSADO pelo painel administrativo.`);
       process.exit(0);
     }
