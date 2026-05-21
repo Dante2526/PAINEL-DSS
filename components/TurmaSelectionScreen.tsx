@@ -50,6 +50,7 @@ const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, i
                         </button>
                     </div>
 
+                    {/* 
                     <div className="flex justify-center w-full max-w-[320px] md:max-w-[460px] mx-auto mb-4 md:mb-6">
                         <button
                             onClick={() => onSelect('CCG')}
@@ -58,6 +59,7 @@ const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, i
                             TURMA C CG
                         </button>
                     </div>
+                    */}
 
                 </main>
 
