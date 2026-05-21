@@ -80,3 +80,31 @@ export enum ModalType {
   HistoryView,
   AutomationPassword,
 }
+
+export interface PdfReportData {
+  turma: string;
+  dataFormatada: string;
+  totalFuncionarios: number;
+  totalPresentes: number;
+  totalPendentes: number;
+  totalAusentes: number;
+  totalMal: number;
+  employees: {
+      n: string;
+      m: string;
+      s: string;
+      turno: string;
+  }[];
+  registros7H: {
+      assunto: string;
+      name: string;
+      matricula: string;
+  }[];
+  registros6H: {
+      assunto: string;
+      name: string;
+      matricula: string;
+  }[];
+  mainShiftLabel: string;
+  shiftLabel: string;
+}

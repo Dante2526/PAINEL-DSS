@@ -40,7 +40,13 @@ const mainShiftLabel = (TARGET_TEAM === 'C' || TARGET_TEAM === 'D') ? '19H' : '7
 
 function limparTexto(texto) {
   if (!texto) return '';
-  return texto.replace(/\s+/g, ' ').trim();
+  const limpo = texto.replace(/\s+/g, ' ').trim();
+  return limpo
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 // --- FUNÇÃO PARA VERIFICAR SE JÁ FOI ENVIADO HOJE ---
