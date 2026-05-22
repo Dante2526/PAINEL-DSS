@@ -169,32 +169,43 @@ function isDiaDeTrabalho(team) {
     return true; 
   }
   
-  // Pega o timestamp atual em segundos (UTC epoch)
-  let currentSeconds = Math.floor(Date.now() / 1000);
+  const now = new Date();
   
-  // Obtém a hora atual de Brasília (0-23) para ver se aplica o recuo de madrugada
-  const options = { timeZone: 'America/Sao_Paulo', hour: '2-digit', hour12: false };
-  const brHourStr = new Date().toLocaleString('pt-BR', options);
-  const brHour = parseInt(brHourStr, 10);
+  // 1. Obter a data local no fuso de Brasília em formato YYYY-MM-DD
+  const formatter = new Intl.DateTimeFormat('fr-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+  let localDateStr = formatter.format(now);
   
-  // Se for madrugada em Brasília (entre 00h e 06h), aplicamos o Efeito Cinderela (recua 12h)
+  // 2. Obter a hora atual de Brasília (0-23) para o Efeito Cinderela (recuo de madrugada)
+  const hourFormatter = new Intl.DateTimeFormat('pt-BR', {
+    timeZone: 'America/Sao_Paulo',
+    hour: '2-digit',
+    hour12: false
+  });
+  const brHour = parseInt(hourFormatter.format(now), 10);
+  
+  // Se for madrugada em Brasília (entre 00h e 06h), aplicamos o Efeito Cinderela recuando 12h
   if (brHour >= 0 && brHour < 6) {
-    console.log(`[Escala] Madrugada detectada (${brHour}h BRT). Aplicando recuo virtual de 12 horas.`);
-    currentSeconds -= 43200; 
+    const prevDate = new Date(now.getTime() - 12 * 60 * 60 * 1000);
+    localDateStr = formatter.format(prevDate);
+    console.log(`[Escala] Madrugada detectada (${brHour}h BRT). Aplicando Efeito Cinderela. Data local recuada para: ${localDateStr}`);
   }
   
-  // Data âncora convertida para UTC epoch correspondente ao início daquele dia (meia-noite UTC)
-  const anchorDate = new Date(anchorStr + "T00:00:00Z");
-  const anchorSeconds = Math.floor(anchorDate.getTime() / 1000);
+  // 3. Converter ambas as datas para meia-noite UTC para calcular a diferença absoluta em dias calendários
+  const localMidnight = new Date(`${localDateStr}T00:00:00Z`);
+  const anchorMidnight = new Date(`${anchorStr}T00:00:00Z`);
   
-  // Diferença em dias
-  const diffDays = Math.floor((currentSeconds - anchorSeconds) / 86400);
+  const diffDays = Math.round((localMidnight.getTime() - anchorMidnight.getTime()) / (24 * 60 * 60 * 1000));
   
   // Cálculo do dia do ciclo (módulo 4 positivo)
   const cycleDay = ((diffDays % 4) + 4) % 4;
   
   const worksToday = (cycleDay === 0 || cycleDay === 1);
-  console.log(`[Escala] Turma ${team}: Diferença = ${diffDays} dias, Dia do ciclo = ${cycleDay} (Trabalho: ${worksToday ? 'Sim' : 'Folga/Não'})`);
+  console.log(`[Escala] Turma ${team}: Diferença = ${diffDays} dias (Data: ${localDateStr}), Dia do ciclo = ${cycleDay} (Trabalho: ${worksToday ? 'Sim' : 'Folga/Não'})`);
   
   return worksToday;
 }
