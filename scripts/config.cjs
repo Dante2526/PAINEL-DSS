@@ -160,7 +160,6 @@ const BATCH_LIMIT = 500;
 
 /**
  * Verifica se hoje é dia de trabalho para uma determinada turma com base na escala 2x2.
- * Aplica recuo de 12 horas (Efeito Cinderela) se a chamada ocorrer de madrugada (entre 00h e 06h BRT).
  */
 function isDiaDeTrabalho(team) {
   const anchorStr = ANCHOR_DATES[team];
@@ -178,22 +177,7 @@ function isDiaDeTrabalho(team) {
     month: '2-digit',
     day: '2-digit'
   });
-  let localDateStr = formatter.format(now);
-  
-  // 2. Obter a hora atual de Brasília (0-23) para o Efeito Cinderela (recuo de madrugada)
-  const hourFormatter = new Intl.DateTimeFormat('pt-BR', {
-    timeZone: 'America/Sao_Paulo',
-    hour: '2-digit',
-    hour12: false
-  });
-  const brHour = parseInt(hourFormatter.format(now), 10);
-  
-  // Se for madrugada em Brasília (entre 00h e 06h), aplicamos o Efeito Cinderela recuando 12h
-  if (brHour >= 0 && brHour < 6) {
-    const prevDate = new Date(now.getTime() - 12 * 60 * 60 * 1000);
-    localDateStr = formatter.format(prevDate);
-    console.log(`[Escala] Madrugada detectada (${brHour}h BRT). Aplicando Efeito Cinderela. Data local recuada para: ${localDateStr}`);
-  }
+  const localDateStr = formatter.format(now);
   
   // 3. Converter ambas as datas para meia-noite UTC para calcular a diferença absoluta em dias calendários
   const localMidnight = new Date(`${localDateStr}T00:00:00Z`);

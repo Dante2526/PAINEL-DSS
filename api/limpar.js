@@ -40,7 +40,7 @@ async function salvarHistorico(db, team, colEmployees, colRegistros) {
   empSnapshot.forEach(doc => {
     const emp = doc.data();
     let status = 'PEN';
-    if (emp.absent === true) status = 'AUS';
+    if (emp.absent === true || emp.ausente === true) status = 'AUS';
     else if (emp.mal === true) status = 'MAL';
     else if (emp.bem === true || emp.assDss === true) status = 'BEM';
 
@@ -55,6 +55,7 @@ async function salvarHistorico(db, team, colEmployees, colRegistros) {
 
   let dataISO = getConsensusDate(funcionarios);
   let dataBR = '';
+  let hasConsensus = !!dataISO;
 
   if (dataISO) {
     const [y, m, d] = dataISO.split('-');
@@ -66,6 +67,16 @@ async function salvarHistorico(db, team, colEmployees, colRegistros) {
   }
 
   const docId = `${team}_${dataISO}`;
+  
+  // Proteção contra sobrescrita acidental (ex: cron rodando duas vezes)
+  const docRef = db.collection('historico_dss').doc(docId);
+  const docSnap = await docRef.get();
+  
+  if (docSnap.exists && !hasConsensus) {
+    console.log(`[Histórico] Histórico para ${docId} já existe e o painel atual parece estar vazio (sem consenso). Ignorando para não sobrescrever com pendentes.`);
+    return;
+  }
+
   const historicoDoc = {
     data: dataBR,
     dataISO: dataISO,
@@ -81,7 +92,7 @@ async function salvarHistorico(db, team, colEmployees, colRegistros) {
     salvoEm: admin.firestore.FieldValue.serverTimestamp()
   };
 
-  await db.collection('historico_dss').doc(docId).set(historicoDoc);
+  await docRef.set(historicoDoc);
   console.log(`[Histórico] Salvo com sucesso: historico_dss/${docId}`);
 }
 
