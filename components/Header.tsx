@@ -47,7 +47,7 @@ const Header: React.FC<HeaderProps> = React.memo(({ stats, loading, onAdminClick
                     <button
                         id="tutorial-change-turma-btn"
                         onClick={onReturnToSelection}
-                        className="h-[90px] flex items-center gap-3 px-8 text-base font-bold text-white bg-gradient-to-r from-teal-500 to-cyan-600 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-teal-300"
+                        className="h-[90px] w-[240px] flex items-center justify-center gap-3 text-base font-bold text-white bg-gradient-to-r from-teal-500 to-cyan-600 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-teal-300"
                         aria-label="Trocar Turma"
                         title="Voltar para seleção de turma"
                     >
@@ -58,7 +58,7 @@ const Header: React.FC<HeaderProps> = React.memo(({ stats, loading, onAdminClick
                     <button
                         id="tutorial-help-btn"
                         onClick={onHelpClick}
-                        className="h-[90px] flex items-center gap-3 px-8 text-base font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-cyan-300"
+                        className="h-[90px] w-[240px] flex items-center justify-center gap-3 text-base font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-cyan-300"
                         aria-label="Iniciar Tutorial"
                         title="Como usar o sistema"
                     >
@@ -73,7 +73,7 @@ const Header: React.FC<HeaderProps> = React.memo(({ stats, loading, onAdminClick
                     <button
                         id="tutorial-admin-btn"
                         onClick={onAdminClick}
-                        className="h-[90px] relative flex items-center gap-3 px-8 text-base font-bold text-white bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-300"
+                        className="h-[90px] w-[240px] relative flex items-center justify-center gap-3 text-base font-bold text-white bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-300"
                         aria-label="Acesso Administrativo"
                     >
                         <AdminIcon className="w-7 h-7" />
