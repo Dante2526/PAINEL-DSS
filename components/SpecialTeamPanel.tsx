@@ -68,11 +68,36 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = React.memo(({
     const firstEmployee = specialTeam[0];
     const remainingEmployees = specialTeam.slice(1);
 
+    const isRegistered = subject && subject !== 'Não preenchido' && matricula;
+    const isSubjectEmpty = !subject || subject === 'Não preenchido';
+    const isMatriculaEmpty = !matricula;
+
+    const subjectBorderClass = isSubjectEmpty
+        ? "border-red-500/70 dark:border-red-500/50 shadow-[0_0_8px_rgba(239,68,68,0.15)] focus:ring-red-400 focus:border-red-400"
+        : "border-gray-200 dark:border-gray-600 focus:ring-primary focus:border-primary";
+
+    const matriculaBorderClass = isMatriculaEmpty
+        ? "border-red-500/70 dark:border-red-500/50 shadow-[0_0_8px_rgba(239,68,68,0.15)] focus:ring-red-400 focus:border-red-400"
+        : "border-gray-200 dark:border-gray-600 focus:ring-primary focus:border-primary";
+
     return (
         <div id="tutorial-special-panel" className="w-[870px] flex-shrink-0 bg-light-card dark:bg-dark-card rounded-3xl p-8 shadow-lg h-fit">
             <div id="tutorial-special-demo-area">
                 <div id="tutorial-special-header">
                     <h2 className="text-2xl font-bold text-center text-light-text dark:text-dark-text pb-4 mb-6 border-b-2 border-gray-200 dark:border-gray-700">TURNO {shiftLabel}</h2>
+
+                    {/* Indicator Card */}
+                    {!isRegistered ? (
+                        <div className="mb-4 mx-auto p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 rounded-xl flex items-center justify-center gap-2.5 text-red-600 dark:text-red-400 text-xs font-bold w-[50%] animate-pulse shadow-sm">
+                            <span className="w-2.5 h-2.5 bg-red-500 rounded-full inline-block animate-ping"></span>
+                            <span>PENDENTE: PREENCHER TEMA E RESPONSÁVEL DO DSS</span>
+                        </div>
+                    ) : (
+                        <div className="mb-4 mx-auto p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/30 rounded-xl flex items-center justify-center gap-2.5 text-green-600 dark:text-green-400 text-xs font-bold w-[50%] shadow-sm">
+                            <span className="w-2.5 h-2.5 bg-green-500 rounded-full inline-block"></span>
+                            <span>DSS REGISTRADO COM SUCESSO</span>
+                        </div>
+                    )}
 
                     <div className="space-y-4 mb-6 pb-6 border-b-2 border-gray-200 dark:border-gray-700">
                         <div className="relative">
@@ -82,7 +107,7 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = React.memo(({
                                 value={subject}
                                 onChange={(e) => onSubjectChange(e.target.value)}
                                 placeholder={`TEMA DSS - TURNO ${shiftLabel}`}
-                                className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition uppercase"
+                                className={`w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 rounded-lg outline-none transition uppercase ${subjectBorderClass} focus:ring-2`}
                                 autoCapitalize="characters"
                             />
                         </div>
@@ -95,7 +120,7 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = React.memo(({
                                     value={matricula}
                                     onChange={handleMatriculaChangeLocal}
                                     placeholder="Matrícula"
-                                    className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 border-r border-r-gray-300 dark:border-r-gray-600 border-gray-200 dark:border-gray-600 rounded-l-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
+                                    className={`w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 border-r border-r-gray-300 dark:border-r-gray-600 rounded-l-lg outline-none transition ${matriculaBorderClass} focus:ring-2`}
                                     inputMode="numeric"
                                     pattern="[0-9]*"
                                 />

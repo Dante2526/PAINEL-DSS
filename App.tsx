@@ -221,8 +221,33 @@ const ManualRegisterSection: React.FC<{
         onMatriculaChange(e.target.value.replace(/[^0-9]/g, ''));
     }, [onMatriculaChange]);
 
+    const isRegistered = subject && subject !== 'Não preenchido' && matricula;
+    const isSubjectEmpty = !subject || subject === 'Não preenchido';
+    const isMatriculaEmpty = !matricula;
+
+    const subjectBorderClass = isSubjectEmpty
+        ? "border-red-500/70 dark:border-red-500/50 shadow-[0_0_8px_rgba(239,68,68,0.15)] focus:ring-red-400 focus:border-red-400"
+        : "border-gray-200 dark:border-gray-600 focus:ring-primary focus:border-primary";
+
+    const matriculaBorderClass = isMatriculaEmpty
+        ? "border-red-500/70 dark:border-red-500/50 shadow-[0_0_8px_rgba(239,68,68,0.15)] focus:ring-red-400 focus:border-red-400"
+        : "border-gray-200 dark:border-gray-600 focus:ring-primary focus:border-primary";
+
     return (
         <div className="w-full bg-light-card dark:bg-dark-card rounded-3xl p-6 shadow-lg mb-8 shrink-0">
+            {/* Status indicator card */}
+            {!isRegistered ? (
+                <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 rounded-xl flex items-center gap-2.5 text-red-600 dark:text-red-400 text-xs font-bold w-fit animate-pulse shadow-sm">
+                    <span className="w-2.5 h-2.5 bg-red-500 rounded-full inline-block animate-ping"></span>
+                    <span>PENDENTE: PREENCHER TEMA E RESPONSÁVEL DO DSS</span>
+                </div>
+            ) : (
+                <div className="mb-4 p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/30 rounded-xl flex items-center gap-2.5 text-green-600 dark:text-green-400 text-xs font-bold w-fit shadow-sm">
+                    <span className="w-2.5 h-2.5 bg-green-500 rounded-full inline-block"></span>
+                    <span>DSS REGISTRADO COM SUCESSO</span>
+                </div>
+            )}
+
             <div id="tutorial-manual-register-bar" className="flex gap-4 items-center w-fit">
                 <div className="relative w-[600px]">
                     <SubjectIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -231,7 +256,7 @@ const ManualRegisterSection: React.FC<{
                         value={subject}
                         onChange={(e) => onSubjectChange(e.target.value)}
                         placeholder={`TEMA DSS - TURNO ${getMainShiftLabel(turma)}`}
-                        className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition uppercase"
+                        className={`w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 rounded-xl focus:ring-2 outline-none transition uppercase ${subjectBorderClass}`}
                         autoCapitalize="characters"
                     />
                 </div>
@@ -242,7 +267,7 @@ const ManualRegisterSection: React.FC<{
                         value={matricula}
                         onChange={handleMatriculaChange}
                         placeholder="Matrícula"
-                        className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
+                        className={`w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 rounded-xl focus:ring-2 outline-none transition ${matriculaBorderClass}`}
                         inputMode="numeric"
                         pattern="[0-9]*"
                     />
@@ -283,6 +308,40 @@ const AdminLoginModal: React.FC<{
     scale: number;
 }> = ({ isOpen, onClose, onLogin, scale }) => {
     const [email, setEmail] = useState('');
+    const [showEmail, setShowEmail] = useState(false);
+    const [visibleIndex, setVisibleIndex] = useState<number | null>(null);
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        // Reset state when modal is opened or closed
+        if (!isOpen) {
+            setEmail('');
+            setShowEmail(false);
+            setVisibleIndex(null);
+        }
+        return () => {
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        };
+    }, [isOpen]);
+
+    const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        setEmail(val);
+
+        // Se o novo valor for maior, identificamos o caractere recém adicionado
+        if (val.length > email.length) {
+            const addedIdx = val.length - 1;
+            setVisibleIndex(addedIdx);
+
+            if (timeoutRef.current) clearTimeout(timeoutRef.current);
+            timeoutRef.current = setTimeout(() => {
+                setVisibleIndex(null);
+            }, 1000);
+        } else {
+            // Se apagou, reseta o índice visível
+            setVisibleIndex(null);
+        }
+    };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -291,17 +350,53 @@ const AdminLoginModal: React.FC<{
 
     if (!isOpen) return null;
 
+    const inputClassName = `w-full p-4 pr-12 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white caret-black dark:caret-white relative z-10 select-text ${
+        !showEmail && email.length > 0 ? 'text-transparent dark:text-transparent' : ''
+    }`;
+
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Acesso Administrativo" scale={scale}>
             <form onSubmit={handleSubmit} className="space-y-4">
-                <input
-                    type="email"
-                    placeholder="Email do Administrador"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
-                    autoFocus
-                />
+                <div className="relative w-full">
+                    <input
+                        type="text"
+                        placeholder="Email do Administrador"
+                        value={email}
+                        onChange={handleEmailChange}
+                        className={inputClassName}
+                        autoFocus
+                        autoCapitalize="none"
+                        autoComplete="off"
+                        autoCorrect="off"
+                        spellCheck="false"
+                    />
+                    {!showEmail && email.length > 0 && (
+                        <div className="absolute left-4 right-12 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-light-text dark:text-dark-text font-sans text-base truncate z-0">
+                            {email.split('').map((char, index) => (
+                                <span key={index}>
+                                    {index === visibleIndex ? char : '●'}
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                    <button
+                        type="button"
+                        onClick={() => setShowEmail(!showEmail)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 z-20 focus:outline-none"
+                        title={showEmail ? "Ocultar Email" : "Exibir Email"}
+                    >
+                        {showEmail ? (
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                        ) : (
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.542-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                            </svg>
+                        )}
+                    </button>
+                </div>
                 <p className="text-xs text-left text-warning font-bold px-1">
                     * Digite tudo em minúsculo
                 </p>
@@ -1188,6 +1283,11 @@ const App: React.FC = () => {
     const [specialMatricula, setSpecialMatricula] = useState('');
     const [specialResponsible, setSpecialResponsible] = useState('');
 
+    const lastDbMainSubject = useRef('');
+    const lastDbMainMatricula = useRef('');
+    const lastDbSpecialSubject = useRef('');
+    const lastDbSpecialMatricula = useRef('');
+
     const [pendingEmployeeId, setPendingEmployeeId] = useState<string | null>(null);
     const [existingUserInfo, setExistingUserInfo] = useState<{ name: string; turma: string } | null>(null);
 
@@ -1524,11 +1624,29 @@ const App: React.FC = () => {
                         setIs6HActive(true);
                     }
                     
-                    setMainSubject(mainReg?.assunto || '');
-                    setMainMatricula(mainReg?.matricula || '');
+                    const newDbMainSubject = mainReg?.assunto || '';
+                    const newDbMainMatricula = mainReg?.matricula || '';
+                    const newDbSpecialSubject = specialReg?.assunto || '';
+                    const newDbSpecialMatricula = specialReg?.matricula || '';
+
+                    if (newDbMainSubject !== lastDbMainSubject.current) {
+                        setMainSubject(newDbMainSubject);
+                        lastDbMainSubject.current = newDbMainSubject;
+                    }
+                    if (newDbMainMatricula !== lastDbMainMatricula.current) {
+                        setMainMatricula(newDbMainMatricula);
+                        lastDbMainMatricula.current = newDbMainMatricula;
+                    }
                     setMainResponsible(mainReg?.name || '');
-                    setSpecialSubject(specialReg?.assunto || '');
-                    setSpecialMatricula(specialReg?.matricula || '');
+
+                    if (newDbSpecialSubject !== lastDbSpecialSubject.current) {
+                        setSpecialSubject(newDbSpecialSubject);
+                        lastDbSpecialSubject.current = newDbSpecialSubject;
+                    }
+                    if (newDbSpecialMatricula !== lastDbSpecialMatricula.current) {
+                        setSpecialMatricula(newDbSpecialMatricula);
+                        lastDbSpecialMatricula.current = newDbSpecialMatricula;
+                    }
                     setSpecialResponsible(specialReg?.name || '');
                 });
 
