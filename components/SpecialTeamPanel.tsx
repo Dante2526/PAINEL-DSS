@@ -120,7 +120,7 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = React.memo(({
                                     value={matricula}
                                     onChange={handleMatriculaChangeLocal}
                                     placeholder="Matrícula"
-                                    className={`w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 border-r border-r-gray-300 dark:border-r-gray-600 rounded-l-lg outline-none transition ${matriculaBorderClass} focus:ring-2`}
+                                    className={`w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 rounded-l-lg outline-none transition ${matriculaBorderClass} ${!isMatriculaEmpty ? 'border-r border-r-gray-300 dark:border-r-gray-600' : ''} focus:ring-2`}
                                     inputMode="numeric"
                                     pattern="[0-9]*"
                                 />
