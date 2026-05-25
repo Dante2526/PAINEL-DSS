@@ -421,7 +421,7 @@ const AdminOptionsModal: React.FC<{
                     <button
                         id="admin-demo-btn"
                         onClick={onEnterDemo}
-                        className="w-full p-2.5 md:p-3 bg-gray-700 text-white rounded-xl flex items-center justify-center gap-2 hover:bg-gray-800 transition shadow-md md:shadow-lg border border-gray-500"
+                        className="w-full p-2.5 md:p-3 bg-violet-600 text-white rounded-xl flex items-center justify-center gap-2 hover:bg-violet-700 transition shadow-md md:shadow-lg border border-violet-500"
                     >
                         <MousePointerIcon className="w-4 h-4 md:w-5 md:h-5" />
                         <span className="font-bold text-xs md:text-sm">MODO DEMONSTRAÇÃO</span>

@@ -46,7 +46,7 @@ const ExportDropdown: React.FC<ExportDropdownProps> = ({
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={disabled}
-        className="w-full py-3 bg-gray-700 text-white font-bold rounded-xl hover:bg-gray-800 transition flex items-center justify-center gap-2 shadow-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition flex items-center justify-center gap-2 shadow-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <DownloadIcon className="w-5 h-5" />
         BAIXAR

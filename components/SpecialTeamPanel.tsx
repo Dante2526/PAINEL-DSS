@@ -95,7 +95,7 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = React.memo(({
                                     value={matricula}
                                     onChange={handleMatriculaChangeLocal}
                                     placeholder="Matrícula"
-                                    className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 border-r-0 border-gray-200 dark:border-gray-600 rounded-l-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
+                                    className="w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 border-r border-r-gray-300 dark:border-r-gray-600 border-gray-200 dark:border-gray-600 rounded-l-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
                                     inputMode="numeric"
                                     pattern="[0-9]*"
                                 />
