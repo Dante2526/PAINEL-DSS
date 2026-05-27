@@ -350,8 +350,10 @@ const AdminLoginModal: React.FC<{
 
     if (!isOpen) return null;
 
-    const inputClassName = `w-full p-4 pr-12 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white caret-black dark:caret-white relative z-10 select-text ${
-        !showEmail && email.length > 0 ? 'text-transparent dark:text-transparent' : ''
+    const inputClassName = `w-full p-4 pr-12 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary caret-black dark:caret-white relative z-10 select-text text-base ${
+        !showEmail && email.length > 0
+            ? 'text-transparent dark:text-transparent'
+            : 'text-light-text dark:text-white'
     }`;
 
     return (
@@ -371,7 +373,7 @@ const AdminLoginModal: React.FC<{
                         spellCheck="false"
                     />
                     {!showEmail && email.length > 0 && (
-                        <div className="absolute left-4 right-12 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-light-text dark:text-dark-text font-sans text-base truncate z-0">
+                        <div className="absolute left-4 right-12 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-light-text dark:text-dark-text font-sans text-base truncate z-20">
                             {email.split('').map((char, index) => (
                                 <span key={index}>
                                     {index === visibleIndex ? char : '●'}
