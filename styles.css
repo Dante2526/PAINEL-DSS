@@ -793,3 +793,9 @@ a {
         margin: 4px;
     }
 }
+
+/* Ocultar o botão nativo de exibir/revelar senha do Microsoft Edge/Chrome no Windows para evitar ícones sobrepostos */
+input::-ms-reveal,
+input::-ms-clear {
+    display: none !important;
+}
