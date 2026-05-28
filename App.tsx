@@ -532,7 +532,7 @@ const AdminLoginModal: React.FC<{
 };
 
 const AdminButton: React.FC<{ id: string; onClick: () => void; className: string; icon: React.ReactNode; label: string }> = ({ id, onClick, className, icon, label }) => (
-    <button id={id} onClick={onClick} className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 transition shadow-md h-[86px] md:h-[82px] ${className}`}>
+    <button id={id} onClick={onClick} className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 transition shadow-md h-[86px] md:h-[72px] ${className}`}>
         <div className="scale-[0.85] md:scale-90 origin-bottom">{icon}</div>
         <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">{label}</span>
     </button>
@@ -560,8 +560,8 @@ const AdminOptionsModal: React.FC<{
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Painel do Administrador" scale={scale} size="md">
-            <div className="flex flex-col gap-2 md:gap-4">
-                <div className="grid grid-cols-2 gap-2 md:gap-4">
+            <div className="flex flex-col gap-2 md:gap-3">
+                <div className="grid grid-cols-2 gap-2 md:gap-3">
                     <AdminButton
                         id="admin-clear-btn"
                         onClick={onClear}
@@ -590,7 +590,7 @@ const AdminOptionsModal: React.FC<{
                         icon={<SortIcon className="w-7 h-7" />}
                         label="Reorganizar"
                     />
-                    <div className="col-span-2 grid grid-cols-2 gap-2 md:gap-4">
+                    <div className="col-span-2 grid grid-cols-2 gap-2 md:gap-3">
                         <AdminButton
                             id="admin-import-user-btn"
                             onClick={onImportUser}
@@ -600,7 +600,7 @@ const AdminOptionsModal: React.FC<{
                         />
                         <button
                             onClick={onToggle6H}
-                            className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 transition shadow-md h-[86px] md:h-[82px] ${is6HActive ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-green-500 hover:bg-green-600 text-white'}`}
+                            className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 transition shadow-md h-[86px] md:h-[72px] ${is6HActive ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-green-500 hover:bg-green-600 text-white'}`}
                         >
                             <div className="scale-[0.85] md:scale-90 origin-bottom"><ShiftIcon className="w-7 h-7" /></div>
                             <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">
@@ -609,7 +609,7 @@ const AdminOptionsModal: React.FC<{
                         </button>
                     </div>
                 </div>
-                <div className="col-span-2 grid grid-cols-2 gap-2 md:gap-4">
+                <div className="col-span-2 grid grid-cols-2 gap-2 md:gap-3">
                     <AdminButton
                         id="admin-history-btn"
                         onClick={onHistory}
@@ -619,7 +619,7 @@ const AdminOptionsModal: React.FC<{
                     />
                     <button
                         onClick={onToggleAutomation}
-                        className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 transition shadow-md h-[86px] md:h-[82px] ${isAutomationPaused ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`}
+                        className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 transition shadow-md h-[86px] md:h-[72px] ${isAutomationPaused ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`}
                     >
                         <div className="scale-[0.85] md:scale-90 origin-bottom"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
                         <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">
@@ -627,19 +627,19 @@ const AdminOptionsModal: React.FC<{
                         </span>
                     </button>
                 </div>
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-3 md:pt-4 mt-1 md:mt-2 flex flex-col gap-2 md:gap-3">
+                <div className="border-t border-gray-200 dark:border-gray-700 pt-3 md:pt-3 mt-1 md:mt-1 flex flex-col gap-2 md:gap-2.5">
                     <button
                         id="admin-tutorial-btn"
                         onClick={onStartAdminTutorial}
-                        className="w-full p-2.5 md:p-3 bg-cyan-500 text-white rounded-xl flex items-center justify-center gap-2 hover:bg-cyan-600 transition shadow-md md:shadow-lg"
+                        className="w-full p-2.5 md:py-2 md:px-3 bg-cyan-500 text-white rounded-xl flex items-center justify-center gap-2 hover:bg-cyan-600 transition shadow-md md:shadow-lg"
                     >
-                        <HelpIcon className="w-5 h-5 md:w-6 md:h-6" />
+                        <HelpIcon className="w-5 h-5 md:w-5 md:h-5" />
                         <span className="font-bold text-xs md:text-sm">AJUDA / TUTORIAL</span>
                     </button>
                     <button
                         id="admin-demo-btn"
                         onClick={onEnterDemo}
-                        className="w-full p-2.5 md:p-3 bg-violet-600 text-white rounded-xl flex items-center justify-center gap-2 hover:bg-violet-700 transition shadow-md md:shadow-lg border border-violet-500"
+                        className="w-full p-2.5 md:py-2 md:px-3 bg-violet-600 text-white rounded-xl flex items-center justify-center gap-2 hover:bg-violet-700 transition shadow-md md:shadow-lg border border-violet-500"
                     >
                         <MousePointerIcon className="w-4 h-4 md:w-5 md:h-5" />
                         <span className="font-bold text-xs md:text-sm">MODO DEMONSTRAÇÃO</span>
