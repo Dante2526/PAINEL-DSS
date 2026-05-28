@@ -2493,11 +2493,9 @@ const App: React.FC = () => {
         setActiveModal(ModalType.None);
     }, [processToggle6HState]);
 
-    const handleManualRegister = useCallback(async (turno: '7H' | '6H') => {
+    const handleManualRegister = useCallback(async (turno: '7H' | '6H', matricula: string, rawSubject: string) => {
         if (!selectedTurma) return;
 
-        const matricula = turno === '7H' ? mainMatricula : specialMatricula;
-        const rawSubject = turno === '7H' ? mainSubject : specialSubject;
         const subject = rawSubject ? rawSubject.toUpperCase() : '';
 
         if (!matricula) {
@@ -2547,7 +2545,7 @@ const App: React.FC = () => {
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
             showNotification(`Falha ao salvar registro: ${message}`, 'error');
         }
-    }, [selectedTurma, mainMatricula, specialMatricula, mainSubject, specialSubject, isDemoMode, db, administrators, allEmployeesForLookup, showNotification]);
+    }, [selectedTurma, isDemoMode, db, administrators, allEmployeesForLookup, showNotification]);
 
     const handleAdminLogin = async (email: string) => {
         const normalizedEmail = email.trim().toLowerCase();
@@ -3057,8 +3055,8 @@ const App: React.FC = () => {
     const handleOpenImportEmployee = useCallback(() => setActiveModal(ModalType.ImportEmployee), []);
     const handleOpenDemoPassword = useCallback(() => setActiveModal(ModalType.DemoPassword), []);
     const handleStartAdminTutorial = useCallback(() => setIsAdminTutorialOpen(true), []);
-    const handleRegister7H = useCallback(() => handleManualRegister('7H'), [handleManualRegister]);
-    const handleRegister6H = useCallback(() => handleManualRegister('6H'), [handleManualRegister]);
+    const handleRegister7H = useCallback(() => handleManualRegister('7H', mainMatricula, mainSubject), [handleManualRegister, mainMatricula, mainSubject]);
+    const handleRegister6H = useCallback(() => handleManualRegister('6H', specialMatricula, specialSubject), [handleManualRegister, specialMatricula, specialSubject]);
 
     const handleDeclineBiometrics = useCallback(() => {
         setActiveModal(ModalType.AdminOptions);

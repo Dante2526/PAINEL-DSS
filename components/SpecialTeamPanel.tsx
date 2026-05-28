@@ -24,7 +24,7 @@ interface SpecialTeamPanelProps {
     turma: string | null;
 }
 
-const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = React.memo(({
+const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
     specialTeam,
     onStatusChange,
     onToggleSpecialTeam,
@@ -182,6 +182,32 @@ const SpecialTeamPanel: React.FC<SpecialTeamPanelProps> = React.memo(({
             )}
         </div>
     );
-});
+};
 
-export default SpecialTeamPanel;
+const arePropsEqual = (prevProps: SpecialTeamPanelProps, nextProps: SpecialTeamPanelProps) => {
+    // Check primitives and specific props that should trigger a re-render
+    if (
+        prevProps.togglingSpecialTeamId !== nextProps.togglingSpecialTeamId ||
+        prevProps.isAdmin !== nextProps.isAdmin ||
+        prevProps.subject !== nextProps.subject ||
+        prevProps.matricula !== nextProps.matricula ||
+        prevProps.turma !== nextProps.turma ||
+        prevProps.onRegister !== nextProps.onRegister
+    ) {
+        return false;
+    }
+
+    // Deep reference check for the specialTeam array elements
+    // If employees changed in App.tsx but none of the 6H employees changed their reference, we can skip rendering
+    if (prevProps.specialTeam.length !== nextProps.specialTeam.length) return false;
+    
+    for (let i = 0; i < prevProps.specialTeam.length; i++) {
+        if (prevProps.specialTeam[i] !== nextProps.specialTeam[i]) {
+            return false;
+        }
+    }
+    
+    return true;
+};
+
+export default React.memo(SpecialTeamPanelComponent, arePropsEqual);
