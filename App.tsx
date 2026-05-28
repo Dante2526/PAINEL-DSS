@@ -39,6 +39,13 @@ import emailjs from '@emailjs/browser';
 import './styles.css';
 import { formatTimestamp } from './services/employeeService';
 import { logAuditEvent } from './services/auditService';
+import { 
+    isMobileCellularWithBiometrics, 
+    hasRegisteredBiometrics, 
+    registerBiometricAdmin, 
+    authenticateBiometricAdmin,
+    clearBiometricData
+} from './services/biometricService';
 
 // --- CONFIGURAÇÃO EMAILJS ---
 const EMAILJS_SERVICE_ID = "service_adjw0cj";
@@ -301,6 +308,56 @@ const ManualRegisterSection: React.FC<{
     prev.administrators.length === next.administrators.length
 );
 
+const ConfirmBiometricModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    onActivate: () => void;
+    scale: number;
+}> = ({ isOpen, onClose, onActivate, scale }) => {
+    if (!isOpen) return null;
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title="Ativar Impressão Digital" scale={scale}>
+            <div className="space-y-4 text-center py-2">
+                <div className="flex justify-center mb-4">
+                    <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20 text-white animate-pulse">
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                            <path d="M12 1a10 10 0 0 0-10 10v2a10 10 0 0 0 10 10h.01a10 10 0 0 0 10-10V11A10 10 0 0 0 12 1z" />
+                            <path d="M8 11a4 4 0 0 1 8 0v2a4 4 0 0 1-8 0z" />
+                            <path d="M12 7v4" />
+                        </svg>
+                    </div>
+                </div>
+                
+                <h3 className="text-base font-bold text-light-text dark:text-dark-text leading-snug">
+                    Deseja ativar o acesso rápido por biometria neste celular?
+                </h3>
+                
+                <p className="text-xs text-light-text-secondary dark:text-dark-text-secondary px-2">
+                    Nos próximos acessos, você poderá entrar no painel de administração tocando na sua digital, de forma rápida e segura, sem precisar digitar seu e-mail corporativo.
+                </p>
+
+                <div className="flex gap-3 pt-3">
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="flex-1 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition uppercase tracking-wider text-xs"
+                    >
+                        Agora Não
+                    </button>
+                    <button
+                        type="button"
+                        onClick={onActivate}
+                        className="flex-1 py-3 bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-bold rounded-lg hover:from-blue-600 hover:to-cyan-700 transition shadow-md uppercase tracking-wider text-xs"
+                    >
+                        Ativar
+                    </button>
+                </div>
+            </div>
+        </Modal>
+    );
+};
+
 const AdminLoginModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
@@ -311,6 +368,7 @@ const AdminLoginModal: React.FC<{
     const [showEmail, setShowEmail] = useState(false);
     const [visibleIndex, setVisibleIndex] = useState<number | null>(null);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const [isBioAvailable, setIsBioAvailable] = useState(false);
 
     useEffect(() => {
         // Reset state when modal is opened or closed
@@ -323,6 +381,28 @@ const AdminLoginModal: React.FC<{
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
         };
     }, [isOpen]);
+
+    useEffect(() => {
+        if (isOpen) {
+            const checkBiometrics = async () => {
+                const isCell = await isMobileCellularWithBiometrics();
+                const hasBio = hasRegisteredBiometrics();
+                setIsBioAvailable(isCell && hasBio);
+            };
+            checkBiometrics();
+        }
+    }, [isOpen]);
+
+    const handleBiometricClick = async () => {
+        try {
+            const authenticatedEmail = await authenticateBiometricAdmin();
+            if (authenticatedEmail) {
+                onLogin(authenticatedEmail);
+            }
+        } catch (error) {
+            console.error("Erro na autenticação biométrica:", error);
+        }
+    };
 
     const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
@@ -374,6 +454,28 @@ const AdminLoginModal: React.FC<{
                 <h2 className="text-lg md:text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6 mt-1 shrink-0">
                     Acesso Administrativo
                 </h2>
+
+                {isBioAvailable && (
+                    <div className="flex flex-col gap-3 mb-2">
+                        <button
+                            type="button"
+                            onClick={handleBiometricClick}
+                            className="w-full py-3.5 bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-bold rounded-lg hover:from-blue-600 hover:to-cyan-700 transition flex items-center justify-center gap-2.5 shadow-md shadow-blue-500/20 active:scale-[0.98] transform"
+                        >
+                            <svg className="w-5 h-5 text-white animate-pulse" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                                <path d="M12 1a10 10 0 0 0-10 10v2a10 10 0 0 0 10 10h.01a10 10 0 0 0 10-10V11A10 10 0 0 0 12 1z" />
+                                <path d="M8 11a4 4 0 0 1 8 0v2a4 4 0 0 1-8 0z" />
+                                <path d="M12 7v4" />
+                            </svg>
+                            ENTRAR COM DIGITAL
+                        </button>
+                        <div className="flex items-center justify-center gap-3 opacity-60 my-1">
+                            <span className="h-px bg-gray-300 dark:bg-gray-600 w-full"></span>
+                            <span className="text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider whitespace-nowrap">ou entrar com e-mail</span>
+                            <span className="h-px bg-gray-300 dark:bg-gray-600 w-full"></span>
+                        </div>
+                    </div>
+                )}
 
                 <div className="relative w-full">
                     <input
@@ -2425,10 +2527,19 @@ const App: React.FC = () => {
 
         const isFirstAdminLogin = !localStorage.getItem('hasSeenAdminTutorial');
 
-        const processLogin = (isDemo = false) => {
+        const processLogin = async (isDemo = false) => {
             setIsAdmin(true);
             setAdminEmail(normalizedEmail);
-            setActiveModal(ModalType.AdminOptions);
+            
+            // Sugere registro biométrico se estiver no celular e biometria ainda não estiver cadastrada
+            const isCell = await isMobileCellularWithBiometrics();
+            const alreadyRegistered = hasRegisteredBiometrics();
+            if (isCell && !alreadyRegistered && !isDemo) {
+                setActiveModal(ModalType.ConfirmBiometric);
+            } else {
+                setActiveModal(ModalType.AdminOptions);
+            }
+            
             showNotification(isDemo ? 'Acesso Admin (DEMO) concedido.' : 'Login de administrador bem-sucedido!', 'success');
 
             if (!isDemo) {
@@ -2442,12 +2553,12 @@ const App: React.FC = () => {
         };
 
         if (normalizedEmail === 'naylanmoreira350@gmail.com') {
-            processLogin();
+            await processLogin();
             return;
         }
 
         if (isDemoMode) {
-            processLogin(true);
+            await processLogin(true);
             return;
         }
 
@@ -2463,7 +2574,7 @@ const App: React.FC = () => {
             const q = query(collection(db, 'administrators'), where("email", "==", normalizedEmail));
             const querySnapshot = await getDocs(q);
             if (!querySnapshot.empty) {
-                processLogin();
+                await processLogin();
             } else {
                 showNotification('Credenciais de administrador inválidas.', 'error');
             }
@@ -2922,6 +3033,25 @@ const App: React.FC = () => {
     const handleRegister7H = useCallback(() => handleManualRegister('7H'), [handleManualRegister]);
     const handleRegister6H = useCallback(() => handleManualRegister('6H'), [handleManualRegister]);
 
+    const handleDeclineBiometrics = useCallback(() => {
+        setActiveModal(ModalType.AdminOptions);
+    }, []);
+
+    const handleActivateBiometrics = useCallback(async () => {
+        try {
+            if (!adminEmailRef.current) return;
+            const success = await registerBiometricAdmin(adminEmailRef.current);
+            if (success) {
+                showNotification('Acesso por impressão digital ativado com sucesso!', 'success');
+            }
+        } catch (error) {
+            console.error("Falha ao registrar biometria:", error);
+            showNotification('Não foi possível registrar a digital neste aparelho.', 'error');
+        } finally {
+            setActiveModal(ModalType.AdminOptions);
+        }
+    }, [showNotification]);
+
     const handleToggleAutomation = useCallback(() => {
         setActiveModal(ModalType.AutomationPassword);
     }, []);
@@ -3174,6 +3304,12 @@ const App: React.FC = () => {
                 isOpen={activeModal === ModalType.AdminLogin}
                 onClose={handleCloseModal}
                 onLogin={handleAdminLogin}
+                scale={modalScale}
+            />
+            <ConfirmBiometricModal
+                isOpen={activeModal === ModalType.ConfirmBiometric}
+                onClose={handleDeclineBiometrics}
+                onActivate={handleActivateBiometrics}
                 scale={modalScale}
             />
                             <AdminOptionsModal

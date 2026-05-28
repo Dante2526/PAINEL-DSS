@@ -79,6 +79,7 @@ export enum ModalType {
   ConfirmDeactivate6H,
   HistoryView,
   AutomationPassword,
+  ConfirmBiometric,
 }
 
 export interface PdfReportData {
