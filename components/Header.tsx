@@ -58,7 +58,7 @@ const Header: React.FC<HeaderProps> = React.memo(({ stats, loading, onAdminClick
                     <button
                         id="tutorial-help-btn"
                         onClick={onHelpClick}
-                        className="h-[90px] w-[190px] flex items-center justify-center gap-2 text-sm font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-cyan-300"
+                        className="h-[90px] w-[190px] flex items-center justify-center gap-2 text-sm font-bold text-white bg-gradient-to-r from-amber-400 to-orange-500 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-amber-300"
                         aria-label="Iniciar Tutorial"
                         title="Como usar o sistema"
                     >
@@ -73,7 +73,7 @@ const Header: React.FC<HeaderProps> = React.memo(({ stats, loading, onAdminClick
                     <button
                         id="tutorial-admin-btn"
                         onClick={onAdminClick}
-                        className="h-[90px] w-[190px] relative flex items-center justify-center gap-2 text-sm font-bold text-white bg-gradient-to-r from-purple-500 to-indigo-600 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-300"
+                        className="h-[90px] w-[190px] relative flex items-center justify-center gap-2 text-sm font-bold text-white bg-gradient-to-r from-blue-500 to-cyan-600 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300"
                         aria-label="Acesso Administrativo"
                     >
                         <AdminIcon className="w-7 h-7" />

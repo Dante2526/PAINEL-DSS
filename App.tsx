@@ -364,7 +364,7 @@ const AdminLoginModal: React.FC<{
                         {/* Efeito Glow / Sombra pulsante para design premium */}
                         <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-full blur-md opacity-45 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
                         {/* Contêiner principal com gradiente azul */}
-                        <div className="relative w-20 h-20 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center border-4 border-white dark:border-dark-card shadow-xl transform group-hover:scale-105 transition-all duration-300">
+                        <div className="relative w-20 h-20 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center shadow-xl transform group-hover:scale-105 transition-all duration-300">
                             <UserIcon className="w-10 h-10 text-white" />
                         </div>
                     </div>
