@@ -58,7 +58,8 @@ const Header: React.FC<HeaderProps> = React.memo(({ stats, loading, onAdminClick
                     <button
                         id="tutorial-help-btn"
                         onClick={onHelpClick}
-                        className="h-[90px] w-[190px] flex items-center justify-center gap-2 text-sm font-bold text-white bg-gradient-to-r from-amber-400 to-orange-500 rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-amber-300"
+                        className="h-[90px] w-[190px] flex items-center justify-center gap-2 text-sm font-bold text-white rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-amber-300"
+                        style={{ background: 'linear-gradient(135deg, #F8C300 0%, #E06C00 100%)' }}
                         aria-label="Iniciar Tutorial"
                         title="Como usar o sistema"
                     >
