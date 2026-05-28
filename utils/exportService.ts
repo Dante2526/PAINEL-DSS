@@ -28,7 +28,7 @@ export const exportToPng = async (elementId: string, filename: string) => {
         const dataUrl = await htmlToImage.toPng(element, {
             quality: 1,
             pixelRatio: 3,
-            backgroundColor: document.documentElement.classList.contains('dark') ? '#1A202C' : '#f8fafc',
+            backgroundColor: document.documentElement.classList.contains('dark') ? '#111217' : '#f8fafc',
             style: {
                 transform: 'scale(1)',
                 transformOrigin: 'top left',

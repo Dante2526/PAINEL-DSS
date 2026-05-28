@@ -1354,7 +1354,7 @@ const ImportEmployeeModal: React.FC<{
                                     <div
                                         key={emp.id}
                                         onClick={() => handleSelectEmployee(emp)}
-                                        className="p-3 hover:bg-light-bg dark:hover:bg-dark-bg-secondary cursor-pointer border-b border-gray-200 dark:border-gray-700 last:border-b-0"
+                                        className="p-3 hover:bg-light-bg dark:hover:bg-dark-hover cursor-pointer border-b border-gray-200 dark:border-gray-700 last:border-b-0"
                                     >
                                         <p className="font-semibold text-light-text dark:text-dark-text">{emp.name}</p>
                                         <p className="text-xs text-light-text-secondary dark:text-dark-text-secondary">Matrícula: {emp.matricula}</p>
@@ -1483,9 +1483,9 @@ const App: React.FC = () => {
             document.documentElement.classList.add('dark');
             localStorage.setItem('theme', 'dark');
             // FIX: Set body background to match theme to prevent white flashes during overscroll/bounce
-            document.body.style.backgroundColor = '#1A202C';
+            document.body.style.backgroundColor = '#111217';
             // FIX: Update theme-color meta tag for mobile browsers (status bar color)
-            if (themeColorMeta) themeColorMeta.setAttribute('content', '#1A202C');
+            if (themeColorMeta) themeColorMeta.setAttribute('content', '#111217');
         } else {
             document.documentElement.classList.remove('dark');
             localStorage.setItem('theme', 'light');
@@ -1518,7 +1518,7 @@ const App: React.FC = () => {
 
     const handleToggleDarkMode = useCallback(() => setIsDarkMode(prev => !prev), []);
 
-    const showNotification = useCallback((message: string, type: 'success' | 'error' = 'success') => {
+    const showNotification = useCallback((message: string, type: 'success' | 'error' | 'info' = 'success') => {
         const newNotification = { id: Date.now(), message, type };
         setNotifications(prev => [...prev, newNotification]);
     }, []);
@@ -1646,7 +1646,7 @@ const App: React.FC = () => {
 
             const templateParams = {
                 html_content: emailContent,
-                subject: `🚨 ALERTA URGENTE TURMA ${TURMA_DISPLAY_NAMES[selectedTurma]}: "ESTOU MAL"`,
+                subject: `🚨 ALERTA URGENTE TURMA ${TURMA_DISPLAY_NAMES[selectedTurma!]}: "ESTOU MAL"`,
             };
 
             await emailjs.send(
@@ -1665,14 +1665,15 @@ const App: React.FC = () => {
     // Effect for one-time global data fetching (like the employee lookup list)
     useEffect(() => {
         const fetchGlobalData = async () => {
-            if (!isConfigured || !db) return;
+            const currentDb = db;
+            if (!isConfigured || !currentDb) return;
 
             try {
                 await signInAnonymously(auth!);
                 console.log("Signed in anonymously for global data fetch.");
 
                 if (allEmployeesForLookup.length === 0) {
-                    const promises = ALL_TURMAS.map(turma => getDocs(query(collection(db, getTurmaCollectionName(turma)))));
+                    const promises = ALL_TURMAS.map(turma => getDocs(query(collection(currentDb, getTurmaCollectionName(turma)))));
 
                     const snapshots = await Promise.all(promises);
                     const allEmps: Pick<Employee, 'name' | 'matricula'>[] = [];
@@ -3133,11 +3134,11 @@ const App: React.FC = () => {
             registros7H: mainSubject || mainResponsible ? [{ assunto: mainSubject, name: mainResponsible || '', matricula: mainMatricula }] : [],
             registros6H: specialSubject || specialResponsible ? [{ assunto: specialSubject, name: specialResponsible || '', matricula: specialMatricula }] : [],
             r,
-            totalFuncionarios: stats.totalEmployees,
-            totalPresentes: stats.present,
+            totalFuncionarios: stats.total,
+            totalPresentes: stats.bem,
             totalAusentes: stats.absent,
             totalMal: stats.mal,
-            totalPendentes: stats.pending
+            totalPendentes: stats.pendente
         };
         return record;
     }, [selectedTurma, employees, mainSubject, mainResponsible, mainMatricula, specialSubject, specialResponsible, specialMatricula, stats]);
@@ -3229,7 +3230,7 @@ const App: React.FC = () => {
                                             /* RENDERIZAÇÃO LAYOUT 'CUSTOM' (ALFABÉTICO) */
                                             groupedMainTeam.map((group) => (
                                                 <div key={group.letter} id={`letter-group-${group.letter}`} className="flex flex-col w-fit">
-                                                    <div className="bg-light-bg-secondary/90 dark:bg-dark-bg/90 backdrop-blur-md py-4 mb-4 font-bold text-4xl text-light-text-secondary dark:text-dark-text-secondary border-b-2 border-primary/20 flex items-center gap-4 shadow-sm w-full">
+                                                    <div className="bg-light-bg-secondary/90 dark:bg-dark-header/90 backdrop-blur-md py-4 mb-4 font-bold text-4xl text-light-text-secondary dark:text-dark-text-secondary border-b-2 border-primary/20 flex items-center gap-4 shadow-sm w-full">
                                                         <div className="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center text-2xl shadow-md shrink-0">
                                                             {group.letter}
                                                         </div>
@@ -3557,7 +3558,7 @@ const App: React.FC = () => {
                             <div className="grid grid-cols-1 gap-3 mt-6 w-full">
                                 <button
                                     onClick={handleConfirmMal}
-                                    className="w-full py-4 font-bold text-white bg-danger rounded-lg hover:bg-red-700 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
+                                    className="w-full py-4 font-bold text-white bg-danger dark:bg-[#3A1414] rounded-lg hover:bg-red-700 dark:hover:bg-[#4A1818] border border-transparent dark:border-[#5A1C1C]/40 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
                                 >
                                     SIM, ESTOU MAL
                                 </button>
@@ -3744,7 +3745,7 @@ const App: React.FC = () => {
                             <div className="grid grid-cols-1 gap-3 mt-6 w-full">
                                 <button
                                     onClick={handleConfirmDelete}
-                                    className="w-full py-4 font-bold text-white bg-danger rounded-lg hover:bg-red-700 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
+                                    className="w-full py-4 font-bold text-white bg-danger dark:bg-[#3A1414] rounded-lg hover:bg-red-700 dark:hover:bg-[#4A1818] border border-transparent dark:border-[#5A1C1C]/40 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
                                 >
                                     SIM, EXCLUIR
                                 </button>
@@ -3801,7 +3802,7 @@ const App: React.FC = () => {
                             <div className="grid grid-cols-1 gap-3 mt-6 w-full">
                                 <button
                                     onClick={handleConfirmDeactivate6H}
-                                    className="w-full py-4 font-bold text-white bg-danger rounded-lg hover:bg-red-700 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
+                                    className="w-full py-4 font-bold text-white bg-danger dark:bg-[#3A1414] rounded-lg hover:bg-red-700 dark:hover:bg-[#4A1818] border border-transparent dark:border-[#5A1C1C]/40 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
                                 >
                                     SIM, DESATIVAR
                                 </button>

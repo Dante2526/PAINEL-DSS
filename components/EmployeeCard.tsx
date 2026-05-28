@@ -23,23 +23,37 @@ interface EmployeeCardProps {
 interface CheckboxItemProps {
     label: string;
     icon: string;
-    type: StatusType;
     checked: boolean;
-    checkedClass: string;
-    textColor: string;
-    borderColor: string;
-    darkBg: string;
     onClick: () => void;
+    checkedClass: string;
+    textColorClass: string;
+    indicatorColorClass: string;
 }
 
-const CheckboxItem: React.FC<CheckboxItemProps> = ({ label, icon, type, checked, checkedClass, textColor, borderColor, darkBg, onClick }) => (
+const CheckboxItem: React.FC<CheckboxItemProps> = ({ 
+    label, 
+    icon, 
+    checked, 
+    onClick,
+    checkedClass,
+    textColorClass,
+    indicatorColorClass
+}) => (
     <div
-        className={`p-5 flex flex-col items-center gap-3 rounded-xl cursor-pointer transition-all duration-300 ease-in-out transform hover:scale-105 border-2 ${checked ? `${checkedClass} border-${borderColor} dark:bg-${darkBg}` : 'bg-light-bg dark:bg-dark-bg border-transparent'}`}
+        className={`p-5 flex flex-col items-center gap-3 rounded-xl cursor-pointer transition-all duration-300 ease-in-out transform hover:scale-105 border-2 ${
+            checked 
+                ? checkedClass 
+                : 'bg-light-bg dark:bg-dark-bg border-transparent'
+        }`}
         onClick={onClick}
     >
         <div className={`text-5xl transition-all duration-300 ${checked ? 'grayscale-0 opacity-100' : 'grayscale opacity-50'}`}>{icon}</div>
-        <div className={`text-base font-bold text-center ${checked ? `text-${textColor} dark:text-white` : 'text-light-text-secondary dark:text-dark-text-secondary'}`}>{label}</div>
-        <div className={`w-9 h-9 rounded-full border-2 flex items-center justify-center transition-colors ${checked ? `bg-${borderColor} border-${borderColor}` : 'bg-white dark:bg-dark-bg-secondary border-gray-300 dark:border-gray-500'}`}>
+        <div className={`text-base font-bold text-center ${checked ? textColorClass : 'text-light-text-secondary dark:text-dark-text-secondary'}`}>{label}</div>
+        <div className={`w-9 h-9 rounded-full border-2 flex items-center justify-center transition-colors ${
+            checked 
+                ? indicatorColorClass 
+                : 'bg-white dark:bg-dark-bg-secondary border-gray-300 dark:border-gray-500'
+        }`}>
             {checked && <span className="text-white font-bold text-lg">✓</span>}
         </div>
     </div>
@@ -239,35 +253,29 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, o
                 <CheckboxItem
                     label="ASS. DSS"
                     icon="📄"
-                    type="assDss"
                     checked={employee.assDss}
                     onClick={() => onStatusChange(employee.id, 'assDss')}
-                    checkedClass="bg-gray-100"
-                    textColor="neutral"
-                    borderColor="neutral"
-                    darkBg="gray-600"
+                    checkedClass="bg-gray-100 dark:bg-gray-800 border-neutral/60 dark:border-slate-400"
+                    textColorClass="text-neutral dark:text-white"
+                    indicatorColorClass="bg-neutral border-neutral"
                 />
                 <CheckboxItem
                     label="ESTOU BEM"
                     icon="🙂"
-                    type="bem"
                     checked={employee.bem}
                     onClick={() => onStatusChange(employee.id, 'bem')}
-                    checkedClass="bg-green-50"
-                    textColor="success"
-                    borderColor="success"
-                    darkBg="green-800"
+                    checkedClass="bg-green-50 dark:bg-green-900/60 border-success dark:border-success"
+                    textColorClass="text-success dark:text-white"
+                    indicatorColorClass="bg-success border-success"
                 />
                 <CheckboxItem
                     label="ESTOU MAL"
                     icon="😟"
-                    type="mal"
                     checked={employee.mal}
                     onClick={() => onStatusChange(employee.id, 'mal')}
-                    checkedClass="bg-red-50"
-                    textColor="danger"
-                    borderColor="danger"
-                    darkBg="red-800"
+                    checkedClass="bg-red-50 dark:bg-red-950/40 border-danger dark:border-danger"
+                    textColorClass="text-danger dark:text-white"
+                    indicatorColorClass="bg-danger border-danger"
                 />
             </div>
 

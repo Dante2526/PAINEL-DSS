@@ -1,3 +1,30 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary: #0080ff;
+  --color-primary-light: #4da3ff;
+  --color-primary-dark: #0066cc;
+  --color-success: #5ec269;
+  --color-danger: #ff5252;
+  --color-neutral: #8b95a1;
+  --color-warning: #ffc107;
+  --color-orange: #ff9800;
+  --color-light-bg: #f5f7fa;
+  --color-light-bg-secondary: #e8ecf1;
+  --color-light-card: #ffffff;
+  --color-light-text: #1a1a1a;
+  --color-light-text-secondary: #666666;
+  --color-dark-bg: #111217;
+  --color-dark-bg-secondary: #1E2029;
+  --color-dark-card: #1E2029;
+  --color-dark-hover: #252836;
+  --color-dark-header: #15171E;
+  --color-dark-text: #f7fafc;
+  --color-dark-text-secondary: #a0aec0;
+}
+
 /* === GENERAL STYLES === */
 html,
 body,
@@ -10,7 +37,7 @@ body,
     /* Prevent the main page from scrolling */
     overscroll-behavior: none;
     /* PREVENTS THE WHITE GLOW/BOUNCE EFFECT */
-    background-color: #1A202C;
+    background-color: #111217;
     /* Default to dark to prevent white flashes */
     -webkit-overflow-scrolling: touch;
     /* Smooth theme transition for background colors */

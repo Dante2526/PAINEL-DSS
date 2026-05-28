@@ -53,41 +53,41 @@ const ExportDropdown: React.FC<ExportDropdownProps> = ({
       </button>
 
       {isOpen && (
-        <div className="absolute bottom-full mb-2 right-0 w-full bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50 origin-bottom animate-in fade-in slide-in-from-bottom-2 duration-200">
+        <div className="absolute bottom-full mb-2 right-0 w-full bg-white dark:bg-dark-card rounded-xl shadow-xl border border-gray-200 dark:border-white/10 overflow-hidden z-50 origin-bottom animate-in fade-in slide-in-from-bottom-2 duration-200">
           <div className="flex flex-col py-1">
             <button
               onClick={() => handleAction(onExportPng)}
-              className="px-4 py-3 text-left text-sm font-semibold flex items-center gap-3 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200"
+              className="px-4 py-3 text-left text-sm font-semibold flex items-center gap-3 hover:bg-gray-100 dark:hover:bg-dark-hover text-gray-800 dark:text-gray-200 transition-colors"
             >
               <ImageIcon className="w-5 h-5 text-indigo-500" />
               Imagem (PNG)
             </button>
             <button
               onClick={() => handleAction(onExportPdf)}
-              className="px-4 py-3 text-left text-sm font-semibold flex items-center gap-3 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200"
+              className="px-4 py-3 text-left text-sm font-semibold flex items-center gap-3 hover:bg-gray-100 dark:hover:bg-dark-hover text-gray-800 dark:text-gray-200 transition-colors"
             >
               <PdfIcon className="w-5 h-5 text-red-500" />
               Documento PDF
             </button>
-            <div className="h-px bg-gray-200 dark:bg-gray-700 my-1 mx-2"></div>
+            <div className="h-px bg-gray-200 dark:bg-dark-hover my-1 mx-2"></div>
             <button
               onClick={() => handleAction(onExportExcel)}
-              className="px-4 py-3 text-left text-sm font-semibold flex items-center gap-3 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200"
+              className="px-4 py-3 text-left text-sm font-semibold flex items-center gap-3 hover:bg-gray-100 dark:hover:bg-dark-hover text-gray-800 dark:text-gray-200 transition-colors"
             >
               <ExcelIcon className="w-5 h-5 text-green-600" />
               Planilha Excel
             </button>
             <button
               onClick={() => handleAction(onExportDoc)}
-              className="px-4 py-3 text-left text-sm font-semibold flex items-center gap-3 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200"
+              className="px-4 py-3 text-left text-sm font-semibold flex items-center gap-3 hover:bg-gray-100 dark:hover:bg-dark-hover text-gray-800 dark:text-gray-200 transition-colors"
             >
               <DocIcon className="w-5 h-5 text-blue-500" />
               Word (DOC)
             </button>
-            <div className="h-px bg-gray-200 dark:bg-gray-700 my-1 mx-2"></div>
+            <div className="h-px bg-gray-200 dark:bg-dark-hover my-1 mx-2"></div>
             <button
               onClick={() => handleAction(onExportTxt)}
-              className="px-4 py-3 text-left text-sm font-semibold flex items-center gap-3 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200"
+              className="px-4 py-3 text-left text-sm font-semibold flex items-center gap-3 hover:bg-gray-100 dark:hover:bg-dark-hover text-gray-800 dark:text-gray-200 transition-colors"
             >
               <FileTextIcon className="w-5 h-5 text-gray-500" />
               Texto (TXT)
