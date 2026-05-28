@@ -357,8 +357,24 @@ const AdminLoginModal: React.FC<{
     }`;
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Acesso Administrativo" scale={scale}>
+        <Modal isOpen={isOpen} onClose={onClose} title="" scale={scale}>
             <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="flex justify-center mb-4 mt-2">
+                    <div className="relative group">
+                        {/* Efeito Glow / Sombra pulsante para design premium */}
+                        <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-full blur-md opacity-45 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
+                        {/* Contêiner principal com gradiente azul */}
+                        <div className="relative w-20 h-20 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center border-4 border-white dark:border-dark-card shadow-xl transform group-hover:scale-105 transition-all duration-300">
+                            <UserIcon className="w-10 h-10 text-white" />
+                        </div>
+                    </div>
+                </div>
+                
+                {/* Título reposicionado abaixo do ícone */}
+                <h2 className="text-lg md:text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6 mt-1 shrink-0">
+                    Acesso Administrativo
+                </h2>
+
                 <div className="relative w-full">
                     <input
                         type="text"

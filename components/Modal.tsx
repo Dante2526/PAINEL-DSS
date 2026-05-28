@@ -59,7 +59,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, scale =
         onClick={(e) => e.stopPropagation()}
       >
         <button onClick={onClose} className="absolute top-2 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10 font-bold">&times;</button>
-        <h2 className="text-lg md:text-xl font-bold uppercase text-light-text dark:text-dark-text mb-3 md:mb-6 mt-1 md:mt-2 shrink-0">{title}</h2>
+        {title && <h2 className="text-lg md:text-xl font-bold uppercase text-light-text dark:text-dark-text mb-3 md:mb-6 mt-1 md:mt-2 shrink-0">{title}</h2>}
         <div className="flex-grow flex flex-col min-h-0">
           {children}
           {/* Espaçador invisível para garantir margem no final do scroll do modal, especialmente em mobile */}
