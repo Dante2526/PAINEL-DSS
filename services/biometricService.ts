@@ -54,12 +54,6 @@ export const hasRegisteredBiometrics = (): boolean => {
   return registered && !!email && !!credId;
 };
 
-/**
- * Retorna o e-mail registrado na biometria deste dispositivo.
- */
-export const getRegisteredBiometricEmail = (): string | null => {
-  return localStorage.getItem(KEYS.EMAIL);
-};
 
 /**
  * Desativa e limpa as credenciais biométricas deste dispositivo.
@@ -86,7 +80,8 @@ export const registerBiometricAdmin = async (email: string): Promise<boolean> =>
     const creationOptions: PublicKeyCredentialCreationOptions = {
       challenge,
       rp: {
-        name: "Painel DSS"
+        name: "Painel DSS",
+        id: window.location.hostname
       },
       user: {
         id: userId,
