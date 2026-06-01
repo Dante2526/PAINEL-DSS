@@ -1214,8 +1214,10 @@ const ImportEmployeeModal: React.FC<{
     const [loadingEmployees, setLoadingEmployees] = useState(false);
     const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isTurmaDropdownOpen, setIsTurmaDropdownOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const turmaDropdownRef = useRef<HTMLDivElement>(null);
 
 
     const turmas: TurmaType[] = [...ALL_TURMAS];
@@ -1229,8 +1231,21 @@ const ImportEmployeeModal: React.FC<{
             setLoadingEmployees(false);
             setSearchTerm('');
             setIsDropdownOpen(false);
+            setIsTurmaDropdownOpen(false);
         }
     }, [isOpen]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (turmaDropdownRef.current && !turmaDropdownRef.current.contains(event.target as Node)) {
+                setIsTurmaDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     useEffect(() => {
         const fetchEmployees = async () => {
@@ -1319,29 +1334,60 @@ const ImportEmployeeModal: React.FC<{
     if (!isOpen) return null;
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} onBack={onBack} title="Importar Colaborador" scale={scale}>
-            <form onSubmit={handleSubmit} className="space-y-4 text-left">
-                <div>
-                    <label htmlFor="turma-select" className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Turma de Origem</label>
-                    <div className="relative">
-                        <select
-                            id="turma-select"
-                            value={sourceTurma}
-                            onChange={(e) => setSourceTurma(e.target.value as TurmaType)}
-                            className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white appearance-none pr-12"
-                            required
-                        >
-                            <option value="" disabled>Selecione uma turma</option>
-                            {availableTurmas.map(turma => (
-                                <option key={turma} value={turma}>Turma {TURMA_DISPLAY_NAMES[turma]}</option>
-                            ))}
-                        </select>
-                        <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">
-                            <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <Modal isOpen={isOpen} onClose={onClose} onBack={onBack} title="" scale={scale}>
+            <form onSubmit={handleSubmit} className="space-y-5 text-left">
+                <div className="flex justify-center mb-4 mt-2">
+                    <div className="relative group">
+                        {/* Efeito Glow / Sombra pulsante para design premium */}
+                        <div className="absolute -inset-1 bg-gradient-to-r from-teal-500 to-cyan-500 rounded-full blur-md opacity-45 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
+                        {/* Contêiner principal com gradiente azul/teal */}
+                        <div className="relative w-20 h-20 rounded-full bg-gradient-to-tr from-teal-600 to-cyan-500 flex items-center justify-center shadow-xl transform group-hover:scale-105 transition-all duration-300">
+                            <ExchangeIcon className="w-10 h-10 text-white" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Título reposicionado abaixo do ícone */}
+                <h2 className="text-lg md:text-xl font-bold uppercase text-light-text dark:text-dark-text text-center mb-6 mt-1 shrink-0">
+                    Importar Colaborador
+                </h2>
+
+                <div ref={turmaDropdownRef} className="relative">
+                    <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Turma de Origem</label>
+                    <div
+                        onClick={() => setIsTurmaDropdownOpen(!isTurmaDropdownOpen)}
+                        className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary dark:text-white flex items-center justify-between cursor-pointer select-none transition-all duration-200"
+                    >
+                        <span className={`font-semibold ${sourceTurma ? 'text-light-text dark:text-white' : 'text-gray-400'}`}>
+                            {sourceTurma ? `Turma ${TURMA_DISPLAY_NAMES[sourceTurma]}` : 'Selecione uma turma'}
+                        </span>
+                        <div className={`text-gray-400 transition-transform duration-200 ${isTurmaDropdownOpen ? 'transform rotate-180' : ''}`}>
+                            <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
                             </svg>
                         </div>
                     </div>
+                    {isTurmaDropdownOpen && (
+                        <div className="absolute z-20 w-full mt-1 bg-light-card dark:bg-dark-card border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                            {availableTurmas.map(turma => (
+                                <div
+                                    key={turma}
+                                    onClick={() => {
+                                        setSourceTurma(turma);
+                                        setIsTurmaDropdownOpen(false);
+                                    }}
+                                    className={`p-3.5 hover:bg-light-bg dark:hover:bg-dark-hover cursor-pointer border-b border-gray-100 dark:border-gray-800 last:border-b-0 font-semibold text-light-text dark:text-gray-200 transition-colors duration-150 flex items-center justify-between ${sourceTurma === turma ? 'bg-primary/5 text-primary dark:text-indigo-400' : ''}`}
+                                >
+                                    <span>Turma {TURMA_DISPLAY_NAMES[turma]}</span>
+                                    {sourceTurma === turma && (
+                                        <svg className="w-4 h-4 text-primary dark:text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                        </svg>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 <div ref={dropdownRef} className="relative">
@@ -1357,7 +1403,7 @@ const ImportEmployeeModal: React.FC<{
                                 loadingEmployees ? "Carregando..." :
                                     (sourceTurma ? "Pesquisar por nome ou matrícula..." : "Selecione uma turma primeiro")
                             }
-                            className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
+                            className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-xl outline-none focus:ring-2 focus:ring-primary dark:text-white transition-all duration-200"
                             disabled={!sourceTurma || loadingEmployees}
                         />
                         {loadingEmployees && (
@@ -1367,27 +1413,27 @@ const ImportEmployeeModal: React.FC<{
                         )}
                     </div>
                     {isDropdownOpen && sourceEmployees.length > 0 && (
-                        <div className="absolute z-10 w-full mt-1 bg-light-card dark:bg-dark-card border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                        <div className="absolute z-10 w-full mt-1 bg-light-card dark:bg-dark-card border border-gray-300 dark:border-gray-600 rounded-xl shadow-lg max-h-60 overflow-y-auto overflow-hidden animate-in fade-in zoom-in-95 duration-150">
                             {filteredEmployees.length > 0 ? (
                                 filteredEmployees.map(emp => (
                                     <div
                                         key={emp.id}
                                         onClick={() => handleSelectEmployee(emp)}
-                                        className="p-3 hover:bg-light-bg dark:hover:bg-dark-hover cursor-pointer border-b border-gray-200 dark:border-gray-700 last:border-b-0"
+                                        className="p-3.5 hover:bg-light-bg dark:hover:bg-dark-hover cursor-pointer border-b border-gray-100 dark:border-gray-800 last:border-b-0 transition-colors duration-150"
                                     >
-                                        <p className="font-semibold text-light-text dark:text-dark-text">{emp.name}</p>
-                                        <p className="text-xs text-light-text-secondary dark:text-dark-text-secondary">Matrícula: {emp.matricula}</p>
+                                        <p className="font-semibold text-light-text dark:text-white">{emp.name}</p>
+                                        <p className="text-xs text-light-text-secondary dark:text-dark-text-secondary mt-0.5">Matrícula: {emp.matricula}</p>
                                     </div>
                                 ))
                             ) : (
-                                <div className="p-3 text-center text-light-text-secondary dark:text-dark-text-secondary">Nenhum colaborador encontrado.</div>
+                                <div className="p-4 text-center font-medium text-light-text-secondary dark:text-dark-text-secondary">Nenhum colaborador encontrado.</div>
                             )}
                         </div>
                     )}
                 </div>
 
                 <div className="pt-2">
-                    <button type="submit" disabled={!selectedEmployeeId} className="w-full py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition shadow-lg disabled:bg-gray-400 disabled:cursor-not-allowed">
+                    <button type="submit" disabled={!selectedEmployeeId} className="w-full py-3.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white font-bold rounded-xl transition shadow-lg shadow-green-600/10 active:scale-[0.98] transform uppercase text-sm">
                         IMPORTAR PARA TURMA {TURMA_DISPLAY_NAMES[currentTurma]}
                     </button>
                 </div>
