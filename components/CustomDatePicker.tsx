@@ -153,10 +153,6 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({ selectedDate, onCha
                         } else {
                             baseStyle += "text-gray-700 dark:text-gray-200 hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-500/20 dark:hover:text-indigo-300 cursor-pointer ";
                         }
-                        
-                        if (d.isToday && !d.isSelected) {
-                            baseStyle += "ring-2 ring-inset ring-indigo-400 dark:ring-indigo-500 text-indigo-700 dark:text-indigo-400 ";
-                        }
 
                         return (
                             <button
