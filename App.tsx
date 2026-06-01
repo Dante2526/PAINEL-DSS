@@ -680,9 +680,10 @@ const AdminOptionsModal: React.FC<{
 const AddUserModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
+    onBack?: () => void;
     onAdd: (name: string, matricula: string, addAnother: boolean) => void;
     scale: number;
-}> = ({ isOpen, onClose, onAdd, scale }) => {
+}> = ({ isOpen, onClose, onBack, onAdd, scale }) => {
     const [name, setName] = useState('');
     const [matricula, setMatricula] = useState('');
     const [addAnother, setAddAnother] = useState(false);
@@ -722,8 +723,24 @@ const AddUserModal: React.FC<{
     if (!isOpen) return null;
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Adicionar Colaborador" scale={scale}>
+        <Modal isOpen={isOpen} onClose={onClose} onBack={onBack} title="" scale={scale}>
             <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="flex justify-center mb-4 mt-2">
+                    <div className="relative group">
+                        {/* Efeito Glow / Sombra pulsante para design premium */}
+                        <div className="absolute -inset-1 bg-gradient-to-r from-green-600 to-emerald-500 rounded-full blur-md opacity-45 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
+                        {/* Contêiner principal com gradiente verde */}
+                        <div className="relative w-20 h-20 rounded-full bg-gradient-to-tr from-green-600 to-emerald-500 flex items-center justify-center shadow-xl transform group-hover:scale-105 transition-all duration-300">
+                            <UserPlusIcon className="w-10 h-10 text-white" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Título reposicionado abaixo do ícone */}
+                <h2 className="text-lg md:text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6 mt-1 shrink-0">
+                    Adicionar Colaborador
+                </h2>
+
                 <div>
                     <input
                         ref={nameInputRef}
@@ -762,7 +779,7 @@ const AddUserModal: React.FC<{
                         <div className={`absolute left-1 top-1 bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-200 ease-in-out ${addAnother ? 'translate-x-6' : 'translate-x-0'}`}></div>
                     </div>
                 </label>
-                <button type="submit" className="w-full py-3 bg-success text-white font-bold rounded-lg hover:bg-green-600 transition shadow-lg">
+                <button type="submit" className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold rounded-lg transition shadow-lg shadow-green-600/20 active:scale-[0.98] transform uppercase">
                     ADICIONAR
                 </button>
             </form>
@@ -773,6 +790,7 @@ const AddUserModal: React.FC<{
 const ReportModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
+    onBack?: () => void;
     employees: Employee[];
     showNotification: (msg: string, type: 'success' | 'error') => void;
     scale: number;
@@ -784,7 +802,7 @@ const ReportModal: React.FC<{
     matricula6H: string;
     adminEmail: string;
     turma: string | null;
-}> = ({ isOpen, onClose, employees, showNotification, scale, subject7H, responsible7H, matricula7H, subject6H, responsible6H, matricula6H, adminEmail, turma }) => {
+}> = ({ isOpen, onClose, onBack, employees, showNotification, scale, subject7H, responsible7H, matricula7H, subject6H, responsible6H, matricula6H, adminEmail, turma }) => {
     // Generate text for Clipboard/File functions
     const generateReport = () => {
         const team7H = employees.filter(e => e.turno !== '6H');
@@ -987,7 +1005,7 @@ const ReportModal: React.FC<{
     if (!isOpen) return null;
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Relatório Diário" scale={scale}>
+        <Modal isOpen={isOpen} onClose={onClose} onBack={onBack} title="Relatório Diário" scale={scale}>
             {/* Visual Report Container */}
             <div id="report-capture-area" className="w-full mb-6 bg-light-card dark:bg-dark-card pt-1 px-4">
                 <div className="text-sm font-semibold text-gray-500 mb-4 capitalize border-b border-gray-200 dark:border-gray-700 pb-2">
@@ -1185,11 +1203,12 @@ const AutomationPasswordModal: React.FC<{
 const ImportEmployeeModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
+    onBack?: () => void;
     onImport: (employeeId: string, sourceTurma: TurmaType) => void;
     currentTurma: TurmaType;
     scale: number;
     showNotification: (msg: string, type: 'success' | 'error') => void;
-}> = ({ isOpen, onClose, onImport, currentTurma, scale, showNotification }) => {
+}> = ({ isOpen, onClose, onBack, onImport, currentTurma, scale, showNotification }) => {
     const [sourceTurma, setSourceTurma] = useState<TurmaType | ''>('');
     const [sourceEmployees, setSourceEmployees] = useState<Employee[]>([]);
     const [loadingEmployees, setLoadingEmployees] = useState(false);
@@ -1300,7 +1319,7 @@ const ImportEmployeeModal: React.FC<{
     if (!isOpen) return null;
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Importar Colaborador" scale={scale}>
+        <Modal isOpen={isOpen} onClose={onClose} onBack={onBack} title="Importar Colaborador" scale={scale}>
             <form onSubmit={handleSubmit} className="space-y-4 text-left">
                 <div>
                     <label htmlFor="turma-select" className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Turma de Origem</label>
@@ -3051,6 +3070,7 @@ const App: React.FC = () => {
     // IMPORTANTE: Hooks devem ficar ANTES de qualquer return condicional (Regra dos Hooks do React)
     const handleOpenAdminLogin = useCallback(() => setActiveModal(ModalType.AdminLogin), []);
     const handleCloseModal = useCallback(() => setActiveModal(ModalType.None), []);
+    const handleBackToAdminOptions = useCallback(() => setActiveModal(ModalType.AdminOptions), []);
     const handleOpenAddUser = useCallback(() => setActiveModal(ModalType.AddUser), []);
     const handleOpenReport = useCallback(() => setActiveModal(ModalType.Report), []);
     const handleOpenImportEmployee = useCallback(() => setActiveModal(ModalType.ImportEmployee), []);
@@ -3375,10 +3395,11 @@ const App: React.FC = () => {
                 onConfirm={handleConfirmAutomationPassword}
                 scale={modalScale}
             />
-            <AddUserModal isOpen={activeModal === ModalType.AddUser} onClose={handleCloseModal} onAdd={handleAddUser} scale={modalScale} />
+            <AddUserModal isOpen={activeModal === ModalType.AddUser} onClose={handleCloseModal} onBack={handleBackToAdminOptions} onAdd={handleAddUser} scale={modalScale} />
             <ReportModal
                 isOpen={activeModal === ModalType.Report}
                 onClose={handleCloseModal}
+                onBack={handleBackToAdminOptions}
                 employees={employees}
                 showNotification={showNotification}
                 scale={modalScale}
@@ -3395,6 +3416,7 @@ const App: React.FC = () => {
             <HistoryModal
                 isOpen={activeModal === ModalType.HistoryView}
                 onClose={handleCloseModal}
+                onBack={handleBackToAdminOptions}
                 scale={modalScale}
                 turma={selectedTurma}
                 showNotification={showNotification}
@@ -3406,6 +3428,7 @@ const App: React.FC = () => {
             <ImportEmployeeModal
                 isOpen={activeModal === ModalType.ImportEmployee}
                 onClose={handleCloseModal}
+                onBack={handleBackToAdminOptions}
                 onImport={handleImportEmployee}
                 currentTurma={selectedTurma}
                 scale={modalScale}

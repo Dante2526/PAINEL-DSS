@@ -29,13 +29,14 @@ const STATUS_DOT_COLORS: Record<string, string> = {
 const HistoryModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
+    onBack?: () => void;
     scale: number;
     turma: string | null;
     showNotification: (msg: string, type: 'success' | 'error') => void;
     currentLiveHistory?: HistoryRecord | null;
     adminEmail?: string;
     administrators?: Administrator[];
-}> = ({ isOpen, onClose, scale, turma, showNotification, currentLiveHistory, adminEmail, administrators }) => {
+}> = ({ isOpen, onClose, onBack, scale, turma, showNotification, currentLiveHistory, adminEmail, administrators }) => {
     const [selectedDate, setSelectedDate] = useState('');
     const [historyData, setHistoryData] = useState<HistoryRecord | null>(null);
     const [loading, setLoading] = useState(false);
@@ -313,6 +314,12 @@ const HistoryModal: React.FC<{
                 
                 setAllRecords(newRecords);
                 setHasMore(false);
+
+                // Selecionar automaticamente o dia mais recente
+                if (!isManualLoadMore && newRecords.length > 0) {
+                    const mostRecent = newRecords[0];
+                    handleDateChange(mostRecent.dataISO);
+                }
             }
         } catch (error) {
             console.error('Erro ao buscar lote de histórico:', error);
@@ -326,6 +333,9 @@ const HistoryModal: React.FC<{
     // Carregar primeiro lote ao abrir ou mudar turma
     React.useEffect(() => {
         if (isOpen && turma) {
+            setSelectedDate('');
+            setHistoryData(null);
+            setNotFound(false);
             setAllRecords([]);
             setLastVisible(null);
             setHasMore(true);
@@ -597,7 +607,7 @@ const HistoryModal: React.FC<{
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Histórico DSS" scale={scale} size="md">
+        <Modal isOpen={isOpen} onClose={onClose} onBack={onBack} title="Histórico DSS" scale={scale} size="md">
             <div className="w-full">
                 {/* Seletor de Data e Busca por Tema */}
                 <div className="flex flex-col gap-3 mb-6">

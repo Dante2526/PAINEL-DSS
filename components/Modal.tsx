@@ -3,13 +3,14 @@ import React, { ReactNode, useEffect, useState } from 'react';
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onBack?: () => void;
   title: string;
   children: ReactNode;
   scale?: number;
   size?: 'sm' | 'md' | 'lg';
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, scale = 1, size = 'sm' }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children, scale = 1, size = 'sm' }) => {
   const [viewportHeight, setViewportHeight] = useState('100vh');
 
   useEffect(() => {
@@ -58,6 +59,17 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, scale =
         style={modalStyle}
         onClick={(e) => e.stopPropagation()}
       >
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="absolute top-3.5 left-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors z-10"
+            title="Voltar"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        )}
         <button onClick={onClose} className="absolute top-2 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10 font-bold">&times;</button>
         {title && <h2 className="text-lg md:text-xl font-bold uppercase text-light-text dark:text-dark-text mb-3 md:mb-4 mt-1 md:mt-2 shrink-0">{title}</h2>}
         <div className="flex-grow flex flex-col min-h-0">
