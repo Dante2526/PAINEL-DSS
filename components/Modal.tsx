@@ -14,13 +14,21 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children,
   useEffect(() => {
     if (!isOpen) return;
 
-    // Trava o scroll da página (fundo) quando o modal abre
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    // Trava o scroll agressivamente no mobile para impedir que o Chrome empurre a página para cima
+    const scrollY = window.scrollY;
+    const originalPosition = document.body.style.position;
+    const originalTop = document.body.style.top;
+    const originalWidth = document.body.style.width;
+
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
 
     return () => {
-      // Restaura o scroll da página ao fechar o modal
-      document.body.style.overflow = originalOverflow;
+      document.body.style.position = originalPosition;
+      document.body.style.top = originalTop;
+      document.body.style.width = originalWidth;
+      window.scrollTo(0, scrollY);
     };
   }, [isOpen]);
 
