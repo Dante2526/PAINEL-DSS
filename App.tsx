@@ -466,28 +466,28 @@ const AdminLoginModal: React.FC<{
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="" scale={scale}>
             <form onSubmit={handleSubmit} className="space-y-4">
-                {!isSmallViewport && (
-                    <div className="flex justify-center mb-4 mt-2">
-                        <div className="relative group">
-                            {/* Efeito Glow / Sombra pulsante para design premium */}
-                            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-full blur-md opacity-45 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
-                            {/* Contêiner principal com gradiente azul */}
-                            <div className="relative w-20 h-20 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center shadow-xl transform group-hover:scale-105 transition-all duration-300">
-                                <UserIcon className="w-10 h-10 text-white" />
-                            </div>
+                <div className="flex justify-center mb-3 mt-1">
+                    <div className="relative group">
+                        {/* Efeito Glow / Sombra pulsante para design premium */}
+                        <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-full blur-md opacity-45 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
+                        {/* Contêiner principal com gradiente azul */}
+                        <div className={`relative rounded-full bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center shadow-xl transform group-hover:scale-105 transition-all duration-300 ${
+                            isSmallViewport ? 'w-14 h-14' : 'w-20 h-20'
+                        }`}>
+                            <UserIcon className={isSmallViewport ? 'w-7 h-7 text-white' : 'w-10 h-10 text-white'} />
                         </div>
                     </div>
-                )}
+                </div>
                 
                 {/* Título reposicionado abaixo do ícone */}
                 <h2 className={`font-bold uppercase text-light-text dark:text-dark-text shrink-0 ${
-                    isSmallViewport ? 'text-base mb-2 mt-1' : 'text-lg md:text-xl mb-6 mt-1'
+                    isSmallViewport ? 'text-base mb-2 mt-1' : 'text-lg md:text-xl mb-5 mt-1'
                 }`}>
                     Acesso Administrativo
                 </h2>
 
                 {isBioAvailable && (
-                    <div className={`flex flex-col ${isSmallViewport ? 'gap-1.5 mb-1' : 'gap-3 mb-2'}`}>
+                    <div className={`flex flex-col ${isSmallViewport ? 'gap-1.5 mb-1.5' : 'gap-3 mb-2'}`}>
                         <button
                             type="button"
                             onClick={handleBiometricClick}
@@ -561,11 +561,11 @@ const AdminLoginModal: React.FC<{
                         )}
                     </button>
                 </div>
-                {!isSmallViewport && (
-                    <p className="text-xs text-left text-warning font-bold px-1">
-                        * Digite tudo em minúsculo
-                    </p>
-                )}
+                <p className={`text-left text-warning font-bold px-1 my-0.5 ${
+                    isSmallViewport ? 'text-[10px]' : 'text-xs'
+                }`}>
+                    * Digite tudo em minúsculo
+                </p>
                 <button type="submit" className={`w-full bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition ${
                     isSmallViewport ? 'py-2.5 text-sm' : 'py-3'
                 }`}>
