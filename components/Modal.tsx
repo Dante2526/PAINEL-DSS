@@ -12,26 +12,37 @@ interface ModalProps {
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children, scale = 1, size = 'sm' }) => {
   const [viewportHeight, setViewportHeight] = useState('100vh');
+  const [viewportWidth, setViewportWidth] = useState('100%');
+  const [viewportTop, setViewportTop] = useState(0);
+  const [viewportLeft, setViewportLeft] = useState(0);
 
   useEffect(() => {
     if (!isOpen) return;
 
-    const updateHeight = () => {
+    const updateViewport = () => {
       if (window.visualViewport) {
         setViewportHeight(`${window.visualViewport.height}px`);
+        setViewportWidth(`${window.visualViewport.width}px`);
+        setViewportTop(window.visualViewport.offsetTop);
+        setViewportLeft(window.visualViewport.offsetLeft);
       } else {
         setViewportHeight(`${window.innerHeight}px`);
+        setViewportWidth('100%');
+        setViewportTop(0);
+        setViewportLeft(0);
       }
     };
 
-    updateHeight();
+    updateViewport();
 
-    window.visualViewport?.addEventListener('resize', updateHeight);
-    window.addEventListener('resize', updateHeight);
+    window.visualViewport?.addEventListener('resize', updateViewport);
+    window.visualViewport?.addEventListener('scroll', updateViewport);
+    window.addEventListener('resize', updateViewport);
 
     return () => {
-      window.visualViewport?.removeEventListener('resize', updateHeight);
-      window.removeEventListener('resize', updateHeight);
+      window.visualViewport?.removeEventListener('resize', updateViewport);
+      window.visualViewport?.removeEventListener('scroll', updateViewport);
+      window.removeEventListener('resize', updateViewport);
     };
   }, [isOpen]);
 
@@ -50,8 +61,13 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children,
 
   return (
     <div
-      className="fixed inset-x-0 top-0 bg-black/60 flex items-center justify-center p-4 z-50 transition-opacity duration-300 overflow-hidden"
-      style={{ height: viewportHeight }}
+      className="fixed bg-black/60 flex items-center justify-center p-4 z-50 transition-opacity duration-300 overflow-hidden"
+      style={{
+        height: viewportHeight,
+        width: viewportWidth,
+        top: `${viewportTop}px`,
+        left: `${viewportLeft}px`,
+      }}
       onClick={onClose}
     >
       <div
