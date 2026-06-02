@@ -377,6 +377,7 @@ const AdminLoginModal: React.FC<{
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [isBioAvailable, setIsBioAvailable] = useState(false);
     const [isSmallViewport, setIsSmallViewport] = useState(false);
+    const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         // Reset state when modal is opened or closed
@@ -384,6 +385,12 @@ const AdminLoginModal: React.FC<{
             setEmail('');
             setShowEmail(false);
             setVisibleIndex(null);
+        } else {
+            // Atraso intencional no focus para não colidir com a animação de abertura do modal
+            const timer = setTimeout(() => {
+                if (inputRef.current) inputRef.current.focus();
+            }, 350);
+            return () => clearTimeout(timer);
         }
         return () => {
             if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -455,8 +462,8 @@ const AdminLoginModal: React.FC<{
 
     if (!isOpen) return null;
 
-    const inputClassName = `w-full pr-12 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary caret-black dark:caret-white relative z-10 select-text text-base font-mono ${
-        isSmallViewport ? 'p-3 text-sm' : 'p-4 text-base'
+    const inputClassName = `w-full pr-12 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary caret-black dark:caret-white relative z-10 select-text font-mono transition-all duration-300 ${
+        isSmallViewport ? 'p-2.5 text-sm' : 'p-4 text-base'
     } ${
         !showEmail && email.length > 0
             ? 'text-transparent dark:text-transparent'
@@ -465,8 +472,8 @@ const AdminLoginModal: React.FC<{
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="" scale={scale}>
-            <form onSubmit={handleSubmit} className={`flex flex-col ${isSmallViewport ? 'space-y-2' : 'space-y-4'}`}>
-                <div className={`flex justify-center ${isSmallViewport ? 'mb-1 mt-0' : 'mb-3 mt-1'}`}>
+            <form onSubmit={handleSubmit} className={`flex flex-col transition-all duration-300 ${isSmallViewport ? 'space-y-2' : 'space-y-4'}`}>
+                <div className={`flex justify-center transition-all duration-300 ${isSmallViewport ? 'mb-1 mt-0' : 'mb-3 mt-1'}`}>
                     <div className="relative group">
                         {/* Efeito Glow / Sombra pulsante para design premium */}
                         <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-full blur-md opacity-45 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
@@ -474,24 +481,24 @@ const AdminLoginModal: React.FC<{
                         <div className={`relative rounded-full bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center shadow-xl transform group-hover:scale-105 transition-all duration-300 ${
                             isSmallViewport ? 'w-10 h-10' : 'w-20 h-20'
                         }`}>
-                            <UserIcon className={isSmallViewport ? 'w-5 h-5 text-white' : 'w-10 h-10 text-white'} />
+                            <UserIcon className={`text-white transition-all duration-300 ${isSmallViewport ? 'w-5 h-5' : 'w-10 h-10'}`} />
                         </div>
                     </div>
                 </div>
                 
                 {/* Título reposicionado abaixo do ícone */}
-                <h2 className={`font-bold uppercase text-light-text dark:text-dark-text shrink-0 ${
+                <h2 className={`font-bold uppercase text-light-text dark:text-dark-text shrink-0 transition-all duration-300 ${
                     isSmallViewport ? 'text-sm mb-1 mt-0' : 'text-lg md:text-xl mb-5 mt-1'
                 }`}>
                     Acesso Administrativo
                 </h2>
 
                 {isBioAvailable && (
-                    <div className={`flex flex-col ${isSmallViewport ? 'gap-1.5 mb-1' : 'gap-3 mb-2'}`}>
+                    <div className={`flex flex-col transition-all duration-300 ${isSmallViewport ? 'gap-1.5 mb-1' : 'gap-3 mb-2'}`}>
                         <button
                             type="button"
                             onClick={handleBiometricClick}
-                            className={`w-full bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-bold rounded-lg hover:from-blue-600 hover:to-cyan-700 transition flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 active:scale-[0.98] transform ${
+                            className={`w-full bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-bold rounded-lg hover:from-blue-600 hover:to-cyan-700 flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 active:scale-[0.98] transform transition-all duration-300 ${
                                 isSmallViewport ? 'py-2.5 text-xs' : 'py-3.5 text-sm'
                             }`}
                         >
@@ -508,7 +515,7 @@ const AdminLoginModal: React.FC<{
                             </svg>
                             ENTRAR COM DIGITAL
                         </button>
-                        <div className={`flex items-center justify-center gap-2 opacity-60 ${isSmallViewport ? 'my-0.5' : 'my-1'}`}>
+                        <div className={`flex items-center justify-center gap-2 opacity-60 transition-all duration-300 ${isSmallViewport ? 'my-0.5' : 'my-1'}`}>
                             <span className="h-px bg-gray-300 dark:bg-gray-600 w-full"></span>
                             <span className="text-[9px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider whitespace-nowrap">ou entrar com e-mail</span>
                             <span className="h-px bg-gray-300 dark:bg-gray-600 w-full"></span>
@@ -518,19 +525,19 @@ const AdminLoginModal: React.FC<{
 
                 <div className="relative w-full">
                     <input
+                        ref={inputRef}
                         type="text"
                         placeholder="Email do Administrador"
                         value={email}
                         onChange={handleEmailChange}
                         className={inputClassName}
-                        autoFocus
                         autoCapitalize="none"
                         autoComplete="off"
                         autoCorrect="off"
                         spellCheck="false"
                     />
                     {!showEmail && email.length > 0 && (
-                        <div className={`absolute right-12 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-light-text dark:text-dark-text font-mono z-20 truncate ${
+                        <div className={`absolute right-12 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-light-text dark:text-dark-text font-mono z-20 truncate transition-all duration-300 ${
                             isSmallViewport ? 'left-3 text-sm' : 'left-4 text-base'
                         }`}>
                             {email.split('').map((char, index) => (
@@ -566,7 +573,7 @@ const AdminLoginModal: React.FC<{
                         * Digite tudo em minúsculo
                     </p>
                 )}
-                <button type="submit" className={`w-full bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition ${
+                <button type="submit" className={`w-full bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition-all duration-300 ${
                     isSmallViewport ? 'py-2.5 text-sm mt-1' : 'py-3'
                 }`}>
                     ENTRAR
