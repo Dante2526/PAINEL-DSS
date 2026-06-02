@@ -376,6 +376,7 @@ const AdminLoginModal: React.FC<{
     const [visibleIndex, setVisibleIndex] = useState<number | null>(null);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [isBioAvailable, setIsBioAvailable] = useState(false);
+    const [isSmallViewport, setIsSmallViewport] = useState(false);
 
     useEffect(() => {
         // Reset state when modal is opened or closed
@@ -391,12 +392,28 @@ const AdminLoginModal: React.FC<{
 
     useEffect(() => {
         if (isOpen) {
+            const checkViewport = () => {
+                if (window.visualViewport) {
+                    setIsSmallViewport(window.visualViewport.height < 600);
+                } else {
+                    setIsSmallViewport(window.innerHeight < 600);
+                }
+            };
+            checkViewport();
+            window.visualViewport?.addEventListener('resize', checkViewport);
+            window.addEventListener('resize', checkViewport);
+
             const checkBiometrics = async () => {
                 const isCell = await isMobileCellularWithBiometrics();
                 const hasBio = hasRegisteredBiometrics();
                 setIsBioAvailable(isCell && hasBio);
             };
             checkBiometrics();
+
+            return () => {
+                window.visualViewport?.removeEventListener('resize', checkViewport);
+                window.removeEventListener('resize', checkViewport);
+            };
         }
     }, [isOpen]);
 
@@ -438,7 +455,9 @@ const AdminLoginModal: React.FC<{
 
     if (!isOpen) return null;
 
-    const inputClassName = `w-full p-4 pr-12 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary caret-black dark:caret-white relative z-10 select-text text-base font-mono ${
+    const inputClassName = `w-full pr-12 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary caret-black dark:caret-white relative z-10 select-text text-base font-mono ${
+        isSmallViewport ? 'p-3 text-sm' : 'p-4 text-base'
+    } ${
         !showEmail && email.length > 0
             ? 'text-transparent dark:text-transparent'
             : 'text-light-text dark:text-white'
@@ -447,30 +466,36 @@ const AdminLoginModal: React.FC<{
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="" scale={scale}>
             <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="flex justify-center mb-4 mt-2">
-                    <div className="relative group">
-                        {/* Efeito Glow / Sombra pulsante para design premium */}
-                        <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-full blur-md opacity-45 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
-                        {/* Contêiner principal com gradiente azul */}
-                        <div className="relative w-20 h-20 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center shadow-xl transform group-hover:scale-105 transition-all duration-300">
-                            <UserIcon className="w-10 h-10 text-white" />
+                {!isSmallViewport && (
+                    <div className="flex justify-center mb-4 mt-2">
+                        <div className="relative group">
+                            {/* Efeito Glow / Sombra pulsante para design premium */}
+                            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-full blur-md opacity-45 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
+                            {/* Contêiner principal com gradiente azul */}
+                            <div className="relative w-20 h-20 rounded-full bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center shadow-xl transform group-hover:scale-105 transition-all duration-300">
+                                <UserIcon className="w-10 h-10 text-white" />
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
                 
                 {/* Título reposicionado abaixo do ícone */}
-                <h2 className="text-lg md:text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6 mt-1 shrink-0">
+                <h2 className={`font-bold uppercase text-light-text dark:text-dark-text shrink-0 ${
+                    isSmallViewport ? 'text-base mb-2 mt-1' : 'text-lg md:text-xl mb-6 mt-1'
+                }`}>
                     Acesso Administrativo
                 </h2>
 
                 {isBioAvailable && (
-                    <div className="flex flex-col gap-3 mb-2">
+                    <div className={`flex flex-col ${isSmallViewport ? 'gap-1.5 mb-1' : 'gap-3 mb-2'}`}>
                         <button
                             type="button"
                             onClick={handleBiometricClick}
-                            className="w-full py-3.5 bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-bold rounded-lg hover:from-blue-600 hover:to-cyan-700 transition flex items-center justify-center gap-2.5 shadow-md shadow-blue-500/20 active:scale-[0.98] transform"
+                            className={`w-full bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-bold rounded-lg hover:from-blue-600 hover:to-cyan-700 transition flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 active:scale-[0.98] transform ${
+                                isSmallViewport ? 'py-2.5 text-xs' : 'py-3.5 text-sm'
+                            }`}
                         >
-                            <svg className="w-5 h-5 text-white animate-pulse" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                            <svg className="w-4 h-4 text-white animate-pulse" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                                 <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/>
                                 <path d="M14 13.12c0 2.38 0 6.38-1 8.88"/>
                                 <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/>
@@ -483,9 +508,9 @@ const AdminLoginModal: React.FC<{
                             </svg>
                             ENTRAR COM DIGITAL
                         </button>
-                        <div className="flex items-center justify-center gap-3 opacity-60 my-1">
+                        <div className={`flex items-center justify-center gap-2 opacity-60 ${isSmallViewport ? 'my-0.5' : 'my-1'}`}>
                             <span className="h-px bg-gray-300 dark:bg-gray-600 w-full"></span>
-                            <span className="text-[10px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider whitespace-nowrap">ou entrar com e-mail</span>
+                            <span className="text-[9px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider whitespace-nowrap">ou entrar com e-mail</span>
                             <span className="h-px bg-gray-300 dark:bg-gray-600 w-full"></span>
                         </div>
                     </div>
@@ -505,7 +530,9 @@ const AdminLoginModal: React.FC<{
                         spellCheck="false"
                     />
                     {!showEmail && email.length > 0 && (
-                        <div className="absolute left-4 right-12 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-light-text dark:text-dark-text font-mono text-base truncate z-20">
+                        <div className={`absolute right-12 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-light-text dark:text-dark-text font-mono z-20 truncate ${
+                            isSmallViewport ? 'left-3 text-sm' : 'left-4 text-base'
+                        }`}>
                             {email.split('').map((char, index) => (
                                 <span key={index}>
                                     {index === visibleIndex ? char : '●'}
@@ -534,10 +561,14 @@ const AdminLoginModal: React.FC<{
                         )}
                     </button>
                 </div>
-                <p className="text-xs text-left text-warning font-bold px-1">
-                    * Digite tudo em minúsculo
-                </p>
-                <button type="submit" className="w-full py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition">
+                {!isSmallViewport && (
+                    <p className="text-xs text-left text-warning font-bold px-1">
+                        * Digite tudo em minúsculo
+                    </p>
+                )}
+                <button type="submit" className={`w-full bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition ${
+                    isSmallViewport ? 'py-2.5 text-sm' : 'py-3'
+                }`}>
                     ENTRAR
                 </button>
             </form>
