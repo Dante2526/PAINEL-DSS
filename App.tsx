@@ -476,7 +476,6 @@ const AdminLoginModal: React.FC<{
             onClose={onClose} 
             title="" 
             scale={scale}
-            className={`transition-all duration-300 ${isSmallViewport ? '-translate-y-[10vh] sm:-translate-y-12' : ''}`}
         >
             <form onSubmit={handleSubmit} className={`flex flex-col transition-all duration-300 ${isSmallViewport ? 'space-y-2' : 'space-y-4'}`}>
                 <div className={`flex justify-center transition-all duration-300 ${isSmallViewport ? 'mb-1 mt-0' : 'mb-3 mt-1'}`}>
