@@ -11,6 +11,8 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children, scale = 1, size = 'sm' }) => {
+  const overlayRef = React.useRef<HTMLDivElement>(null);
+
   const [viewportHeight, setViewportHeight] = useState(() => {
     if (typeof window !== 'undefined' && window.visualViewport) {
       return `${window.visualViewport.height}px`;
@@ -33,17 +35,44 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children,
   useEffect(() => {
     if (!isOpen) return;
 
+    let ticking = false;
+
     const updateViewport = () => {
-      if (window.visualViewport) {
-        setViewportHeight(`${window.visualViewport.height}px`);
-        setViewportWidth(`${window.visualViewport.width}px`);
-        setViewportTop(window.visualViewport.offsetTop);
-        setViewportLeft(window.visualViewport.offsetLeft);
-      } else {
-        setViewportHeight(`${window.innerHeight}px`);
-        setViewportWidth('100%');
-        setViewportTop(0);
-        setViewportLeft(0);
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          if (window.visualViewport) {
+            const h = `${window.visualViewport.height}px`;
+            const w = `${window.visualViewport.width}px`;
+            const t = window.visualViewport.offsetTop;
+            const l = window.visualViewport.offsetLeft;
+            
+            if (overlayRef.current) {
+              overlayRef.current.style.height = h;
+              overlayRef.current.style.width = w;
+              overlayRef.current.style.transform = `translate(${l}px, ${t}px)`;
+            }
+            
+            setViewportHeight(h);
+            setViewportWidth(w);
+            setViewportTop(t);
+            setViewportLeft(l);
+          } else {
+            const h = `${window.innerHeight}px`;
+            
+            if (overlayRef.current) {
+              overlayRef.current.style.height = h;
+              overlayRef.current.style.width = '100%';
+              overlayRef.current.style.transform = `translate(0px, 0px)`;
+            }
+            
+            setViewportHeight(h);
+            setViewportWidth('100%');
+            setViewportTop(0);
+            setViewportLeft(0);
+          }
+          ticking = false;
+        });
+        ticking = true;
       }
     };
 
@@ -75,12 +104,12 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children,
 
   return (
     <div
-      className="fixed bg-black/60 backdrop-blur-[6px] flex items-center justify-center p-4 z-50 overflow-hidden"
+      ref={overlayRef}
+      className="fixed bg-black/60 backdrop-blur-[6px] flex items-center justify-center p-4 z-50 overflow-hidden top-0 left-0"
       style={{
         height: viewportHeight,
         width: viewportWidth,
-        top: `${viewportTop}px`,
-        left: `${viewportLeft}px`,
+        transform: `translate(${viewportLeft}px, ${viewportTop}px)`,
       }}
       onClick={onClose}
     >
