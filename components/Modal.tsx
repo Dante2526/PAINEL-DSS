@@ -11,86 +11,14 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children, scale = 1, size = 'sm' }) => {
-  const overlayRef = React.useRef<HTMLDivElement>(null);
-
-  const [viewportHeight, setViewportHeight] = useState(() => {
-    if (typeof window !== 'undefined' && window.visualViewport) {
-      return `${window.visualViewport.height}px`;
-    }
-    return typeof window !== 'undefined' ? `${window.innerHeight}px` : '100vh';
-  });
-  const [viewportWidth, setViewportWidth] = useState(() => {
-    if (typeof window !== 'undefined' && window.visualViewport) {
-      return `${window.visualViewport.width}px`;
-    }
-    return '100%';
-  });
-  const [viewportTop, setViewportTop] = useState(() => {
-    return typeof window !== 'undefined' && window.visualViewport ? window.visualViewport.offsetTop : 0;
-  });
-  const [viewportLeft, setViewportLeft] = useState(() => {
-    return typeof window !== 'undefined' && window.visualViewport ? window.visualViewport.offsetLeft : 0;
-  });
-
   useEffect(() => {
     if (!isOpen) return;
-
-    let ticking = false;
-
-    const updateViewport = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          if (window.visualViewport) {
-            const h = `${window.visualViewport.height}px`;
-            const w = `${window.visualViewport.width}px`;
-            const t = window.visualViewport.offsetTop;
-            const l = window.visualViewport.offsetLeft;
-            
-            if (overlayRef.current) {
-              overlayRef.current.style.height = h;
-              overlayRef.current.style.width = w;
-              overlayRef.current.style.transform = `translate(${l}px, ${t}px)`;
-            }
-            
-            setViewportHeight(h);
-            setViewportWidth(w);
-            setViewportTop(t);
-            setViewportLeft(l);
-          } else {
-            const h = `${window.innerHeight}px`;
-            
-            if (overlayRef.current) {
-              overlayRef.current.style.height = h;
-              overlayRef.current.style.width = '100%';
-              overlayRef.current.style.transform = `translate(0px, 0px)`;
-            }
-            
-            setViewportHeight(h);
-            setViewportWidth('100%');
-            setViewportTop(0);
-            setViewportLeft(0);
-          }
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
-
-    updateViewport();
-
-    window.visualViewport?.addEventListener('resize', updateViewport);
-    window.visualViewport?.addEventListener('scroll', updateViewport);
-    window.addEventListener('resize', updateViewport);
 
     // Trava o scroll da página (fundo) quando o modal abre
     const originalOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
 
     return () => {
-      window.visualViewport?.removeEventListener('resize', updateViewport);
-      window.visualViewport?.removeEventListener('scroll', updateViewport);
-      window.removeEventListener('resize', updateViewport);
-      
       // Restaura o scroll da página ao fechar o modal
       document.body.style.overflow = originalOverflow;
     };
@@ -111,12 +39,9 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children,
 
   return (
     <div
-      ref={overlayRef}
-      className="fixed bg-black/60 backdrop-blur-[6px] flex items-center justify-center p-4 z-50 overflow-hidden top-0 left-0"
+      className="fixed inset-0 bg-black/60 backdrop-blur-[6px] flex items-center justify-center p-4 z-50 overflow-hidden"
       style={{
-        height: viewportHeight,
-        width: viewportWidth,
-        transform: `translate(${viewportLeft}px, ${viewportTop}px)`,
+        height: '100dvh', // Usa Dynamic Viewport Height para suportar teclado mobile nativamente
       }}
       onClick={onClose}
     >
