@@ -82,10 +82,17 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children,
     window.visualViewport?.addEventListener('scroll', updateViewport);
     window.addEventListener('resize', updateViewport);
 
+    // Trava o scroll da página (fundo) quando o modal abre
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
     return () => {
       window.visualViewport?.removeEventListener('resize', updateViewport);
       window.visualViewport?.removeEventListener('scroll', updateViewport);
       window.removeEventListener('resize', updateViewport);
+      
+      // Restaura o scroll da página ao fechar o modal
+      document.body.style.overflow = originalOverflow;
     };
   }, [isOpen]);
 
