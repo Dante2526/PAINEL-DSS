@@ -81,7 +81,6 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children,
         width: viewportWidth,
         top: `${viewportTop}px`,
         left: `${viewportLeft}px`,
-        transition: 'height 0.3s cubic-bezier(0.1, 0.76, 0.55, 0.94), top 0.3s cubic-bezier(0.1, 0.76, 0.55, 0.94), left 0.3s cubic-bezier(0.1, 0.76, 0.55, 0.94), width 0.3s cubic-bezier(0.1, 0.76, 0.55, 0.94), opacity 0.3s ease-out',
       }}
       onClick={onClose}
     >
