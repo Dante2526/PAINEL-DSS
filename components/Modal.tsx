@@ -8,9 +8,10 @@ interface ModalProps {
   children: ReactNode;
   scale?: number;
   size?: 'sm' | 'md' | 'lg';
+  className?: string;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children, scale = 1, size = 'sm' }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children, scale = 1, size = 'sm', className = '' }) => {
   useEffect(() => {
     if (!isOpen) return;
 
@@ -54,7 +55,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children,
       onClick={onClose}
     >
       <div
-        className={`bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl px-5 pt-5 pb-5 md:px-8 md:pt-8 md:pb-8 w-full max-h-full overflow-y-auto hide-scrollbar ${sizeClass} text-center relative flex flex-col`}
+        className={`bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl px-5 pt-5 pb-5 md:px-8 md:pt-8 md:pb-8 w-full max-h-full overflow-y-auto hide-scrollbar ${sizeClass} text-center relative flex flex-col ${className}`}
         style={modalStyle}
         onClick={(e) => e.stopPropagation()}
       >
