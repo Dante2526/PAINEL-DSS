@@ -11,10 +11,24 @@ interface ModalProps {
 }
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children, scale = 1, size = 'sm' }) => {
-  const [viewportHeight, setViewportHeight] = useState('100vh');
-  const [viewportWidth, setViewportWidth] = useState('100%');
-  const [viewportTop, setViewportTop] = useState(0);
-  const [viewportLeft, setViewportLeft] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState(() => {
+    if (typeof window !== 'undefined' && window.visualViewport) {
+      return `${window.visualViewport.height}px`;
+    }
+    return typeof window !== 'undefined' ? `${window.innerHeight}px` : '100vh';
+  });
+  const [viewportWidth, setViewportWidth] = useState(() => {
+    if (typeof window !== 'undefined' && window.visualViewport) {
+      return `${window.visualViewport.width}px`;
+    }
+    return '100%';
+  });
+  const [viewportTop, setViewportTop] = useState(() => {
+    return typeof window !== 'undefined' && window.visualViewport ? window.visualViewport.offsetTop : 0;
+  });
+  const [viewportLeft, setViewportLeft] = useState(() => {
+    return typeof window !== 'undefined' && window.visualViewport ? window.visualViewport.offsetLeft : 0;
+  });
 
   useEffect(() => {
     if (!isOpen) return;
