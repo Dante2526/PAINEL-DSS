@@ -188,4 +188,4 @@ const CustomDatePicker: React.FC<CustomDatePickerProps> = ({ selectedDate, onCha
     );
 };
 
-export default CustomDatePicker;
+export default React.memo(CustomDatePicker);

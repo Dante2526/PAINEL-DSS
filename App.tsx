@@ -47,1443 +47,42 @@ import {
     clearBiometricData
 } from './services/biometricService';
 
-// --- CONFIGURAÇÃO EMAILJS ---
-const EMAILJS_SERVICE_ID = "service_adjw0cj";
-const EMAILJS_TEMPLATE_ID = "template_owo0dmm";
-const EMAILJS_PUBLIC_KEY = "Ef-7IoF9U9NQ_iV8X";
-// ----------------------------
+import {
+    EMAILJS_SERVICE_ID,
+    EMAILJS_TEMPLATE_ID,
+    EMAILJS_PUBLIC_KEY,
+    TurmaType,
+    ALL_TURMAS,
+    TURMA_DISPLAY_NAMES,
+    getTurmaCollectionName,
+    getTurmaRegistrationName,
+    isValidTurma,
+    getShiftLabel,
+    getMainShiftLabel
+} from './utils/turmaUtils';
+import { getTutorialSteps, adminTutorialSteps } from './utils/tutorialSteps';
+import { generateHealthAlertEmail } from './utils/emailTemplates';
+
+import { ManualRegisterSection } from './components/ManualRegisterSection';
+import { ConfirmBiometricModal } from './components/modals/ConfirmBiometricModal';
+import { AdminLoginModal } from './components/modals/AdminLoginModal';
+import { AdminOptionsModal } from './components/modals/AdminOptionsModal';
+import { AddUserModal } from './components/modals/AddUserModal';
+import { ReportModal } from './components/modals/ReportModal';
+import { DemoPasswordModal, AutomationPasswordModal } from './components/modals/PasswordModals';
+import { ImportEmployeeModal } from './components/modals/ImportEmployeeModal';
+import {
+    UserExistsWarningModal,
+    InvalidMatriculaModal,
+    ConfirmMalModal,
+    ConfirmTurnoModal,
+    ConfirmAbsentModal,
+    ConfirmDeleteModal,
+    ConfirmDeactivate6HModal,
+    TutorialChoiceModal,
+    TutorialVideoModal
+} from './components/modals/ActionModals';
 
-// --- TIPO E HELPERS DE TURMA ---
-type TurmaType = 'A' | 'B' | 'C' | 'D' | 'CCG';
-const ALL_TURMAS: TurmaType[] = ['A', 'B', 'C', 'D', 'CCG'];
-
-const TURMA_DISPLAY_NAMES: Record<TurmaType, string> = {
-    A: 'A',
-    B: 'B',
-    C: 'C',
-    D: 'D',
-    CCG: 'C CG',
-};
-
-function getTurmaCollectionName(turma: TurmaType): string {
-    const displayName = TURMA_DISPLAY_NAMES[turma];
-    return `turma ${displayName.toLowerCase()}`;
-}
-
-function getTurmaRegistrationName(turma: TurmaType): string {
-    const displayName = TURMA_DISPLAY_NAMES[turma];
-    return `registrosDSS ${displayName}`;
-}
-
-function isValidTurma(value: string): value is TurmaType {
-    return ALL_TURMAS.includes(value as TurmaType);
-}
-
-function getShiftLabel(turma: string | null): string {
-    return (turma === 'C' || turma === 'D') ? '18H' : '6H';
-}
-
-function getMainShiftLabel(turma: string | null): string {
-    return (turma === 'C' || turma === 'D') ? '19H' : '7H';
-}
-// --------------------------------
-
-const getTutorialSteps = (turma: string | null): TutorialStep[] => {
-    const isCCG = turma === 'CCG';
-    const shiftLabel = getShiftLabel(turma);
-    const mainShiftLabel = getMainShiftLabel(turma);
-
-    const baseSteps: TutorialStep[] = [
-        {
-            targetId: 'app-header',
-            title: 'Controle de Zoom',
-            content: 'O painel se adapta a você! Use o movimento de pinça (dois dedos na tela) para dar zoom e ajustar o tamanho ideal para sua visualização.',
-            disableHorizontalScroll: true,
-            noHighlight: true
-        },
-        {
-            targetId: 'tutorial-manual-register-bar',
-            title: 'Registro Manual',
-            content: 'Use esta barra superior para registrar o Assunto do DSS do dia e a matrícula do responsável. O nome aparecerá automaticamente ao lado.'
-        },
-        {
-            targetId: 'tutorial-first-card',
-            title: 'Cartão do Colaborador',
-            content: 'Este é o cartão individual. O funcionário deve marcar "ASS. DSS" e "ESTOU BEM" ao chegar. Se marcar "ESTOU MAL", um alerta será enviado imediatamente para a gestão.'
-        },
-        {
-            targetId: 'tutorial-card-actions',
-            title: 'Botões de Ação',
-            content: `Use "AUSENTE" para marcar que o colaborador faltou. Use "DELETAR" para remover permanentemente o usuário (Aparece somente para-ADM).${!isCCG ? ` Use "TURNO ${shiftLabel}" para mover o colaborador para uma coluna somente para esse turno.` : ''}`,
-            scrollTargetId: 'tutorial-first-card'
-        },
-        {
-            targetId: 'tutorial-card-time',
-            title: 'Registro de Horário',
-            content: 'Aqui fica registrado o momento exato em que o colaborador assinou sua DSS',
-            scrollTargetId: 'tutorial-first-card'
-        }
-    ];
-
-    if (!isCCG) {
-        baseSteps.push(
-            {
-                targetId: 'tutorial-special-demo-area',
-                title: `Turno Diferenciado (${shiftLabel})`,
-                content: `Painel exclusivo para a turma do turno de ${shiftLabel}. Funciona da mesma forma que o painel principal, mas com controle separado.`
-            },
-            {
-                targetId: 'tutorial-return-turn-btn',
-                title: `Retornar ao Turno ${mainShiftLabel}`,
-                content: `Ao Clicar neste botão na coluna do horário especial, o colaborador é movido de volta para o turno ${mainShiftLabel}.`,
-                scrollTargetId: 'tutorial-special-demo-area'
-            }
-        );
-    }
-
-    baseSteps.push(
-        {
-            targetId: 'tutorial-change-turma-btn',
-            title: 'Trocar de Turma',
-            content: 'Precisa visualizar a outra turma? Use este botão para voltar à tela de seleção a qualquer momento.'
-        },
-        {
-            targetId: 'tutorial-stats',
-            title: 'Estatísticas em Tempo Real',
-            content: 'Acompanhe quantos colaboradores estão bem, mal ou ausentes instantaneamente.'
-        },
-        {
-            targetId: 'tutorial-dark-mode',
-            title: 'Modo Escuro (BB-8)',
-            content: 'Clique no pequeno droide BB-8 para alternar entre o modo Claro e Escuro. Ideal para ambientes com pouca luz.'
-        },
-        {
-            targetId: 'tutorial-help-btn',
-            title: 'Ajuda e Tutorial',
-            content: 'Perdido? Clique neste botão a qualquer momento para rever este tutorial interativo e relembrar as funcionalidades.'
-        },
-        {
-            targetId: 'tutorial-admin-btn',
-            title: 'Área Administrativa',
-            content: 'Acesso restrito para limpar os dados diários, gerar relatórios em PDF/Texto e cadastrar novos usuários.'
-        }
-    );
-
-    return baseSteps;
-};
-
-const adminTutorialSteps: TutorialStep[] = [
-    {
-        targetId: 'admin-clear-btn',
-        title: 'Limpar Status Diário',
-        content: 'O sistema realiza a limpeza automática diariamente. Use esta opção apenas caso seja realmente necessário forçar o reset de todos os status manualmente.'
-    },
-    {
-        targetId: 'admin-report-btn',
-        title: 'Gerar Relatório',
-        content: 'Cria um resumo completo da equipe, separando quem está Bem, Mal ou Pendente. Você pode copiar o texto ou baixar um arquivo.'
-    },
-    {
-        targetId: 'admin-reorganize-btn',
-        title: 'Reorganizar Painel',
-        content: 'O sistema já organiza os cartões automaticamente. Use este botão apenas caso seja realmente necessário forçar a reordenação alfabética.'
-    },
-    {
-        targetId: 'admin-adduser-btn',
-        title: 'Novo Usuário',
-        content: 'Cadastre novos colaboradores manualmente no sistema.'
-    },
-    {
-        targetId: 'admin-import-user-btn',
-        title: 'Importar Colaborador',
-        content: 'Transfira rapidamente um colaborador de outra turma para a turma atual. Muito útil para realocações e coberturas de falta.'
-    },
-    {
-        targetId: 'admin-demo-btn',
-        title: 'Modo Demonstração',
-        content: 'Preenche o sistema com dados fictícios para testes. Recurso destinado ao uso técnico do Desenvolvedor Near.'
-    }
-];
-
-const ManualRegisterSection: React.FC<{
-    subject: string;
-    matricula: string;
-    onSubjectChange: (v: string) => void;
-    onMatriculaChange: (v: string) => void;
-    onRegister: () => void;
-    employeesForLookup: (Pick<Employee, 'name' | 'matricula'>)[];
-    administrators: Administrator[];
-    turma: string | null;
-}> = React.memo(({ subject, matricula, onSubjectChange, onMatriculaChange, onRegister, employeesForLookup, administrators, turma }) => {
-    const foundName = useMemo(() => {
-        if (!matricula) return '';
-        const admin = administrators.find(a => a.matricula === matricula);
-        if (admin) return admin.name;
-
-        const employee = employeesForLookup.find(e => e.matricula === matricula);
-        return employee ? employee.name : '';
-    }, [matricula, employeesForLookup, administrators]);
-
-    const handleMatriculaChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        onMatriculaChange(e.target.value.replace(/[^0-9]/g, ''));
-    }, [onMatriculaChange]);
-
-    const isRegistered = subject && subject !== 'Não preenchido' && matricula;
-    const isSubjectEmpty = !subject || subject === 'Não preenchido';
-    const isMatriculaEmpty = !matricula;
-
-    const subjectBorderClass = isSubjectEmpty
-        ? "border-red-500/70 dark:border-red-500/50 shadow-[0_0_8px_rgba(239,68,68,0.15)] focus:ring-red-400 focus:border-red-400"
-        : "border-gray-200 dark:border-gray-600 focus:ring-primary focus:border-primary";
-
-    const matriculaBorderClass = isMatriculaEmpty
-        ? "border-red-500/70 dark:border-red-500/50 shadow-[0_0_8px_rgba(239,68,68,0.15)] focus:ring-red-400 focus:border-red-400"
-        : "border-gray-200 dark:border-gray-600 focus:ring-primary focus:border-primary";
-
-    return (
-        <div className="w-full bg-light-card dark:bg-dark-card rounded-3xl p-6 shadow-lg mb-8 shrink-0">
-            {/* Status indicator card */}
-            {!isRegistered ? (
-                <div className="mb-4 p-3 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 rounded-xl flex items-center gap-2.5 text-red-600 dark:text-red-400 text-xs font-bold w-fit animate-pulse shadow-sm">
-                    <span className="w-2.5 h-2.5 bg-red-500 rounded-full inline-block animate-ping"></span>
-                    <span>PENDENTE: PREENCHER TEMA E RESPONSÁVEL DO DSS</span>
-                </div>
-            ) : (
-                <div className="mb-4 p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/30 rounded-xl flex items-center gap-2.5 text-green-600 dark:text-green-400 text-xs font-bold w-fit shadow-sm">
-                    <span className="w-2.5 h-2.5 bg-green-500 rounded-full inline-block"></span>
-                    <span>DSS REGISTRADO COM SUCESSO</span>
-                </div>
-            )}
-
-            <div id="tutorial-manual-register-bar" className="flex gap-4 items-center w-fit">
-                <div className="relative w-[600px]">
-                    <SubjectIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                        type="text"
-                        value={subject}
-                        onChange={(e) => onSubjectChange(e.target.value)}
-                        placeholder={`TEMA DSS - TURNO ${getMainShiftLabel(turma)}`}
-                        className={`w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 rounded-xl focus:ring-2 outline-none transition uppercase ${subjectBorderClass}`}
-                        autoCapitalize="characters"
-                    />
-                </div>
-                <div className="relative w-[180px]">
-                    <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                        type="text"
-                        value={matricula}
-                        onChange={handleMatriculaChange}
-                        placeholder="Matrícula"
-                        className={`w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 rounded-xl focus:ring-2 outline-none transition ${matriculaBorderClass}`}
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                    />
-                </div>
-                <div className="relative w-[250px]">
-                    <input
-                        type="text"
-                        value={foundName}
-                        readOnly
-                        placeholder="Nome do Responsável"
-                        className="w-full px-4 py-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-bold border-2 border-gray-200 dark:border-gray-600 rounded-xl outline-none pointer-events-none truncate text-center"
-                    />
-                </div>
-                <button
-                    onClick={onRegister}
-                    className="h-[60px] px-8 font-bold text-white bg-gradient-to-r from-primary to-primary-dark rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
-                >
-                    REGISTRAR
-                </button>
-            </div>
-        </div>
-    );
-}, (prev, next) =>
-    prev.subject === next.subject &&
-    prev.matricula === next.matricula &&
-    prev.turma === next.turma &&
-    prev.onSubjectChange === next.onSubjectChange &&
-    prev.onMatriculaChange === next.onMatriculaChange &&
-    prev.onRegister === next.onRegister &&
-    prev.employeesForLookup.length === next.employeesForLookup.length &&
-    prev.administrators.length === next.administrators.length
-);
-
-const ConfirmBiometricModal: React.FC<{
-    isOpen: boolean;
-    onClose: () => void;
-    onActivate: () => void;
-    scale: number;
-}> = ({ isOpen, onClose, onActivate, scale }) => {
-    if (!isOpen) return null;
-
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Ativar Impressão Digital" scale={scale}>
-            <div className="space-y-4 text-center py-2">
-                <div className="flex justify-center mb-4">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20 text-white animate-pulse">
-                        <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                            <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/>
-                            <path d="M14 13.12c0 2.38 0 6.38-1 8.88"/>
-                            <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/>
-                            <path d="M2 12a10 10 0 0 1 18-6"/>
-                            <path d="M2 16h.01"/>
-                            <path d="M21.8 16c.2-2 .131-5.354 0-6"/>
-                            <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/>
-                            <path d="M8.65 22c.21-.66.45-1.32.57-2"/>
-                            <path d="M9 6.8a6 6 0 0 1 9 5.2v2"/>
-                        </svg>
-                    </div>
-                </div>
-                
-                <h3 className="text-base font-bold text-light-text dark:text-dark-text leading-snug">
-                    Deseja ativar o acesso rápido por biometria neste celular?
-                </h3>
-                
-                <p className="text-xs text-light-text-secondary dark:text-dark-text-secondary px-2">
-                    Nos próximos acessos, você poderá entrar no painel de administração tocando na sua digital, de forma rápida e segura, sem precisar digitar seu e-mail corporativo.
-                </p>
-
-                <div className="flex gap-3 pt-3">
-                    <button
-                        type="button"
-                        onClick={onClose}
-                        className="flex-1 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition uppercase tracking-wider text-xs"
-                    >
-                        Agora Não
-                    </button>
-                    <button
-                        type="button"
-                        onClick={onActivate}
-                        className="flex-1 py-3 bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-bold rounded-lg hover:from-blue-600 hover:to-cyan-700 transition shadow-md uppercase tracking-wider text-xs"
-                    >
-                        Ativar
-                    </button>
-                </div>
-            </div>
-        </Modal>
-    );
-};
-
-const AdminLoginModal: React.FC<{
-    isOpen: boolean;
-    onClose: () => void;
-    onLogin: (email: string) => void;
-    showNotification: (msg: string, type: 'success' | 'error' | 'info') => void;
-    scale: number;
-}> = ({ isOpen, onClose, onLogin, showNotification, scale }) => {
-    const [email, setEmail] = useState('');
-    const [showEmail, setShowEmail] = useState(false);
-    const [visibleIndex, setVisibleIndex] = useState<number | null>(null);
-    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const [isBioAvailable, setIsBioAvailable] = useState(false);
-    const [isSmallViewport, setIsSmallViewport] = useState(false);
-    const inputRef = useRef<HTMLInputElement>(null);
-
-    useEffect(() => {
-        // Reset state when modal is opened or closed
-        if (!isOpen) {
-            setEmail('');
-            setShowEmail(false);
-            setVisibleIndex(null);
-        } else {
-            // Atraso intencional no focus para não colidir com a animação de abertura do modal
-            const timer = setTimeout(() => {
-                if (inputRef.current) inputRef.current.focus();
-            }, 350);
-            return () => clearTimeout(timer);
-        }
-        return () => {
-            if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        };
-    }, [isOpen]);
-
-    useEffect(() => {
-        if (isOpen) {
-            const checkViewport = () => {
-                if (window.visualViewport) {
-                    setIsSmallViewport(window.visualViewport.height < 600);
-                } else {
-                    setIsSmallViewport(window.innerHeight < 600);
-                }
-            };
-            checkViewport();
-            window.visualViewport?.addEventListener('resize', checkViewport);
-            window.addEventListener('resize', checkViewport);
-
-            const checkBiometrics = async () => {
-                const isCell = await isMobileCellularWithBiometrics();
-                const hasBio = hasRegisteredBiometrics();
-                setIsBioAvailable(isCell && hasBio);
-            };
-            checkBiometrics();
-
-            return () => {
-                window.visualViewport?.removeEventListener('resize', checkViewport);
-                window.removeEventListener('resize', checkViewport);
-            };
-        }
-    }, [isOpen]);
-
-    const handleBiometricClick = async () => {
-        try {
-            const authenticatedEmail = await authenticateBiometricAdmin();
-            if (authenticatedEmail) {
-                onLogin(authenticatedEmail);
-            }
-        } catch (error) {
-            console.error("Erro na autenticação biométrica:", error);
-            showNotification('Não foi possível ler a impressão digital. Tente novamente ou use a senha.', 'error');
-        }
-    };
-
-    const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const val = e.target.value;
-        setEmail(val);
-
-        // Se o novo valor for maior, identificamos o caractere recém adicionado
-        if (val.length > email.length) {
-            const addedIdx = val.length - 1;
-            setVisibleIndex(addedIdx);
-
-            if (timeoutRef.current) clearTimeout(timeoutRef.current);
-            timeoutRef.current = setTimeout(() => {
-                setVisibleIndex(null);
-            }, 1000);
-        } else {
-            // Se apagou, reseta o índice visível
-            setVisibleIndex(null);
-        }
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        onLogin(email);
-    };
-
-    if (!isOpen) return null;
-
-    const inputClassName = `w-full pr-12 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary caret-black dark:caret-white relative z-10 select-text font-mono transition-all duration-300 ${
-        isSmallViewport ? 'p-2.5 text-sm' : 'p-4 text-base'
-    } ${
-        !showEmail && email.length > 0
-            ? 'text-transparent dark:text-transparent'
-            : 'text-light-text dark:text-white'
-    }`;
-
-    return (
-        <Modal 
-            isOpen={isOpen} 
-            onClose={onClose} 
-            title="" 
-            scale={scale}
-        >
-            <form onSubmit={handleSubmit} className={`flex flex-col transition-all duration-300 ${isSmallViewport ? 'space-y-2' : 'space-y-4'}`}>
-                <div className={`flex justify-center transition-all duration-300 ${isSmallViewport ? 'mb-1 mt-0' : 'mb-3 mt-1'}`}>
-                    <div className="relative group">
-                        {/* Efeito Glow / Sombra pulsante para design premium */}
-                        <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-full blur-md opacity-45 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
-                        {/* Contêiner principal com gradiente azul */}
-                        <div className={`relative rounded-full bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center shadow-xl transform group-hover:scale-105 transition-all duration-300 ${
-                            isSmallViewport ? 'w-10 h-10' : 'w-20 h-20'
-                        }`}>
-                            <UserIcon className={`text-white transition-all duration-300 ${isSmallViewport ? 'w-5 h-5' : 'w-10 h-10'}`} />
-                        </div>
-                    </div>
-                </div>
-                
-                {/* Título reposicionado abaixo do ícone */}
-                <h2 className={`font-bold uppercase text-light-text dark:text-dark-text shrink-0 transition-all duration-300 ${
-                    isSmallViewport ? 'text-sm mb-1 mt-0' : 'text-lg md:text-xl mb-5 mt-1'
-                }`}>
-                    Acesso Administrativo
-                </h2>
-
-                {isBioAvailable && (
-                    <div className={`flex flex-col transition-all duration-300 ${isSmallViewport ? 'gap-1.5 mb-1' : 'gap-3 mb-2'}`}>
-                        <button
-                            type="button"
-                            onClick={handleBiometricClick}
-                            className={`w-full bg-gradient-to-r from-blue-500 to-cyan-600 text-white font-bold rounded-lg hover:from-blue-600 hover:to-cyan-700 flex items-center justify-center gap-2 shadow-md shadow-blue-500/20 active:scale-[0.98] transform transition-all duration-300 ${
-                                isSmallViewport ? 'py-2.5 text-xs' : 'py-3.5 text-sm'
-                            }`}
-                        >
-                            <svg className="w-4 h-4 text-white animate-pulse" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                                <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/>
-                                <path d="M14 13.12c0 2.38 0 6.38-1 8.88"/>
-                                <path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/>
-                                <path d="M2 12a10 10 0 0 1 18-6"/>
-                                <path d="M2 16h.01"/>
-                                <path d="M21.8 16c.2-2 .131-5.354 0-6"/>
-                                <path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/>
-                                <path d="M8.65 22c.21-.66.45-1.32.57-2"/>
-                                <path d="M9 6.8a6 6 0 0 1 9 5.2v2"/>
-                            </svg>
-                            ENTRAR COM DIGITAL
-                        </button>
-                        <div className={`flex items-center justify-center gap-2 opacity-60 transition-all duration-300 ${isSmallViewport ? 'my-0.5' : 'my-1'}`}>
-                            <span className="h-px bg-gray-300 dark:bg-gray-600 w-full"></span>
-                            <span className="text-[9px] text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider whitespace-nowrap">ou entrar com e-mail</span>
-                            <span className="h-px bg-gray-300 dark:bg-gray-600 w-full"></span>
-                        </div>
-                    </div>
-                )}
-
-                <div className="relative w-full">
-                    <input
-                        ref={inputRef}
-                        type="text"
-                        placeholder="Email do Administrador"
-                        value={email}
-                        onChange={handleEmailChange}
-                        className={inputClassName}
-                        autoCapitalize="none"
-                        autoComplete="off"
-                        autoCorrect="off"
-                        spellCheck="false"
-                    />
-                    {!showEmail && email.length > 0 && (
-                        <div className={`absolute right-12 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-light-text dark:text-dark-text font-mono z-20 truncate transition-all duration-300 ${
-                            isSmallViewport ? 'left-3 text-sm' : 'left-4 text-base'
-                        }`}>
-                            {email.split('').map((char, index) => (
-                                <span key={index}>
-                                    {index === visibleIndex ? char : '●'}
-                                </span>
-                            ))}
-                        </div>
-                    )}
-                    <button
-                        type="button"
-                        onClick={() => setShowEmail(!showEmail)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 z-20 focus:outline-none"
-                        title={showEmail ? "Ocultar Email" : "Exibir Email"}
-                    >
-                        {showEmail ? (
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                                <circle cx="12" cy="12" r="3" />
-                            </svg>
-                        ) : (
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-                                <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
-                                <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
-                                <line x1="2" x2="22" y1="2" y2="22" />
-                            </svg>
-                        )}
-                    </button>
-                </div>
-                {!isSmallViewport && (
-                    <p className="text-left text-warning font-bold px-1 my-0.5 text-xs">
-                        * Digite tudo em minúsculo
-                    </p>
-                )}
-                <button type="submit" className={`w-full bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition-all duration-300 ${
-                    isSmallViewport ? 'py-2.5 text-sm mt-1' : 'py-3'
-                }`}>
-                    ENTRAR
-                </button>
-            </form>
-        </Modal>
-    );
-};
-
-const AdminButton: React.FC<{ id: string; onClick: () => void; className: string; icon: React.ReactNode; label: string }> = ({ id, onClick, className, icon, label }) => (
-    <button id={id} onClick={onClick} className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 shadow-md h-[86px] md:h-[82px] hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] transform ${className}`}>
-        <div className="scale-[0.85] md:scale-90 origin-bottom">{icon}</div>
-        <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">{label}</span>
-    </button>
-);
-
-const AdminOptionsModal: React.FC<{
-    isOpen: boolean;
-    onClose: () => void;
-    onClear: () => void;
-    onReorganize: () => void;
-    onAddUser: () => void;
-    onSendReport: () => void;
-    onImportUser: () => void;
-    onEnterDemo: () => void;
-    onStartAdminTutorial: () => void;
-    onToggle6H: () => void;
-    onToggleAutomation: () => void;
-    onHistory: () => void;
-    onClearBiometrics: () => void;
-    hasBiometrics: boolean;
-    is6HActive: boolean;
-    isAutomationPaused: boolean;
-    scale: number;
-    selectedTurma: string | null;
-}> = ({ isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onImportUser, onEnterDemo, onStartAdminTutorial, onToggle6H, onToggleAutomation, onHistory, onClearBiometrics, hasBiometrics, is6HActive, isAutomationPaused, scale, selectedTurma }) => {
-    if (!isOpen) return null;
-
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Painel do Administrador" scale={scale} size="md">
-            <div className="flex flex-col gap-2 md:gap-3">
-                <div className="grid grid-cols-2 gap-2 md:gap-3">
-                    <AdminButton
-                        id="admin-clear-btn"
-                        onClick={onClear}
-                        className="bg-orange text-white hover:bg-orange-600"
-                        icon={<EraserIcon className="w-7 h-7" />}
-                        label="Limpar Tudo"
-                    />
-                    <AdminButton
-                        id="admin-report-btn"
-                        onClick={onSendReport}
-                        className="bg-blue-500 text-white hover:bg-blue-600"
-                        icon={<FileTextIcon className="w-7 h-7" />}
-                        label="Relatório"
-                    />
-                    <AdminButton
-                        id="admin-adduser-btn"
-                        onClick={onAddUser}
-                        className="bg-green-500 text-white hover:bg-green-600"
-                        icon={<UserPlusIcon className="w-7 h-7" />}
-                        label="Add Usuário"
-                    />
-                    <AdminButton
-                        id="admin-reorganize-btn"
-                        onClick={onReorganize}
-                        className="bg-purple-500 text-white hover:bg-purple-600"
-                        icon={<SortIcon className="w-7 h-7" />}
-                        label="Reorganizar"
-                    />
-                    <div className="col-span-2 grid grid-cols-2 gap-2 md:gap-3">
-                        <AdminButton
-                            id="admin-import-user-btn"
-                            onClick={onImportUser}
-                            className="bg-teal-500 text-white hover:bg-teal-600 w-full"
-                            icon={<ExchangeIcon className="w-7 h-7" />}
-                            label="Importar Colab."
-                        />
-                        <button
-                            onClick={onToggle6H}
-                            className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 shadow-md h-[86px] md:h-[82px] hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] transform ${is6HActive ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-green-500 hover:bg-green-600 text-white'}`}
-                        >
-                            <div className="scale-[0.85] md:scale-90 origin-bottom"><ShiftIcon className="w-7 h-7" /></div>
-                            <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">
-                                {is6HActive ? `Desativar ${getShiftLabel(selectedTurma)}` : `Ativar ${getShiftLabel(selectedTurma)}`}
-                            </span>
-                        </button>
-                    </div>
-                </div>
-                <div className="col-span-2 grid grid-cols-2 gap-2 md:gap-3">
-                    <AdminButton
-                        id="admin-history-btn"
-                        onClick={onHistory}
-                        className="bg-indigo-500 text-white hover:bg-indigo-600 w-full"
-                        icon={<HistoryIcon className="w-7 h-7" />}
-                        label="Histórico"
-                    />
-                    <button
-                        onClick={onToggleAutomation}
-                        className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 shadow-md h-[86px] md:h-[82px] hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] transform ${isAutomationPaused ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`}
-                    >
-                        <div className="scale-[0.85] md:scale-90 origin-bottom"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
-                        <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">
-                            {isAutomationPaused ? "AÇÕES OFF" : "PAUSAR AÇÕES"}
-                        </span>
-                    </button>
-                </div>
-                <div className="border-t border-gray-200 dark:border-gray-700 pt-3 md:pt-3 mt-1 md:mt-1 grid grid-cols-2 gap-2 md:gap-3">
-                    <button
-                        id="admin-tutorial-btn"
-                        onClick={onStartAdminTutorial}
-                        className="p-3 bg-cyan-500 hover:bg-cyan-600 text-white rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 shadow-md h-[86px] md:h-[82px] hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] transform"
-                    >
-                        <HelpIcon className="w-7 h-7" />
-                        <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">AJUDA / TUTORIAL</span>
-                    </button>
-                    <button
-                        id="admin-demo-btn"
-                        onClick={onEnterDemo}
-                        className="p-3 bg-violet-600 hover:bg-violet-700 text-white rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 shadow-md border border-violet-500 h-[86px] md:h-[82px] hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] transform"
-                    >
-                        <MousePointerIcon className="w-7 h-7" />
-                        <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">MODO DEMO</span>
-                    </button>
-                </div>
-                {hasBiometrics && (
-                    <div className="mt-1">
-                        <button
-                            onClick={onClearBiometrics}
-                            className="w-full p-3 border-2 border-red-500/20 hover:bg-red-500/10 text-red-500 rounded-xl flex items-center justify-center gap-2 transition-all duration-300 h-[50px] md:h-[60px] hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] transform"
-                        >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4M14 13.12c0 2.38 0 6.38-1 8.88M17.29 21.02c.12-.6.43-2.3.5-3.02M2 12a10 10 0 0 1 18-6M2 16h.01M21.8 16c.2-2 .131-5.354 0-6M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2M8.65 22c.21-.66.45-1.32.57-2M9 6.8a6 6 0 0 1 9 5.2v2" /></svg>
-                            <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider">Desativar Digital</span>
-                        </button>
-                    </div>
-                )}
-            </div>
-        </Modal>
-    );
-};
-
-const AddUserModal: React.FC<{
-    isOpen: boolean;
-    onClose: () => void;
-    onBack?: () => void;
-    onAdd: (name: string, matricula: string, addAnother: boolean) => void;
-    scale: number;
-}> = ({ isOpen, onClose, onBack, onAdd, scale }) => {
-    const [name, setName] = useState('');
-    const [matricula, setMatricula] = useState('');
-    const [addAnother, setAddAnother] = useState(false);
-    const nameInputRef = useRef<HTMLInputElement>(null);
-
-    useEffect(() => {
-        // Reset state when modal is closed to ensure it's fresh next time
-        if (!isOpen) {
-            setName('');
-            setMatricula('');
-            setAddAnother(false);
-        }
-    }, [isOpen]);
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (name.trim()) {
-            onAdd(name.trim(), matricula, addAnother);
-            // Sempre limpa os campos após enviar
-            setName('');
-            setMatricula('');
-
-            // Se "Continuar Adicionando" estiver marcado, o modal não fechará
-            // então focamos automaticamente no campo de nome para o próximo
-            if (addAnother && nameInputRef.current) {
-                setTimeout(() => {
-                    nameInputRef.current?.focus();
-                }, 100);
-            }
-        }
-    };
-
-    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setName(e.target.value);
-    };
-
-    if (!isOpen) return null;
-
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} onBack={onBack} title="" scale={scale}>
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="flex justify-center mb-4 mt-2">
-                    <div className="relative group">
-                        {/* Efeito Glow / Sombra pulsante para design premium */}
-                        <div className="absolute -inset-1 bg-gradient-to-r from-green-600 to-emerald-500 rounded-full blur-md opacity-45 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
-                        {/* Contêiner principal com gradiente verde */}
-                        <div className="relative w-20 h-20 rounded-full bg-gradient-to-tr from-green-600 to-emerald-500 flex items-center justify-center shadow-xl transform group-hover:scale-105 transition-all duration-300">
-                            <UserPlusIcon className="w-10 h-10 text-white" />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Título reposicionado abaixo do ícone */}
-                <h2 className="text-lg md:text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6 mt-1 shrink-0">
-                    Adicionar Colaborador
-                </h2>
-
-                <div>
-                    <input
-                        ref={nameInputRef}
-                        type="text"
-                        placeholder="Nome e Sobrenome"
-                        value={name}
-                        onChange={handleNameChange}
-                        className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white uppercase"
-                        autoFocus
-                    />
-                    <p className="text-xs text-left text-warning font-semibold px-1 mt-1.5">
-                        *Coloque apenas o primeiro nome e o último sobrenome
-                    </p>
-                </div>
-                <input
-                    type="text"
-                    placeholder="Matrícula"
-                    value={matricula}
-                    onChange={(e) => setMatricula(e.target.value.replace(/[^0-9]/g, ''))}
-                    className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
-                    inputMode="numeric"
-                />
-                <label htmlFor="add-another-user-checkbox" className="flex items-center justify-center gap-4 py-2 cursor-pointer group">
-                    <span className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary group-hover:text-light-text dark:group-hover:text-dark-text transition-colors select-none">
-                        Continuar adicionando
-                    </span>
-                    <div className="relative">
-                        <input
-                            type="checkbox"
-                            id="add-another-user-checkbox"
-                            className="sr-only"
-                            checked={addAnother}
-                            onChange={(e) => setAddAnother(e.target.checked)}
-                        />
-                        <div className={`block w-14 h-8 rounded-full transition-colors duration-200 ${addAnother ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}></div>
-                        <div className={`absolute left-1 top-1 bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-200 ease-in-out ${addAnother ? 'translate-x-6' : 'translate-x-0'}`}></div>
-                    </div>
-                </label>
-                <button type="submit" className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold rounded-lg transition shadow-lg shadow-green-600/20 active:scale-[0.98] transform uppercase">
-                    ADICIONAR
-                </button>
-            </form>
-        </Modal>
-    );
-};
-
-const ReportModal: React.FC<{
-    isOpen: boolean;
-    onClose: () => void;
-    onBack?: () => void;
-    employees: Employee[];
-    showNotification: (msg: string, type: 'success' | 'error') => void;
-    scale: number;
-    subject7H: string;
-    responsible7H: string;
-    matricula7H: string;
-    subject6H: string;
-    responsible6H: string;
-    matricula6H: string;
-    adminEmail: string;
-    turma: string | null;
-}> = ({ isOpen, onClose, onBack, employees, showNotification, scale, subject7H, responsible7H, matricula7H, subject6H, responsible6H, matricula6H, adminEmail, turma }) => {
-    // Generate text for Clipboard/File functions
-    const generateReport = () => {
-        const team7H = employees.filter(e => e.turno !== '6H');
-        const team6H = employees.filter(e => e.turno === '6H');
-
-        const totalEmployees = employees.length;
-        const totalPresent = employees.filter(e => e.bem || e.assDss || e.mal).length;
-        const totalAbsent = employees.filter(e => e.absent).length;
-        const totalPending = employees.filter(e => !e.bem && !e.assDss && !e.mal && !e.absent).length;
-
-        const dataExibicao = new Date().toLocaleDateString('pt-BR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: '2-digit'
-        }).replace(/\//g, '/');
-
-        let report = `RESUMO GERAL - TURMA ${turma} - ${dataExibicao}\n`;
-        report += `• Total de Funcionários: ${totalEmployees}\n`;
-        report += `• Presentes (DSS + Bem/Mal): ${totalPresent}\n`;
-        report += `• Pendentes: ${totalPending}\n`;
-        report += `• Ausentes: ${totalAbsent}\n\n`;
-
-        const shiftLabel = getShiftLabel(turma);
-        const mainShiftLabel = getMainShiftLabel(turma);
-
-        const getStatusList = (team: Employee[]) => {
-            const bem = team.filter(e => e.bem || e.assDss);
-            const mal = team.filter(e => e.mal);
-            const absent = team.filter(e => e.absent);
-            const pending = team.filter(e => !e.bem && !e.assDss && !e.mal && !e.absent);
-
-            let section = `STATUS: "ASS.DSS + ESTOU BEM"\n`;
-            section += bem.length > 0 ? bem.map(e => `• ${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
-            section += `\n\nSTATUS "ESTOU MAL"\n`;
-            section += mal.length > 0 ? mal.map(e => `• ${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
-            section += `\n\nPENDENTES\n`;
-            section += pending.length > 0 ? pending.map(e => `• ${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
-            section += `\n\nAUSENTES\n`;
-            section += absent.length > 0 ? absent.map(e => `• ${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
-
-            return section;
-        };
-
-        report += `EQUIPE TURNO ${mainShiftLabel}\n`;
-        report += getStatusList(team7H);
-        report += `\n\n`;
-
-        if (turma !== 'CCG' && team6H.length > 0) {
-            report += `EQUIPE TURNO ${shiftLabel}\n`;
-            report += getStatusList(team6H);
-            report += `\n\n`;
-        }
-
-        report += `REGISTROS DSS (TURNO ${mainShiftLabel})\n`;
-        report += `• Assunto: ${subject7H || 'NÃO PREENCHIDO'}`;
-        if (responsible7H) {
-            report += `\n  Responsável: ${responsible7H} (Matrícula: ${matricula7H || '---'})\n`;
-        } else {
-            report += `\n`;
-        }
-
-        if (turma !== 'CCG') {
-            report += `\nREGISTROS DSS (TURNO ${shiftLabel})\n`;
-            report += `• Assunto: ${subject6H || 'NÃO PREENCHIDO'}`;
-            if (responsible6H) {
-                report += `\n  Responsável: ${responsible6H} (Matrícula: ${matricula6H || '---'})\n`;
-            } else {
-                report += `\n`;
-            }
-        }
-
-        return report;
-    };
-
-    const reportText = generateReport();
-
-    // Stats for Visual Display (Keep this simple for the modal visual)
-    const visualStats = {
-        total: employees.length,
-        present: employees.filter(e => e.bem || e.assDss || e.mal).length,
-        absentCount: employees.filter(e => e.absent).length,
-        missingCount: employees.filter(e => !e.bem && !e.assDss && !e.mal && !e.absent).length,
-        malCount: employees.filter(e => e.mal).length,
-        malList: employees.filter(e => e.mal),
-        absentList: employees.filter(e => e.absent),
-    };
-
-    const handleCopy = () => {
-        navigator.clipboard.writeText(reportText);
-        showNotification('Relatório copiado para a área de transferência!', 'success');
-        logAuditEvent(adminEmail, 'REPORT_COPY', 'Relatório copiado para área de transferência', turma);
-        onClose();
-    };
-
-    const baseFileName = `relatorio-dss-${new Date().toLocaleDateString('pt-BR').replace(/\//g, '-')}`;
-
-    const handleExportTxt = () => {
-        exportToTxt(reportText, baseFileName);
-        showNotification('Relatório baixado em TXT!', 'success');
-        logAuditEvent(adminEmail, 'REPORT_DOWNLOAD', 'Relatório baixado como arquivo TXT', turma);
-        onClose();
-    };
-
-    const handleExportDoc = () => {
-        exportToDoc(reportText, baseFileName);
-        showNotification('Relatório baixado em DOC!', 'success');
-        logAuditEvent(adminEmail, 'REPORT_DOWNLOAD', 'Relatório baixado como arquivo DOC', turma);
-        onClose();
-    };
-
-    const handleExportExcel = () => {
-        const dataFormatada = new Date().toLocaleDateString('pt-BR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: '2-digit'
-        }).replace(/\//g, '/');
-
-        const excelData: PdfReportData = {
-            turma: turma || '?',
-            dataFormatada: dataFormatada,
-            totalFuncionarios: employees.length,
-            totalPresentes: visualStats.present,
-            totalPendentes: visualStats.missingCount,
-            totalAusentes: visualStats.absentCount,
-            totalMal: visualStats.malCount,
-            employees: employees.map(e => ({
-                n: e.name,
-                m: e.matricula,
-                s: e.bem || e.assDss ? 'BEM' : e.mal ? 'MAL' : e.absent ? 'AUS' : 'PEN',
-                turno: e.turno || '7H'
-            })),
-            registros7H: [{
-                assunto: subject7H || 'NÃO PREENCHIDO',
-                name: responsible7H || '',
-                matricula: matricula7H || ''
-            }],
-            registros6H: [{
-                assunto: subject6H || 'NÃO PREENCHIDO',
-                name: responsible6H || '',
-                matricula: matricula6H || ''
-            }],
-            mainShiftLabel: getMainShiftLabel(turma),
-            shiftLabel: getShiftLabel(turma),
-        };
-
-        exportToExcel(excelData, baseFileName);
-        showNotification('Relatório baixado em Excel!', 'success');
-        logAuditEvent(adminEmail, 'REPORT_DOWNLOAD', 'Relatório baixado como Excel estruturado', turma);
-        onClose();
-    };
-
-    const handleExportPng = async () => {
-        await exportToPng('report-capture-area', baseFileName);
-        showNotification('Relatório salvo como Imagem!', 'success');
-        logAuditEvent(adminEmail, 'REPORT_DOWNLOAD', 'Relatório salvo como imagem PNG', turma);
-        onClose();
-    };
-
-    const handleExportPdf = async () => {
-        const dataFormatada = new Date().toLocaleDateString('pt-BR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: '2-digit'
-        }).replace(/\//g, '/'); // Garante formato DD/MM/YY
-
-        const pdfData: PdfReportData = {
-            turma: turma || '?',
-            dataFormatada: dataFormatada,
-            totalFuncionarios: employees.length,
-            totalPresentes: visualStats.present,
-            totalPendentes: visualStats.missingCount,
-            totalAusentes: visualStats.absentCount,
-            totalMal: visualStats.malCount,
-            employees: employees.map(e => ({
-                n: e.name,
-                m: e.matricula,
-                s: e.bem || e.assDss ? 'BEM' : e.mal ? 'MAL' : e.absent ? 'AUS' : 'PEN',
-                turno: e.turno || '7H'
-            })),
-            registros7H: [{
-                assunto: subject7H || 'NÃO PREENCHIDO',
-                name: responsible7H || '',
-                matricula: matricula7H || ''
-            }],
-            registros6H: [{
-                assunto: subject6H || 'NÃO PREENCHIDO',
-                name: responsible6H || '',
-                matricula: matricula6H || ''
-            }],
-            mainShiftLabel: getMainShiftLabel(turma),
-            shiftLabel: getShiftLabel(turma),
-        };
-
-        await exportToPdf(pdfData, baseFileName);
-        showNotification('Relatório salvo em PDF!', 'success');
-        logAuditEvent(adminEmail, 'REPORT_DOWNLOAD', 'Relatório baixado como PDF estruturado', turma);
-        onClose();
-    };
-
-    if (!isOpen) return null;
-
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} onBack={onBack} title="Relatório Diário" scale={scale}>
-            {/* Visual Report Container */}
-            <div id="report-capture-area" className="w-full mb-6 bg-light-card dark:bg-dark-card pt-1 px-4">
-                <div className="text-sm font-semibold text-gray-500 mb-4 capitalize border-b border-gray-200 dark:border-gray-700 pb-2">
-                    {new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                </div>
-
-                {/* Shift Info Cards Side-by-Side */}
-                <div className="flex gap-3 mb-6">
-                    {/* 7H Card */}
-                    <div className="flex-1 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-xl border border-blue-100 dark:border-blue-800 text-left relative overflow-hidden group">
-                        <div className="absolute right-0 top-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
-                            <SubjectIcon className="w-12 h-12 text-blue-600" />
-                        </div>
-                        <div className="text-[10px] font-bold text-white bg-blue-500 px-2 py-0.5 rounded-full w-fit mb-2">TURNO {getMainShiftLabel(turma)}</div>
-                        <div className="mb-2 relative z-10">
-                            <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Tema DSS</span>
-                            <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight">{subject7H || 'NÃO PREENCHIDO'}</span>
-                        </div>
-                        <div className="relative z-10">
-                            <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Responsável</span>
-                            <span className="text-xs text-gray-700 dark:text-gray-300 truncate block">{responsible7H || '---'}</span>
-                        </div>
-                    </div>
-
-                    {/* 6H Card */}
-                    <div className="flex-1 bg-orange-50 dark:bg-orange-900/20 p-3 rounded-xl border border-orange-100 dark:border-orange-800 text-left relative overflow-hidden group">
-                        <div className="absolute right-0 top-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
-                            <ShiftIcon className="w-12 h-12 text-orange-600" />
-                        </div>
-                        <div className="text-[10px] font-bold text-white bg-orange-500 px-2 py-0.5 rounded-full w-fit mb-2">TURNO {getShiftLabel(turma)}</div>
-                        <div className="mb-2 relative z-10">
-                            <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Tema DSS</span>
-                            <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight">{subject6H || 'NÃO PREENCHIDO'}</span>
-                        </div>
-                        <div className="relative z-10">
-                            <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Responsável</span>
-                            <span className="text-xs text-gray-700 dark:text-gray-300 truncate block">{responsible6H || '---'}</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Stats Row */}
-                <div className="grid grid-cols-4 gap-2 mb-6">
-                    <div className="bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg p-2 flex flex-col items-center justify-center shadow-sm">
-                        <span className="text-xl font-bold text-green-600 dark:text-green-400">{visualStats.present}</span>
-                        <span className="text-[8px] uppercase text-gray-500 font-bold tracking-tight">Presentes</span>
-                    </div>
-                    <div className="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 rounded-lg p-2 flex flex-col items-center justify-center shadow-sm">
-                        <span className="text-xl font-bold text-red-600 dark:text-red-400">{visualStats.malCount}</span>
-                        <span className="text-[8px] uppercase text-red-500/80 font-bold tracking-tight">Mal</span>
-                    </div>
-                    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30 rounded-lg p-2 flex flex-col items-center justify-center shadow-sm">
-                        <span className="text-xl font-bold text-amber-600 dark:text-amber-400">{visualStats.absentCount}</span>
-                        <span className="text-[8px] uppercase text-amber-500/80 font-bold tracking-tight">Ausentes</span>
-                    </div>
-                    <div className="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-2 flex flex-col items-center justify-center opacity-80 shadow-sm">
-                        <span className="text-xl font-bold text-gray-700 dark:text-gray-300">{visualStats.missingCount}</span>
-                        <span className="text-[8px] uppercase text-gray-500 font-bold tracking-tight">Pendentes</span>
-                    </div>
-                </div>
-
-                {/* Compact Issues Lists */}
-                {(visualStats.malList.length > 0 || visualStats.absentList.length > 0) && (
-                    <div className="text-left space-y-3 border-t border-gray-200 dark:border-gray-700 pt-4">
-                        {visualStats.malList.length > 0 && (
-                            <div>
-                                <div className="flex items-center gap-1.5 mb-1.5 text-red-600 dark:text-red-400 font-bold text-[10px] uppercase tracking-wide">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
-                                    Relatos de Mal-Estar
-                                </div>
-                                <div className="flex flex-wrap gap-1.5">
-                                    {visualStats.malList.map(e => (
-                                        <span key={e.id} className="text-[10px] px-2 py-0.5 bg-red-50 dark:bg-red-900/30 rounded border border-red-100 dark:border-red-900/50 text-red-800 dark:text-red-200 font-medium">
-                                            {e.name}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                        {visualStats.absentList.length > 0 && (
-                            <div>
-                                <div className="flex items-center gap-1.5 mb-1.5 text-amber-600 dark:text-amber-400 font-bold text-[10px] uppercase tracking-wide">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                    Ausentes
-                                </div>
-                                <div className="flex flex-wrap gap-1.5">
-                                    {visualStats.absentList.map(e => (
-                                        <span key={e.id} className="text-[10px] px-2 py-0.5 bg-amber-50 dark:bg-amber-900/30 rounded border border-amber-100 dark:border-amber-900/50 text-amber-800 dark:text-amber-200 font-medium">
-                                            {e.name}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 pt-2">
-                <button
-                    onClick={handleCopy}
-                    className="w-full py-3 bg-blue-500 text-white font-bold rounded-xl hover:bg-blue-600 transition flex items-center justify-center gap-2 shadow-md text-sm"
-                >
-                    <FileTextIcon className="w-4 h-4" />
-                    COPIAR
-                </button>
-                <div className="w-full">
-                    <ExportDropdown 
-                        onExportTxt={handleExportTxt}
-                        onExportPng={handleExportPng}
-                        onExportPdf={handleExportPdf}
-                        onExportDoc={handleExportDoc}
-                        onExportExcel={handleExportExcel}
-                    />
-                </div>
-            </div>
-        </Modal>
-    );
-};
-
-const DemoPasswordModal: React.FC<{
-    isOpen: boolean;
-    onClose: () => void;
-    onConfirm: (password: string) => void;
-    scale: number;
-}> = ({ isOpen, onClose, onConfirm, scale }) => {
-    const [password, setPassword] = useState('');
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        onConfirm(password);
-    };
-
-    if (!isOpen) return null;
-
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Senha de Demonstração" scale={scale}>
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <input
-                    type="password"
-                    placeholder="Digite a senha"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
-                    autoFocus
-                    inputMode="numeric"
-                />
-                <button type="submit" className="w-full py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition">
-                    ENTRAR
-                </button>
-            </form>
-        </Modal>
-    );
-};
-
-const AutomationPasswordModal: React.FC<{
-    isOpen: boolean;
-    onClose: () => void;
-    onConfirm: (password: string) => void;
-    scale: number;
-}> = ({ isOpen, onClose, onConfirm, scale }) => {
-    const [password, setPassword] = useState('');
-
-    useEffect(() => {
-        if (isOpen) setPassword('');
-    }, [isOpen]);
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        onConfirm(password);
-    };
-
-    if (!isOpen) return null;
-
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Senha do Sistema" scale={scale}>
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <input
-                    type="password"
-                    placeholder="Digite a senha"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white text-center tracking-widest text-lg"
-                    autoFocus
-                />
-                <button type="submit" className="w-full py-3 bg-red-600/90 hover:bg-red-700 text-white font-bold rounded-lg transition uppercase tracking-widest">
-                    AUTORIZAR
-                </button>
-            </form>
-            <p className="text-xs text-light-text-secondary dark:text-dark-text-secondary mt-4">Essa ação impacta diretamente a automação das ações do painel.</p>
-        </Modal>
-    );
-};
-
-const ImportEmployeeModal: React.FC<{
-    isOpen: boolean;
-    onClose: () => void;
-    onBack?: () => void;
-    onImport: (employeeId: string, sourceTurma: TurmaType) => void;
-    currentTurma: TurmaType;
-    scale: number;
-    showNotification: (msg: string, type: 'success' | 'error') => void;
-}> = ({ isOpen, onClose, onBack, onImport, currentTurma, scale, showNotification }) => {
-    const [sourceTurma, setSourceTurma] = useState<TurmaType | ''>('');
-    const [sourceEmployees, setSourceEmployees] = useState<Employee[]>([]);
-    const [loadingEmployees, setLoadingEmployees] = useState(false);
-    const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-    const [isTurmaDropdownOpen, setIsTurmaDropdownOpen] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
-    const dropdownRef = useRef<HTMLDivElement>(null);
-    const turmaDropdownRef = useRef<HTMLDivElement>(null);
-
-
-    const turmas: TurmaType[] = [...ALL_TURMAS];
-    const availableTurmas = turmas.filter(t => t !== currentTurma);
-
-    useEffect(() => {
-        if (isOpen) {
-            setSourceTurma('');
-            setSourceEmployees([]);
-            setSelectedEmployeeId('');
-            setLoadingEmployees(false);
-            setSearchTerm('');
-            setIsDropdownOpen(false);
-            setIsTurmaDropdownOpen(false);
-        }
-    }, [isOpen]);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (turmaDropdownRef.current && !turmaDropdownRef.current.contains(event.target as Node)) {
-                setIsTurmaDropdownOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, []);
-
-    useEffect(() => {
-        const fetchEmployees = async () => {
-            if (!sourceTurma) return;
-            if (!db) {
-                showNotification("A conexão com o banco de dados não está disponível.", "error");
-                return;
-            }
-
-            setLoadingEmployees(true);
-            setSelectedEmployeeId('');
-            setSourceEmployees([]);
-            setSearchTerm('');
-
-            try {
-                const collectionName = getTurmaCollectionName(sourceTurma as TurmaType);
-                const q = query(collection(db, collectionName), orderBy("name", "asc"));
-                const querySnapshot = await getDocs(q);
-
-                const employeesData: Employee[] = querySnapshot.docs.map(doc => {
-                    const data = doc.data();
-                    return {
-                        id: doc.id,
-                        name: data.name,
-                        matricula: data.matricula,
-                        assDss: data.assDss,
-                        bem: data.bem,
-                        mal: data.mal,
-                        absent: data.absent,
-                        time: data.time ? formatTimestamp(data.time as Timestamp) : null,
-                        turno: data.turno || '7H',
-                    };
-                });
-                setSourceEmployees(employeesData);
-            } catch (error) {
-                console.error("Error fetching source employees:", error);
-                showNotification('Erro ao buscar colaboradores da turma de origem.', 'error');
-            } finally {
-                setLoadingEmployees(false);
-            }
-        };
-
-        fetchEmployees();
-    }, [sourceTurma, showNotification]);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsDropdownOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, []);
-
-    const filteredEmployees = useMemo(() => {
-        if (!searchTerm) return sourceEmployees;
-        return sourceEmployees.filter(emp =>
-            emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            emp.matricula.includes(searchTerm)
-        );
-    }, [searchTerm, sourceEmployees]);
-
-    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchTerm(e.target.value);
-        if (selectedEmployeeId) {
-            setSelectedEmployeeId(''); // Clear selection if user starts typing again
-        }
-    };
-
-    const handleSelectEmployee = (emp: Employee) => {
-        setSelectedEmployeeId(emp.id);
-        setSearchTerm(`${emp.name} (Mat: ${emp.matricula})`);
-        setIsDropdownOpen(false);
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (selectedEmployeeId && sourceTurma) {
-            onImport(selectedEmployeeId, sourceTurma as TurmaType);
-        }
-    };
-
-    if (!isOpen) return null;
-
-    return (
-        <Modal isOpen={isOpen} onClose={onClose} onBack={onBack} title="" scale={scale}>
-            <form onSubmit={handleSubmit} className="space-y-5 text-left">
-                <div className="flex justify-center mb-4 mt-2">
-                    <div className="relative group">
-                        {/* Efeito Glow / Sombra pulsante para design premium */}
-                        <div className="absolute -inset-1 bg-gradient-to-r from-teal-500 to-cyan-500 rounded-full blur-md opacity-45 group-hover:opacity-75 transition duration-500 animate-pulse"></div>
-                        {/* Contêiner principal com gradiente azul/teal */}
-                        <div className="relative w-20 h-20 rounded-full bg-gradient-to-tr from-teal-600 to-cyan-500 flex items-center justify-center shadow-xl transform group-hover:scale-105 transition-all duration-300">
-                            <ExchangeIcon className="w-10 h-10 text-white" />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Título reposicionado abaixo do ícone */}
-                <h2 className="text-lg md:text-xl font-bold uppercase text-light-text dark:text-dark-text text-center mb-6 mt-1 shrink-0">
-                    Importar Colaborador
-                </h2>
-
-                <div ref={turmaDropdownRef} className="relative">
-                    <label className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Turma de Origem</label>
-                    <div
-                        onClick={() => setIsTurmaDropdownOpen(!isTurmaDropdownOpen)}
-                        className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary dark:text-white flex items-center justify-between cursor-pointer select-none transition-all duration-200"
-                    >
-                        <span className={`font-semibold ${sourceTurma ? 'text-light-text dark:text-white' : 'text-gray-400'}`}>
-                            {sourceTurma ? `Turma ${TURMA_DISPLAY_NAMES[sourceTurma]}` : 'Selecione uma turma'}
-                        </span>
-                        <div className={`text-gray-400 transition-transform duration-200 ${isTurmaDropdownOpen ? 'transform rotate-180' : ''}`}>
-                            <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                            </svg>
-                        </div>
-                    </div>
-                    {isTurmaDropdownOpen && (
-                        <div className="absolute z-20 w-full mt-1 bg-light-card dark:bg-dark-card border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-                            {availableTurmas.map(turma => (
-                                <div
-                                    key={turma}
-                                    onClick={() => {
-                                        setSourceTurma(turma);
-                                        setIsTurmaDropdownOpen(false);
-                                    }}
-                                    className={`p-3.5 hover:bg-light-bg dark:hover:bg-dark-hover cursor-pointer border-b border-gray-100 dark:border-gray-800 last:border-b-0 font-semibold text-light-text dark:text-gray-200 transition-colors duration-150 flex items-center justify-between ${sourceTurma === turma ? 'bg-primary/5 text-primary dark:text-indigo-400' : ''}`}
-                                >
-                                    <span>Turma {TURMA_DISPLAY_NAMES[turma]}</span>
-                                    {sourceTurma === turma && (
-                                        <svg className="w-4 h-4 text-primary dark:text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                        </svg>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                <div ref={dropdownRef} className="relative">
-                    <label htmlFor="employee-search" className="block text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary mb-1">Colaborador</label>
-                    <div className="relative">
-                        <input
-                            id="employee-search"
-                            type="text"
-                            value={searchTerm}
-                            onChange={handleSearchChange}
-                            onFocus={() => setIsDropdownOpen(true)}
-                            placeholder={
-                                loadingEmployees ? "Carregando..." :
-                                    (sourceTurma ? "Pesquisar por nome ou matrícula..." : "Selecione uma turma primeiro")
-                            }
-                            className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-xl outline-none focus:ring-2 focus:ring-primary dark:text-white transition-all duration-200"
-                            disabled={!sourceTurma || loadingEmployees}
-                        />
-                        {loadingEmployees && (
-                            <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                                <div className="w-5 h-5 border-2 border-primary-light border-t-primary rounded-full animate-spin"></div>
-                            </div>
-                        )}
-                    </div>
-                    {isDropdownOpen && sourceEmployees.length > 0 && (
-                        <div className="absolute z-10 w-full mt-1 bg-light-card dark:bg-dark-card border border-gray-300 dark:border-gray-600 rounded-xl shadow-lg max-h-60 overflow-y-auto overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-                            {filteredEmployees.length > 0 ? (
-                                filteredEmployees.map(emp => (
-                                    <div
-                                        key={emp.id}
-                                        onClick={() => handleSelectEmployee(emp)}
-                                        className="p-3.5 hover:bg-light-bg dark:hover:bg-dark-hover cursor-pointer border-b border-gray-100 dark:border-gray-800 last:border-b-0 transition-colors duration-150"
-                                    >
-                                        <p className="font-semibold text-light-text dark:text-white">{emp.name}</p>
-                                        <p className="text-xs text-light-text-secondary dark:text-dark-text-secondary mt-0.5">Matrícula: {emp.matricula}</p>
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="p-4 text-center font-medium text-light-text-secondary dark:text-dark-text-secondary">Nenhum colaborador encontrado.</div>
-                            )}
-                        </div>
-                    )}
-                </div>
-
-                <div className="pt-2">
-                    <button type="submit" disabled={!selectedEmployeeId} className="w-full py-3.5 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white font-bold rounded-xl transition shadow-lg shadow-green-600/10 active:scale-[0.98] transform uppercase text-sm">
-                        IMPORTAR PARA TURMA {TURMA_DISPLAY_NAMES[currentTurma]}
-                    </button>
-                </div>
-            </form>
-        </Modal>
-    );
-};
 
 
 const App: React.FC = () => {
@@ -1642,119 +241,16 @@ const App: React.FC = () => {
             return;
         }
         try {
-            const currentTime = new Date().toLocaleString('pt-BR');
-            const emailContent = `
-            <!DOCTYPE html>
-            <html lang="pt-BR">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Alerta de Saúde</title>
-            </head>
-            <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #ffffff;">
-                <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; width: 100%;">
-                    <tr>
-                        <td align="center" style="padding: 20px 0;">
-                            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; width: 100%;">
-                                <tr>
-                                    <td style="display:none !important; visibility:hidden; mso-hide:all; font-size:1px; color:#ffffff; line-height:1px; max-height:0px; max-width:0px; opacity:0; overflow:hidden;">
-                                        🚨 Alerta de Saúde: Colaborador informou "ESTOU MAL". Verifique imediatamente.
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="padding-bottom: 20px;">
-                                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                                            <tr>
-                                                <td style="border-left: 4px solid #dc2626; padding-left: 15px;">
-                                                    <h1 style="margin: 0; color: #dc2626; font-size: 24px; font-weight: bold; line-height: 1.2;">
-                                                        Alerta de Saúde e Segurança!
-                                                    </h1>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="padding-bottom: 30px;">
-                                        <p style="margin: 0; font-size: 18px; line-height: 1.5; color: #000000;">
-                                            O colaborador <strong>${name}</strong> informou que não está se sentindo bem.
-                                        </p>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td style="padding-bottom: 30px;">
-                                        <div style="background-color: #f8f9fa; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px;">
-                                            <p style="margin: 0 0 16px 0; font-size: 12px; font-weight: bold; color: #000000; text-transform: uppercase; letter-spacing: 1px;">
-                                                DETALHES DO REGISTRO:
-                                            </p>
-                                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                                                <tr>
-                                                    <td style="padding-bottom: 8px; width: 100px; vertical-align: top;">
-                                                        <strong style="font-size: 15px; color: #000000;">Nome:</strong>
-                                                    </td>
-                                                    <td style="padding-bottom: 8px; vertical-align: top;">
-                                                        <span style="font-size: 15px; color: #000000; font-weight: bold;">${name}</span>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td style="padding-bottom: 8px; width: 100px; vertical-align: top;">
-                                                        <strong style="font-size: 15px; color: #000000;">Matrícula:</strong>
-                                                    </td>
-                                                    <td style="padding-bottom: 8px; vertical-align: top;">
-                                                        <span style="font-size: 15px; color: #000000; font-weight: bold;">${matricula}</span>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td style="padding-bottom: 8px; width: 100px; vertical-align: top;">
-                                                        <strong style="font-size: 15px; color: #000000;">Turno:</strong>
-                                                    </td>
-                                                    <td style="padding-bottom: 8px; vertical-align: top;">
-                                                        <span style="font-size: 15px; color: #000000; font-weight: bold;">${turno}</span>
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td style="padding-bottom: 0; width: 100px; vertical-align: top;">
-                                                        <strong style="font-size: 15px; color: #000000;">Horário:</strong>
-                                                    </td>
-                                                    <td style="padding-bottom: 0; vertical-align: top;">
-                                                        <span style="font-size: 15px; color: #000000; font-weight: bold;">${currentTime}</span>
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                                            <tr>
-                                                <td align="center" style="background-color: #ff5252; border-radius: 8px; padding: 16px; border: 1px solid #ff5252;">
-                                                    <span style="color: #000000; font-weight: bold; font-size: 16px;">
-                                                        Por favor, verifique a situação imediatamente.
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td align="center" style="padding-top: 30px;">
-                                        <p style="margin: 0; font-size: 12px; color: #000000;">
-                                            Este é um e-mail automático do sistema DSS.
-                                        </p>
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                </table>
-            </body>
-            </html>
-            `;
+            const { html: html_content, subject } = generateHealthAlertEmail(
+                name,
+                matricula,
+                turno,
+                selectedTurma!
+            );
 
             const templateParams = {
-                html_content: emailContent,
-                subject: `🚨 ALERTA URGENTE TURMA ${TURMA_DISPLAY_NAMES[selectedTurma!]}: "ESTOU MAL"`,
+                html_content,
+                subject,
             };
 
             await emailjs.send(
@@ -1833,21 +329,41 @@ const App: React.FC = () => {
                 unsubscribeEmployees = onSnapshot(employeesQuery, (querySnapshot) => {
                     if (isDemoModeRef.current) return;
 
-                    const employeesData: Employee[] = querySnapshot.docs.map(doc => {
-                        const data = doc.data();
-                        return {
-                            id: doc.id,
-                            name: data.name,
-                            matricula: data.matricula,
-                            assDss: data.assDss,
-                            bem: data.bem,
-                            mal: data.mal,
-                            absent: data.absent,
-                            time: data.time ? formatTimestamp(data.time as Timestamp) : null,
-                            turno: data.turno || '7H',
-                        };
+                    setEmployees(prevEmployees => {
+                        let newEmployees = [...prevEmployees];
+                        querySnapshot.docChanges().forEach(change => {
+                            const data = change.doc.data();
+                            const employeeData: Employee = {
+                                id: change.doc.id,
+                                name: data.name,
+                                matricula: data.matricula,
+                                assDss: data.assDss,
+                                bem: data.bem,
+                                mal: data.mal,
+                                absent: data.absent,
+                                time: data.time ? formatTimestamp(data.time as Timestamp) : null,
+                                turno: data.turno || '7H',
+                            };
+
+                            if (change.type === 'added') {
+                                if (!newEmployees.some(e => e.id === employeeData.id)) {
+                                    newEmployees.push(employeeData);
+                                }
+                            } else if (change.type === 'modified') {
+                                const index = newEmployees.findIndex(e => e.id === employeeData.id);
+                                if (index !== -1) {
+                                    newEmployees[index] = employeeData;
+                                }
+                            } else if (change.type === 'removed') {
+                                newEmployees = newEmployees.filter(e => e.id !== employeeData.id);
+                            }
+                        });
+
+                        if (querySnapshot.docChanges().length > 0) {
+                            return newEmployees.sort((a, b) => a.name.localeCompare(b.name));
+                        }
+                        return prevEmployees;
                     });
-                    setEmployees(employeesData);
 
                     if (!initialLoadDoneRef.current) {
                         setLoading(false);
@@ -2319,14 +835,14 @@ const App: React.FC = () => {
         }
     }, [selectedTurma, showNotification, isDemoMode]);
 
-    const handleTimeUpdate = useCallback(async (id: string, newDate: Date) => {
+    const handleTimeUpdate = useCallback(async (id: string, newDate: Date | null) => {
         if (!isAdminRef.current) {
             showNotification('Apenas administradores podem editar o horário.', 'error');
             return;
         }
 
         if (isDemoMode) {
-            const newTimeStr = `${newDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })} ${newDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+            const newTimeStr = newDate ? `${newDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })} ${newDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : null;
             setEmployees(prev => prev.map(e => e.id === id ? { ...e, time: newTimeStr } : e));
             showNotification('Horário atualizado com sucesso (DEMO)!', 'success');
             return;
@@ -2341,11 +857,11 @@ const App: React.FC = () => {
             const collectionName = getTurmaCollectionName(selectedTurma);
             const docRef = doc(db, collectionName, id);
             await updateDoc(docRef, {
-                time: Timestamp.fromDate(newDate)
+                time: newDate ? Timestamp.fromDate(newDate) : null
             });
             showNotification('Horário atualizado com sucesso!', 'success');
             const emp = employeesRef.current.find(e => e.id === id);
-            logAuditEvent(adminEmailRef.current, 'EDIT_TIME', `Funcionário: ${emp?.name || id} | Novo horário: ${newDate.toLocaleString('pt-BR')}`, selectedTurma);
+            logAuditEvent(adminEmailRef.current, 'EDIT_TIME', `Funcionário: ${emp?.name || id} | Novo horário: ${newDate ? newDate.toLocaleString('pt-BR') : 'Vazio'}`, selectedTurma);
         } catch (error) {
             console.error("Error updating time:", error);
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
@@ -3165,8 +1681,8 @@ const App: React.FC = () => {
     const handleOpenImportEmployee = useCallback(() => setActiveModal(ModalType.ImportEmployee), []);
     const handleOpenDemoPassword = useCallback(() => setActiveModal(ModalType.DemoPassword), []);
     const handleStartAdminTutorial = useCallback(() => setIsAdminTutorialOpen(true), []);
-    const handleRegister7H = useCallback(() => handleManualRegister('7H', mainMatricula, mainSubject), [handleManualRegister, mainMatricula, mainSubject]);
-    const handleRegister6H = useCallback(() => handleManualRegister('6H', specialMatricula, specialSubject), [handleManualRegister, specialMatricula, specialSubject]);
+    const handleRegister7H = useCallback((subject: string, matricula: string) => handleManualRegister('7H', matricula, subject), [handleManualRegister]);
+    const handleRegister6H = useCallback((subject: string, matricula: string) => handleManualRegister('6H', matricula, subject), [handleManualRegister]);
 
     const handleDeclineBiometrics = useCallback(() => {
         setActiveModal(ModalType.AdminOptions);
@@ -3304,8 +1820,6 @@ const App: React.FC = () => {
                                 <ManualRegisterSection
                                     subject={mainSubject}
                                     matricula={mainMatricula}
-                                    onSubjectChange={setMainSubject}
-                                    onMatriculaChange={setMainMatricula}
                                     onRegister={handleRegister7H}
                                     employeesForLookup={allEmployeesForLookup}
                                     administrators={administrators}
@@ -3421,8 +1935,6 @@ const App: React.FC = () => {
                                     onMatriculaUpdate={handleMatriculaUpdate}
                                     subject={specialSubject}
                                     matricula={specialMatricula}
-                                    onSubjectChange={setSpecialSubject}
-                                    onMatriculaChange={setSpecialMatricula}
                                     onRegister={handleRegister6H}
                                     employeesForLookup={allEmployeesForLookup}
                                     administrators={administrators}
@@ -3523,41 +2035,13 @@ const App: React.FC = () => {
                 scale={modalScale}
                 showNotification={showNotification}
             />
-            {activeModal === ModalType.UserExistsWarning && existingUserInfo && (
-                <Modal
-                    isOpen={true}
-                    onClose={handleCloseModal}
-                    title="Usuário Já Cadastrado"
-                    scale={modalScale}
-                >
-                    <div className="space-y-6 text-center p-2 flex flex-col items-center">
-                        <div className="mx-auto w-16 h-16 bg-orange/20 rounded-full flex items-center justify-center mb-2 text-orange">
-                            <UserIcon className="w-8 h-8" />
-                        </div>
-                        <p className="text-lg text-light-text dark:text-dark-text font-medium">
-                            O colaborador <strong className="text-primary">{existingUserInfo.name}</strong> já existe.
-                        </p>
-                        <p className="text-base text-light-text-secondary dark:text-dark-text-secondary -mt-2">
-                            Ele está atualmente cadastrado na <strong className="text-light-text dark:text-dark-text">Turma {existingUserInfo.turma}</strong>.
-                        </p>
-                        <div className="w-full pt-4 flex flex-col gap-3">
-                            <button
-                                onClick={() => setActiveModal(ModalType.None)}
-                                className="w-full py-3 font-bold text-light-text dark:text-white bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition"
-                            >
-                                ENTENDI
-                            </button>
-                            <button
-                                onClick={() => setActiveModal(ModalType.ImportEmployee)}
-                                className="w-full py-4 font-bold text-white bg-teal-500 rounded-lg hover:bg-teal-600 shadow-lg transition-all flex items-center justify-center gap-2"
-                            >
-                                <ExchangeIcon className="w-5 h-5" />
-                                <span>IMPORTAR FUNCIONÁRIO</span>
-                            </button>
-                        </div>
-                    </div>
-                </Modal>
-            )}
+            <UserExistsWarningModal
+                isOpen={activeModal === ModalType.UserExistsWarning}
+                onClose={handleCloseModal}
+                onImportClick={() => setActiveModal(ModalType.ImportEmployee)}
+                existingUserInfo={existingUserInfo}
+                scale={modalScale}
+            />
 
             <InteractiveTutorial
                 isOpen={activeModal === ModalType.Tutorial}
@@ -3575,457 +2059,65 @@ const App: React.FC = () => {
                 onStepChange={handleTutorialStepChange}
             />
 
-            {activeModal === ModalType.InvalidMatricula && (
-                <div
-                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
-                    onClick={() => setActiveModal(ModalType.None)}
-                >
-                    <div
-                        className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center relative mx-4"
-                        style={{
-                            transform: `scale(${modalScale})`,
-                            animation: 'fade-in-scale 0.3s forwards ease-out'
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button
-                            onClick={() => setActiveModal(ModalType.None)}
-                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10"
-                        >
-                            &times;
-                        </button>
+            <InvalidMatriculaModal
+                isOpen={activeModal === ModalType.InvalidMatricula}
+                onClose={() => setActiveModal(ModalType.None)}
+                scale={modalScale}
+            />
 
-                        <h2 className="text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6">FORMATO DE MATRÍCULA</h2>
+            <ConfirmMalModal
+                isOpen={activeModal === ModalType.ConfirmMal}
+                onClose={() => { setPendingEmployeeId(null); setActiveModal(ModalType.None); }}
+                onConfirm={handleConfirmMal}
+                scale={modalScale}
+            />
 
-                        <div className="space-y-6 text-center p-2 flex flex-col items-center">
-                            <div className="mx-auto w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-2 text-primary">
-                                <InfoIcon className="w-8 h-8" />
-                            </div>
+            <ConfirmTurnoModal
+                isOpen={activeModal === ModalType.ConfirmTurno}
+                onClose={() => { setPendingEmployeeId(null); setActiveModal(ModalType.None); }}
+                onConfirm={handleConfirmTurno}
+                employeeName={getPendingEmployeeName()}
+                targetTurno={getPendingEmployeeTurno()}
+                scale={modalScale}
+            />
 
-                            <div className="text-lg text-light-text dark:text-dark-text font-medium flex flex-col items-center gap-2">
-                                <span>Toda matrícula tem <strong>8 dígitos</strong>.</span>
-                            </div>
+            <ConfirmAbsentModal
+                isOpen={activeModal === ModalType.ConfirmAbsent}
+                onClose={() => { setPendingEmployeeId(null); setActiveModal(ModalType.None); }}
+                onConfirm={handleConfirmAbsent}
+                employeeName={getPendingEmployeeName()}
+                scale={modalScale}
+            />
 
-                            <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl w-full border border-gray-200 dark:border-gray-600">
-                                <p className="text-sm text-light-text-secondary dark:text-gray-300">
-                                    <span className="block font-bold mb-2 text-primary dark:text-blue-400 uppercase text-xs tracking-wider">Aviso</span>
-                                    Se você é da <strong className="text-light-text dark:text-white">Velha Guarda</strong>, adicione <strong className="text-light-text dark:text-white bg-yellow-200 dark:bg-yellow-800 px-1 rounded text-black dark:text-white">01</strong> na frente dos demais números para completar os 8 dígitos.
-                                </p>
-                            </div>
+            <ConfirmDeleteModal
+                isOpen={activeModal === ModalType.ConfirmDelete}
+                onClose={() => { setPendingEmployeeId(null); setActiveModal(ModalType.None); }}
+                onConfirm={handleConfirmDelete}
+                employeeName={getPendingEmployeeName()}
+                scale={modalScale}
+            />
 
-                            <div className="w-full">
-                                <button
-                                    onClick={() => setActiveModal(ModalType.None)}
-                                    className="w-full py-4 font-bold text-white bg-primary rounded-lg hover:bg-primary-dark shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
-                                >
-                                    ENTENDI
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ConfirmDeactivate6HModal
+                isOpen={activeModal === ModalType.ConfirmDeactivate6H}
+                onClose={() => setActiveModal(ModalType.None)}
+                onConfirm={handleConfirmDeactivate6H}
+                selectedTurma={selectedTurma}
+                scale={modalScale}
+            />
 
-            {activeModal === ModalType.ConfirmMal && (
-                <div
-                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
-                    onClick={() => {
-                        setPendingEmployeeId(null);
-                        setActiveModal(ModalType.None);
-                    }}
-                >
-                    <div
-                        className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center relative mx-4"
-                        style={{
-                            transform: `scale(${modalScale})`,
-                            animation: 'fade-in-scale 0.3s forwards ease-out'
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button
-                            onClick={() => {
-                                setPendingEmployeeId(null);
-                                setActiveModal(ModalType.None);
-                            }}
-                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10"
-                        >
-                            &times;
-                        </button>
+            <TutorialChoiceModal
+                isOpen={activeModal === ModalType.TutorialChoice}
+                onClose={() => setActiveModal(ModalType.None)}
+                onSelectInteractive={() => setActiveModal(ModalType.Tutorial)}
+                onSelectVideo={() => setActiveModal(ModalType.TutorialVideo)}
+                scale={modalScale}
+            />
 
-                        <h2 className="text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6">CONFIRMAÇÃO NECESSÁRIA</h2>
-
-                        <div className="space-y-6 text-center p-2 flex flex-col items-center">
-                            <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-2">
-                                <span className="text-4xl">🚨</span>
-                            </div>
-
-                            <div className="text-lg text-light-text dark:text-dark-text font-medium flex flex-col items-center gap-2">
-                                <span>Você selecionou a opção</span>
-                                <span className="text-danger font-bold text-3xl">"ESTOU MAL"</span>
-                            </div>
-
-                            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-2">
-                                Isso enviará um alerta imediato para a <strong>gestão</strong>. <br />Deseja realmente confirmar que não está se sentindo bem?
-                            </p>
-                            <div className="grid grid-cols-1 gap-3 mt-6 w-full">
-                                <button
-                                    onClick={handleConfirmMal}
-                                    className="w-full py-4 font-bold text-white bg-danger dark:bg-[#3A1414] rounded-lg hover:bg-red-700 dark:hover:bg-[#4A1818] border border-transparent dark:border-[#5A1C1C]/40 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
-                                >
-                                    SIM, ESTOU MAL
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setPendingEmployeeId(null);
-                                        setActiveModal(ModalType.None);
-                                    }}
-                                    className="w-full py-4 font-bold text-light-text dark:text-white bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition"
-                                >
-                                    CANCELAR
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {activeModal === ModalType.ConfirmTurno && (
-                <div
-                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
-                    onClick={() => {
-                        setPendingEmployeeId(null);
-                        setActiveModal(ModalType.None);
-                    }}
-                >
-                    <div
-                        className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center relative mx-4"
-                        style={{
-                            transform: `scale(${modalScale})`,
-                            animation: 'fade-in-scale 0.3s forwards ease-out'
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button
-                            onClick={() => {
-                                setPendingEmployeeId(null);
-                                setActiveModal(ModalType.None);
-                            }}
-                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10"
-                        >
-                            &times;
-                        </button>
-
-                        <h2 className="text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6">TROCA DE TURNO</h2>
-
-                        <div className="space-y-6 text-center p-2 flex flex-col items-center">
-                            <div className="mx-auto w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-2 text-primary">
-                                <ShiftIcon className="w-8 h-8" />
-                            </div>
-
-                            <div className="text-lg text-light-text dark:text-dark-text font-medium flex flex-col items-center gap-2">
-                                <span>Mover <strong>{getPendingEmployeeName()}</strong> para o turno:</span>
-                                <span className="text-primary font-bold text-3xl">{getPendingEmployeeTurno()}</span>
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-3 mt-6 w-full">
-                                <button
-                                    onClick={handleConfirmTurno}
-                                    className="w-full py-4 font-bold text-white bg-primary rounded-lg hover:bg-primary-dark shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
-                                >
-                                    CONFIRMAR TROCA
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setPendingEmployeeId(null);
-                                        setActiveModal(ModalType.None);
-                                    }}
-                                    className="w-full py-4 font-bold text-light-text dark:text-white bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition"
-                                >
-                                    CANCELAR
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {activeModal === ModalType.ConfirmAbsent && (
-                <div
-                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
-                    onClick={() => {
-                        setPendingEmployeeId(null);
-                        setActiveModal(ModalType.None);
-                    }}
-                >
-                    <div
-                        className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center relative mx-4"
-                        style={{
-                            transform: `scale(${modalScale})`,
-                            animation: 'fade-in-scale 0.3s forwards ease-out'
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button
-                            onClick={() => {
-                                setPendingEmployeeId(null);
-                                setActiveModal(ModalType.None);
-                            }}
-                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10"
-                        >
-                            &times;
-                        </button>
-
-                        <h2 className="text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6">CONFIRMAR AUSÊNCIA</h2>
-
-                        <div className="space-y-6 text-center p-2 flex flex-col items-center">
-                            <div className="mx-auto w-16 h-16 bg-orange/20 rounded-full flex items-center justify-center mb-2 text-orange">
-                                <AbsentIcon className="w-8 h-8" />
-                            </div>
-
-                            <div className="text-lg text-light-text dark:text-dark-text font-medium flex flex-col items-center gap-2">
-                                <span>Marcar <strong>{getPendingEmployeeName()}</strong> como:</span>
-                                <span className="text-orange font-bold text-3xl">AUSENTE</span>
-                            </div>
-
-                            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-2">
-                                Isso limpará quaisquer registros de horário ou status de saúde anteriores deste colaborador hoje.
-                            </p>
-
-                            <div className="grid grid-cols-1 gap-3 mt-6 w-full">
-                                <button
-                                    onClick={handleConfirmAbsent}
-                                    className="w-full py-4 font-bold text-white bg-orange rounded-lg hover:bg-orange-600 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
-                                >
-                                    CONFIRMAR AUSÊNCIA
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setPendingEmployeeId(null);
-                                        setActiveModal(ModalType.None);
-                                    }}
-                                    className="w-full py-4 font-bold text-light-text dark:text-white bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition"
-                                >
-                                    CANCELAR
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {activeModal === ModalType.ConfirmDelete && (
-                <div
-                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
-                    onClick={() => {
-                        setPendingEmployeeId(null);
-                        setActiveModal(ModalType.None);
-                    }}
-                >
-                    <div
-                        className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center relative mx-4"
-                        style={{
-                            transform: `scale(${modalScale})`,
-                            animation: 'fade-in-scale 0.3s forwards ease-out'
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button
-                            onClick={() => {
-                                setPendingEmployeeId(null);
-                                setActiveModal(ModalType.None);
-                            }}
-                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10"
-                        >
-                            &times;
-                        </button>
-
-                        <h2 className="text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6">EXCLUIR USUÁRIO</h2>
-
-                        <div className="space-y-6 text-center p-2 flex flex-col items-center">
-                            <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-2 text-danger">
-                                <TrashIcon className="w-8 h-8" />
-                            </div>
-
-                            <div className="text-lg text-light-text dark:text-dark-text font-medium flex flex-col items-center gap-2">
-                                <span>Tem certeza que deseja excluir <strong>{getPendingEmployeeName()}</strong>?</span>
-                            </div>
-
-                            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-2">
-                                Esta ação removerá o usuário permanentemente do sistema e não pode ser desfeita.
-                            </p>
-
-                            <div className="grid grid-cols-1 gap-3 mt-6 w-full">
-                                <button
-                                    onClick={handleConfirmDelete}
-                                    className="w-full py-4 font-bold text-white bg-danger dark:bg-[#3A1414] rounded-lg hover:bg-red-700 dark:hover:bg-[#4A1818] border border-transparent dark:border-[#5A1C1C]/40 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
-                                >
-                                    SIM, EXCLUIR
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setPendingEmployeeId(null);
-                                        setActiveModal(ModalType.None);
-                                    }}
-                                    className="w-full py-4 font-bold text-light-text dark:text-white bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition"
-                                >
-                                    CANCELAR
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {activeModal === ModalType.ConfirmDeactivate6H && (
-                <div
-                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
-                    onClick={() => setActiveModal(ModalType.None)}
-                >
-                    <div
-                        className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center relative mx-4"
-                        style={{
-                            transform: `scale(${modalScale})`,
-                            animation: 'fade-in-scale 0.3s forwards ease-out'
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button
-                            onClick={() => setActiveModal(ModalType.None)}
-                            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10"
-                        >
-                            &times;
-                        </button>
-
-                        <h2 className="text-xl font-bold text-light-text dark:text-dark-text mb-6">DESATIVAR TURNO {getShiftLabel(selectedTurma)}</h2>
-
-                        <div className="space-y-6 text-center p-2 flex flex-col items-center">
-                            <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-2 text-danger">
-                                <ShiftIcon className="w-8 h-8" />
-                            </div>
-
-                            <div className="text-lg text-light-text dark:text-dark-text font-medium flex flex-col items-center gap-2">
-                                <span>Tem certeza que deseja desativar o turno {getShiftLabel(selectedTurma)}?</span>
-                            </div>
-
-                            <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mt-2">
-                                Esta ação moverá todos os funcionários atualmente no turno {getShiftLabel(selectedTurma)} de volta para o turno {getMainShiftLabel(selectedTurma)}, e a coluna será ocultada do painel.
-                            </p>
-
-                            <div className="grid grid-cols-1 gap-3 mt-6 w-full">
-                                <button
-                                    onClick={handleConfirmDeactivate6H}
-                                    className="w-full py-4 font-bold text-white bg-danger dark:bg-[#3A1414] rounded-lg hover:bg-red-700 dark:hover:bg-[#4A1818] border border-transparent dark:border-[#5A1C1C]/40 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
-                                >
-                                    SIM, DESATIVAR
-                                </button>
-                                <button
-                                    onClick={() => setActiveModal(ModalType.None)}
-                                    className="w-full py-4 font-bold text-light-text dark:text-white bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition"
-                                >
-                                    CANCELAR
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* MODAL DE ESCOLHA DE TUTORIAL */}
-            {activeModal === ModalType.TutorialChoice && (
-                <div
-                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm"
-                    onClick={() => setActiveModal(ModalType.None)}
-                >
-                    <div
-                        className="bg-light-card dark:bg-dark-card rounded-3xl shadow-2xl p-10 w-full max-w-lg text-center relative mx-4 border border-white/20"
-                        style={{
-                            transform: `scale(${modalScale})`,
-                            animation: 'fade-in-scale 0.3s forwards ease-out'
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <h2 className="text-3xl font-black text-light-text dark:text-white mb-2 tracking-tight">COMO PODEMOS AJUDAR?</h2>
-                        <p className="text-light-text-secondary dark:text-dark-text-secondary mb-8 font-medium">Escolha a melhor forma de aprender a usar o sistema</p>
-
-                        <div className="grid grid-cols-1 gap-4">
-                            <button
-                                onClick={() => setActiveModal(ModalType.Tutorial)}
-                                className="group flex items-center gap-6 p-6 bg-gradient-to-br from-primary to-primary-dark rounded-2xl text-white shadow-lg hover:shadow-primary/30 transition-all transform hover:-translate-y-1 text-left"
-                            >
-                                <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                                    <HelpIcon className="w-8 h-8" />
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-xl leading-tight">Tour Interativo</h3>
-                                    <p className="text-white/70 text-sm mt-1 leading-relaxed">Passo a passo guiado diretamente na tela do sistema.</p>
-                                </div>
-                            </button>
-
-                            <button
-                                onClick={() => setActiveModal(ModalType.TutorialVideo)}
-                                className="group flex items-center gap-6 p-6 bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl text-white shadow-lg hover:shadow-purple-500/30 transition-all transform hover:-translate-y-1 text-left"
-                            >
-                                <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                                    <div className="w-8 h-8 flex items-center justify-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.91 11.672a.375.375 0 0 1 0 .656l-5.603 3.113a.375.375 0 0 1-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112Z" />
-                                        </svg>
-                                    </div>
-                                </div>
-                                <div>
-                                    <h3 className="font-bold text-xl leading-tight">Vídeo Aula</h3>
-                                    <p className="text-white/70 text-sm mt-1 leading-relaxed">Assista ao treinamento completo em vídeo com áudio explicativo.</p>
-                                </div>
-                            </button>
-                        </div>
-
-                        <div className="mt-10 flex justify-center">
-                            <button
-                                onClick={() => setActiveModal(ModalType.None)}
-                                className="px-10 py-3 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-light-text-secondary dark:text-dark-text-secondary font-bold rounded-2xl transition-all flex items-center gap-2 border border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 shadow-sm"
-                            >
-                                <span className="text-xl leading-none">&times;</span>
-                                <span className="uppercase tracking-widest text-xs">FECHAR AJUDA</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* MODAL DE VÍDEO TUTORIAL */}
-            {activeModal === ModalType.TutorialVideo && (
-                <div
-                    className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-md"
-                    onClick={() => setActiveModal(ModalType.None)}
-                >
-                    <div
-                        className="w-[95vw] max-w-[1280px] bg-black rounded-lg shadow-2xl relative border border-white/10"
-                        style={{
-                            transform: `scale(${modalScale})`,
-                            animation: 'fade-in-scale 0.3s forwards ease-out',
-                            maxHeight: '85vh',
-                            aspectRatio: '16/9'
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button
-                            onClick={() => setActiveModal(ModalType.None)}
-                            className="absolute -top-14 right-0 bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl flex items-center justify-center gap-2 font-bold z-10 backdrop-blur-md transition-all shadow-lg border border-white/10"
-                        >
-                            <span className="text-sm">FECHAR VÍDEO</span>
-                            <span className="text-xl">&times;</span>
-                        </button>
-                        
-                        <iframe
-                            src="https://drive.google.com/file/d/17echHUSii5HsYV3uqciHzckJnTbw2Pig/preview?hd=1"
-                            className="w-full h-full rounded-lg"
-                            allow="autoplay; fullscreen"
-                            title="Vídeo Tutorial Painel DSS"
-                        ></iframe>
-                    </div>
-                </div>
-            )}
+            <TutorialVideoModal
+                isOpen={activeModal === ModalType.TutorialVideo}
+                onClose={() => setActiveModal(ModalType.None)}
+                scale={modalScale}
+            />
 
             <div
                 className="fixed z-[100] space-y-3 top-[calc(1.25rem+env(safe-area-inset-top))] right-[calc(1.25rem+env(safe-area-inset-right))]"

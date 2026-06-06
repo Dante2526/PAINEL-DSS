@@ -1,4 +1,5 @@
 import React, { ReactNode, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 interface ModalProps {
   isOpen: boolean;
@@ -46,9 +47,9 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children,
     lg: 'max-w-lg',
   }[size];
 
-  return (
+  const modalContent = (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-[6px] flex items-center justify-center p-4 z-50 overflow-hidden"
+      className="fixed inset-0 bg-black/60 backdrop-blur-[6px] flex items-center justify-center p-4 z-[9999] overflow-hidden"
       style={{
         height: '100dvh', // Usa Dynamic Viewport Height para suportar teclado mobile nativamente
       }}
@@ -86,6 +87,10 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children,
       `}</style>
     </div>
   );
+
+  // Usa createPortal para renderizar o modal no final do body
+  // Isso impede que ele seja "preso" por propriedades como transform ou overflow-hidden em elementos pai
+  return createPortal(modalContent, document.body);
 };
 
 export default Modal;

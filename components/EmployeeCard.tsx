@@ -4,6 +4,8 @@ import React, { useState, memo } from 'react';
 import { Employee, StatusType } from '../types';
 import { ShiftIcon, AbsentIcon, TrashIcon, EditIcon, CheckIcon, XIcon } from './icons';
 import { formatTimestamp } from '../services/employeeService';
+import CustomDateTimePicker from './CustomDateTimePicker';
+import Modal from './Modal';
 
 interface EmployeeCardProps {
     employee: Employee;
@@ -12,7 +14,7 @@ interface EmployeeCardProps {
     isTogglingSpecialTeam: boolean;
     isAdmin: boolean;
     onDelete: (id: string) => void;
-    onTimeChange?: (id: string, newDate: Date) => void;
+    onTimeChange?: (id: string, newDate: Date | null) => void;
     onMatriculaChange?: (id: string, newMatricula: string) => void; // New prop
     domId?: string; // Prop for tutorial targeting wrapper
     specialTurnBtnId?: string; // Prop specifically for the shift button tutorial
@@ -134,9 +136,9 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, o
         }
     };
 
-    const handleTimeSave = () => {
-        if (onTimeChange && editTimeValue) {
-            const newDate = new Date(editTimeValue);
+    const handleTimeSaveNew = (dateStr: string) => {
+        if (onTimeChange && dateStr) {
+            const newDate = new Date(dateStr);
             if (!isNaN(newDate.getTime())) {
                 onTimeChange(employee.id, newDate);
             }
@@ -144,8 +146,14 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, o
         setIsEditingTime(false);
     };
 
-    const handleTimeCancel = (e: React.MouseEvent) => {
-        e.stopPropagation();
+    const handleTimeClearNew = () => {
+        if (onTimeChange) {
+            onTimeChange(employee.id, null);
+        }
+        setIsEditingTime(false);
+    };
+
+    const handleTimeCancel = () => {
         setIsEditingTime(false);
     };
 
@@ -281,38 +289,36 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, o
 
             <div className="px-7 pb-7 text-center">
                 {/* ID wrapper for tight tutorial focus on time */}
-                <div id={domId ? "tutorial-card-time" : undefined} className="inline-block">
-                    {isEditingTime ? (
-                        <div className="flex items-center justify-center gap-2 py-2">
-                            <input
-                                type="datetime-local"
-                                value={editTimeValue}
-                                onChange={(e) => setEditTimeValue(e.target.value)}
-                                className="border border-gray-300 rounded px-2 py-1 text-black dark:text-white bg-white dark:bg-gray-700 text-sm w-[200px]"
-                            />
-                            <button onClick={handleTimeSave} className="bg-green-500 text-white rounded-full p-2 hover:bg-green-600 transition shadow-md" aria-label="Salvar horário">
-                                <CheckIcon className="h-5 w-5" />
-                            </button>
-                            <button onClick={handleTimeCancel} className="bg-red-500 text-white rounded-full p-2 hover:bg-red-600 transition shadow-md" aria-label="Cancelar edição de horário">
-                                <XIcon className="h-5 w-5" />
-                            </button>
-                        </div>
-                    ) : (
-                        <div
-                            onClick={handleTimeClick}
-                            className={`py-4 px-6 inline-block rounded-lg font-bold text-base min-w-[240px] relative group ${employee.time ? 'bg-gradient-to-r from-orange to-amber-500 text-white' : 'bg-light-bg dark:bg-dark-bg text-light-text-secondary dark:text-dark-text-secondary'
-                                } ${isAdmin && employee.time ? 'cursor-pointer hover:brightness-110' : ''}`}
-                        >
-                            {formatTimestamp(employee.time)}
+                <div id={domId ? "tutorial-card-time" : undefined} className="inline-block w-full max-w-[280px]">
+                    <div
+                        onClick={handleTimeClick}
+                        className={`py-4 px-6 inline-block rounded-lg font-bold text-base min-w-[240px] relative group ${employee.time ? 'bg-gradient-to-r from-orange to-amber-500 text-white' : 'bg-light-bg dark:bg-dark-bg text-light-text-secondary dark:text-dark-text-secondary'
+                            } ${isAdmin && employee.time ? 'cursor-pointer hover:brightness-110' : ''}`}
+                    >
+                        {formatTimestamp(employee.time)}
 
-                            {isAdmin && employee.time && (
-                                <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 rounded p-1">
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                    </svg>
-                                </div>
-                            )}
-                        </div>
+                        {isAdmin && employee.time && (
+                            <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 rounded p-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                            </div>
+                        )}
+                    </div>
+                    
+                    {isEditingTime && (
+                        <Modal
+                            isOpen={isEditingTime}
+                            onClose={handleTimeCancel}
+                            title="Editar Hora da Assinatura"
+                        >
+                            <CustomDateTimePicker 
+                                initialDateValue={editTimeValue}
+                                onSave={handleTimeSaveNew}
+                                onCancel={handleTimeCancel}
+                                onClear={handleTimeClearNew}
+                            />
+                        </Modal>
                     )}
 
                     <div className="mt-3 text-sm font-semibold text-light-text-secondary dark:text-dark-text-secondary uppercase tracking-wider">

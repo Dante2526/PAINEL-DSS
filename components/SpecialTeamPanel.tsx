@@ -14,10 +14,8 @@ interface SpecialTeamPanelProps {
     // New props for controlled inputs
     subject: string;
     matricula: string;
-    onSubjectChange: (value: string) => void;
-    onMatriculaChange: (value: string) => void;
-    onRegister: () => void;
-    onTimeChange?: (id: string, newDate: Date) => void;
+    onRegister: (subject: string, matricula: string) => void;
+    onTimeChange?: (id: string, newDate: Date | null) => void;
     onMatriculaUpdate?: (id: string, newMatricula: string) => void; // Added prop
     employeesForLookup: (Pick<Employee, 'name' | 'matricula'>)[];
     administrators: Administrator[]; // Access to admin list for lookup
@@ -33,8 +31,6 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
     onDeleteUser,
     subject,
     matricula,
-    onSubjectChange,
-    onMatriculaChange,
     onRegister,
     onTimeChange,
     onMatriculaUpdate, // Destructure prop
@@ -42,6 +38,16 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
     administrators,
     turma
 }) => {
+    const [localSubject, setLocalSubject] = React.useState(subject);
+    const [localMatricula, setLocalMatricula] = React.useState(matricula);
+
+    React.useEffect(() => {
+        setLocalSubject(subject);
+    }, [subject]);
+
+    React.useEffect(() => {
+        setLocalMatricula(matricula);
+    }, [matricula]);
     const shiftLabel = React.useMemo(() => {
         return (turma === 'C' || turma === 'D') ? '18H' : '6H';
     }, [turma]);
@@ -50,27 +56,27 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
         return (turma === 'C' || turma === 'D') ? '19H' : '7H';
     }, [turma]);
     const handleMatriculaChangeLocal = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        onMatriculaChange(e.target.value.replace(/[^0-9]/g, ''));
-    }, [onMatriculaChange]);
+        setLocalMatricula(e.target.value.replace(/[^0-9]/g, ''));
+    }, []);
 
     // Find name based on matricula from administrators list first, then all employees from all turmas
     const foundName = useMemo(() => {
-        if (!matricula) return '';
+        if (!localMatricula) return '';
         // Prioritize administrators collection for manual registry
-        const admin = administrators.find(a => a.matricula === matricula);
+        const admin = administrators.find(a => a.matricula === localMatricula);
         if (admin) return admin.name;
 
         // Fallback to the global employee lookup list
-        const employee = employeesForLookup.find(e => e.matricula === matricula);
+        const employee = employeesForLookup.find(e => e.matricula === localMatricula);
         return employee ? employee.name : '';
-    }, [matricula, employeesForLookup, administrators]);
+    }, [localMatricula, employeesForLookup, administrators]);
 
     const firstEmployee = specialTeam[0];
     const remainingEmployees = specialTeam.slice(1);
 
-    const isRegistered = subject && subject !== 'Não preenchido' && matricula;
-    const isSubjectEmpty = !subject || subject === 'Não preenchido';
-    const isMatriculaEmpty = !matricula;
+    const isRegistered = subject && subject !== 'Não preenchido' && matricula && localSubject === subject && localMatricula === matricula;
+    const isSubjectEmpty = !localSubject || localSubject === 'Não preenchido';
+    const isMatriculaEmpty = !localMatricula;
 
     const subjectBorderClass = isSubjectEmpty
         ? "border-red-500/70 dark:border-red-500/50 shadow-[0_0_8px_rgba(239,68,68,0.15)] focus:ring-red-400 focus:border-red-400"
@@ -104,8 +110,8 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
                             <SubjectIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                             <input
                                 type="text"
-                                value={subject}
-                                onChange={(e) => onSubjectChange(e.target.value)}
+                                value={localSubject}
+                                onChange={(e) => setLocalSubject(e.target.value)}
                                 placeholder={`TEMA DSS - TURNO ${shiftLabel}`}
                                 className={`w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 rounded-lg outline-none transition uppercase ${subjectBorderClass} focus:ring-2`}
                                 autoCapitalize="characters"
@@ -117,7 +123,7 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
                                 <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 <input
                                     type="text"
-                                    value={matricula}
+                                    value={localMatricula}
                                     onChange={handleMatriculaChangeLocal}
                                     placeholder="Matrícula"
                                     className={`w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 rounded-l-lg outline-none transition ${matriculaBorderClass} ${!isMatriculaEmpty ? 'border-r border-r-gray-300 dark:border-r-gray-600' : ''} focus:ring-2`}
@@ -130,7 +136,7 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
                                     type="text"
                                     value={foundName}
                                     readOnly
-                                    placeholder={matricula ? "Não encontrado" : "Nome do Responsável"}
+                                    placeholder={localMatricula ? "Não encontrado" : "Nome do Responsável"}
                                     className="w-full px-4 py-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-medium border-2 border-l-0 border-gray-200 dark:border-gray-600 rounded-r-lg outline-none pointer-events-none truncate text-center"
                                 />
                             </div>
@@ -138,7 +144,7 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
                     </div>
 
                     <button
-                        onClick={onRegister}
+                        onClick={() => onRegister(localSubject, localMatricula)}
                         className="w-[50%] mx-auto block py-4 text-center font-bold text-white bg-gradient-to-r from-primary to-primary-dark rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 mb-8"
                     >
                         REGISTRAR
@@ -202,7 +208,19 @@ const arePropsEqual = (prevProps: SpecialTeamPanelProps, nextProps: SpecialTeamP
     if (prevProps.specialTeam.length !== nextProps.specialTeam.length) return false;
     
     for (let i = 0; i < prevProps.specialTeam.length; i++) {
-        if (prevProps.specialTeam[i] !== nextProps.specialTeam[i]) {
+        const prevEmp = prevProps.specialTeam[i];
+        const nextEmp = nextProps.specialTeam[i];
+        if (
+            prevEmp.id !== nextEmp.id ||
+            prevEmp.absent !== nextEmp.absent ||
+            prevEmp.assDss !== nextEmp.assDss ||
+            prevEmp.bem !== nextEmp.bem ||
+            prevEmp.mal !== nextEmp.mal ||
+            prevEmp.name !== nextEmp.name ||
+            prevEmp.matricula !== nextEmp.matricula ||
+            prevEmp.time !== nextEmp.time ||
+            prevEmp.turno !== nextEmp.turno
+        ) {
             return false;
         }
     }
