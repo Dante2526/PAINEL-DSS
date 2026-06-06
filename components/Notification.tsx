@@ -34,7 +34,7 @@ const Notification: React.FC<NotificationProps> = ({ notification, onDismiss }) 
     ? 'bg-success hover:scale-[1.02] active:scale-[0.98] transition-all' 
     : notification.type === 'info'
     ? 'bg-primary hover:scale-[1.02] active:scale-[0.98] transition-all'
-    : 'bg-danger dark:bg-[#3A1414] hover:bg-red-600 dark:hover:bg-[#4A1818] border border-transparent dark:border-[#5A1C1C]/40 hover:scale-[1.02] active:scale-[0.98] transition-all';
+    : 'bg-danger dark:bg-red-600 hover:bg-red-600 dark:hover:bg-red-500 border border-transparent dark:border-red-400/30 hover:scale-[1.02] active:scale-[0.98] transition-all';
   const visibilityClasses = visible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-full';
 
   return (
