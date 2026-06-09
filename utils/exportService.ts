@@ -135,12 +135,12 @@ export const exportToPdf = async (_elementIdOrData: string | PdfReportData, file
             // Título da equipe
             pdf.setDrawColor(200, 210, 220);
             pdf.line(margin, y, pageWidth - margin, y);
-            y += 6;
+            y += 6.5;
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(13);
             pdf.setTextColor(30, 41, 59);
             pdf.text(`EQUIPE TURNO ${turnoLabel}`, margin, y);
-            y += 7;
+            y += 3.5;
             pdf.setDrawColor(200, 210, 220);
             pdf.line(margin, y, pageWidth - margin, y);
             y += 6;
@@ -188,12 +188,12 @@ export const exportToPdf = async (_elementIdOrData: string | PdfReportData, file
             checkPageBreak(14);
             pdf.setDrawColor(200, 210, 220);
             pdf.line(margin, y, pageWidth - margin, y);
-            y += 6;
+            y += 6.5;
             pdf.setFont('helvetica', 'bold');
             pdf.setFontSize(13);
             pdf.setTextColor(30, 41, 59);
             pdf.text(`REGISTROS DSS (TURNO ${turnoLabel})`, margin, y);
-            y += 6;
+            y += 3.5;
             pdf.setDrawColor(200, 210, 220);
             pdf.line(margin, y, pageWidth - margin, y);
             y += 5;
