@@ -181,14 +181,6 @@ export const exportToPdf = async (_elementIdOrData: string | PdfReportData, file
             });
         };
 
-        drawSection(team7H, mainLabel);
-        if (data.turma !== 'CCG' && team6H.length > 0) {
-            drawSection(team6H, secLabel);
-        }
-
-        // ═══════════════════════════════════════════
-        // REGISTROS DSS (TEMAS)
-        // ═══════════════════════════════════════════
         const drawRegistros = (
             registros: { assunto: string; name: string; matricula: string }[],
             turnoLabel: string
@@ -232,9 +224,20 @@ export const exportToPdf = async (_elementIdOrData: string | PdfReportData, file
             y += 4;
         };
 
+        // ═══════════════════════════════════════════
+        // REGISTROS DSS (TEMAS)
+        // ═══════════════════════════════════════════
         drawRegistros(data.registros7H, mainLabel);
         if (data.turma !== 'CCG') {
             drawRegistros(data.registros6H, secLabel);
+        }
+
+        // ═══════════════════════════════════════════
+        // EQUIPE POR TURNO
+        // ═══════════════════════════════════════════
+        drawSection(team7H, mainLabel);
+        if (data.turma !== 'CCG' && team6H.length > 0) {
+            drawSection(team6H, secLabel);
         }
 
         // ═══════════════════════════════════════════
