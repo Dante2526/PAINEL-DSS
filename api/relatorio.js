@@ -57,7 +57,7 @@ async function registrarEnvioSucesso(db, team, dataID) {
 }
 
 // --- FUNÇÃO AUXILIAR: Geração do Corpo do Relatório ---
-async function gerarRelatorio(db, team, empSnapshot, dataExibicao, colRegistrosName, mainShiftLabel, shiftLabel) {
+async function gerarRelatorio(db, team, empSnapshot, dataExibicao, colRegistrosName, mainShiftLabel, shiftLabel, estagioSnapshot = null) {
   console.log("[Relatório] Gerando corpo do relatório HTML...");
   const cat_7H_EstouBem = [], cat_7H_EstouMal = [], cat_7H_Ausentes = [], cat_7H_Pendentes = [];
   const cat_SH_EstouBem = [], cat_SH_EstouMal = [], cat_SH_Ausentes = [], cat_SH_Pendentes = [];
@@ -164,6 +164,31 @@ async function gerarRelatorio(db, team, empSnapshot, dataExibicao, colRegistrosN
     if (cat_SH_Ausentes.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_SH_Ausentes.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }
   }
 
+  // EQUIPE ESTÁGIO (ANEXO)
+  if (estagioSnapshot && !estagioSnapshot.empty) {
+    const cat_Est_Bem = [], cat_Est_Mal = [], cat_Est_Aus = [], cat_Est_Pen = [];
+    estagioSnapshot.forEach(doc => {
+      const emp = doc.data();
+      if (emp.absent === true || emp.ausente === true) cat_Est_Aus.push(emp);
+      else if (emp.mal === true) cat_Est_Mal.push(emp);
+      else if (emp.assDss === true && emp.bem === true) cat_Est_Bem.push(emp);
+      else cat_Est_Pen.push(emp);
+    });
+
+    htmlBody += `<br><h2>EQUIPE ESTÁGIO</h2><hr>`;
+    htmlBody += `<h3>STATUS: "ASS.DSS + ESTOU BEM"</h3>`;
+    if (cat_Est_Bem.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_Est_Bem.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }
+    
+    htmlBody += `<h3>STATUS "ESTOU MAL"</h3>`;
+    if (cat_Est_Mal.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_Est_Mal.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }
+    
+    htmlBody += `<h3>PENDENTES</h3>`;
+    if (cat_Est_Pen.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_Est_Pen.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }
+    
+    htmlBody += `<h3>AUSENTES</h3>`;
+    if (cat_Est_Aus.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_Est_Aus.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }
+  }
+
   htmlBody += `</div>`;
   return htmlBody;
 }
@@ -224,7 +249,7 @@ export default async function handler(req, res) {
     }
     const db = app.firestore();
 
-    // 5. Verificar se a automação está pausada no banco de dados
+    // 5. Verificar se a automação está pausada no banco de dados para a turma principal
     const isPaused = await isAutomacaoPausada(db, validatedTeam);
     if (isPaused) {
       console.log(`>>> [SERVERLESS] Execução cancelada. O envio de e-mails para ${validatedTeam} está PAUSADO no painel.`);
@@ -254,12 +279,12 @@ export default async function handler(req, res) {
     const dataID = consensusISO || getDataDoPlantaoFallback('ISO');
     const dataExibicao = consensusISO ? isoToDisplay(consensusISO) : getDataDoPlantaoFallback('DD/MM/YY');
 
-    console.log(`[Relatório] Data identificada: ${dataExibicao} (ID: ${dataID})`);
+    console.log(`[Relatório] Data identificada para ${validatedTeam}: ${dataExibicao} (ID: ${dataID})`);
 
     // 8. Verificar Envio Duplicado
     const jaEnviado = await verificarEnvioDuplicado(db, validatedTeam, dataID, forceExecution);
     if (jaEnviado) {
-      console.log(`>>> [SERVERLESS] Processo abortado: O relatório já foi enviado hoje (${dataID}). <<<`);
+      console.log(`>>> [SERVERLESS] Processo abortado: O relatório de ${validatedTeam} já foi enviado hoje (${dataID}). <<<`);
       return res.status(200).json({
         status: 'already_sent',
         message: `O relatório para a Turma ${validatedTeam} no plantão do dia ${dataExibicao} já foi enviado anteriormente hoje.`
@@ -270,9 +295,18 @@ export default async function handler(req, res) {
     const shiftLabel = (validatedTeam === 'C' || validatedTeam === 'D') ? '18H' : '6H';
     const mainShiftLabel = (validatedTeam === 'C' || validatedTeam === 'D') ? '19H' : '7H';
 
-    // 10. Gerar HTML e Disparar E-mail
-    const htmlRelatorio = await gerarRelatorio(db, validatedTeam, empSnapshot, dataExibicao, colRegistrosName, mainShiftLabel, shiftLabel);
+    // 10. Buscar Turma de ESTAGIO se aplicável para anexar
+    let estagioSnapshot = null;
+    if (validatedTeam === 'A' || validatedTeam === 'B') {
+      const { employees: colEstagioEmp } = getCollections('ESTAGIO');
+      estagioSnapshot = await db.collection(colEstagioEmp).get();
+    }
+
+    // 11. Gerar HTML Integrado
+    const htmlRelatorio = await gerarRelatorio(db, validatedTeam, empSnapshot, dataExibicao, colRegistrosName, mainShiftLabel, shiftLabel, estagioSnapshot);
     
+
+    // 11. Disparar E-mail
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: { user: EMAIL_USER, pass: EMAIL_PASS },
@@ -288,14 +322,14 @@ export default async function handler(req, res) {
 
     console.log(`[Relatório] Enviando e-mail de ${EMAIL_USER} para ${EMAIL_TO}...`);
     await transporter.sendMail(mailOptions);
-    console.log("[Relatório] E-mail enviado com absoluto sucesso!");
+    console.log(`[Relatório] E-mail enviado com sucesso!`);
 
-    // 11. Registrar Envio no Controle para Evitar Duplicidade
+    // 12. Registrar Envio no Controle para Evitar Duplicidade
     await registrarEnvioSucesso(db, validatedTeam, dataID);
 
     return res.status(200).json({
       status: 'success',
-      message: `Relatório da Turma ${validatedTeam} para o plantão ${dataExibicao} enviado com sucesso!`
+      message: `Relatório da Turma ${validatedTeam} (com anexos se aplicável) enviado com sucesso!`
     });
 
   } catch (error) {

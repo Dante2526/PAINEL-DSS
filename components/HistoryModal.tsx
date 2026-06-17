@@ -53,7 +53,7 @@ const HistoryModal: React.FC<{
     const luminaClassId = useMemo(() => {
         if (!turma) return null;
         const map: Record<string, string> = {
-            'A': 'Turma A', 'B': 'Turma B', 'C': 'Turma C', 'D': 'Turma D', 'CCG': 'Turma A'
+            'A': 'Turma A', 'B': 'Turma B', 'C': 'Turma C', 'D': 'Turma D', 'CCG': 'Turma A', 'ESTAGIO': 'Estágio'
         };
         return map[turma] || `Turma ${turma}`;
     }, [turma]);

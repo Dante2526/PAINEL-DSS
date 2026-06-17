@@ -11,6 +11,7 @@ service cloud.firestore {
          collectionId == 'turma c' ||
          collectionId == 'turma d' ||
          collectionId == 'turma c cg' ||
+         collectionId == 'estagio' ||
          collectionId == 'registrosDSS A' || 
          collectionId == 'registrosDSS B' ||
          collectionId == 'registrosDSS C' ||

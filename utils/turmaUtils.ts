@@ -5,8 +5,8 @@ export const EMAILJS_PUBLIC_KEY = "Ef-7IoF9U9NQ_iV8X";
 // ----------------------------
 
 // --- TIPO E HELPERS DE TURMA ---
-export type TurmaType = 'A' | 'B' | 'C' | 'D' | 'CCG';
-export const ALL_TURMAS: TurmaType[] = ['A', 'B', 'C', 'D', 'CCG'];
+export type TurmaType = 'A' | 'B' | 'C' | 'D' | 'CCG' | 'ESTAGIO';
+export const ALL_TURMAS: TurmaType[] = ['A', 'B', 'C', 'D', 'CCG', 'ESTAGIO'];
 
 export const TURMA_DISPLAY_NAMES: Record<TurmaType, string> = {
     A: 'A',
@@ -14,14 +14,17 @@ export const TURMA_DISPLAY_NAMES: Record<TurmaType, string> = {
     C: 'C',
     D: 'D',
     CCG: 'C CG',
+    ESTAGIO: 'Estágio',
 };
 
 export function getTurmaCollectionName(turma: TurmaType): string {
+    if (turma === 'ESTAGIO') return 'estagio';
     const displayName = TURMA_DISPLAY_NAMES[turma];
     return `turma ${displayName.toLowerCase()}`;
 }
 
 export function getTurmaRegistrationName(turma: TurmaType): string {
+    if (turma === 'ESTAGIO') return 'registrosDSS Estágio';
     const displayName = TURMA_DISPLAY_NAMES[turma];
     return `registrosDSS ${displayName}`;
 }

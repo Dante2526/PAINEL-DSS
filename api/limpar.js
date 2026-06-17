@@ -208,32 +208,40 @@ export default async function handler(req, res) {
     }
     const db = app.firestore();
 
-    // 4. Verificar se a automação está pausada no banco de dados
-    const isPaused = await isAutomacaoPausada(db, validatedTeam);
-    if (isPaused) {
-      console.log(`>>> [SERVERLESS] Execução cancelada. A automação da Turma ${validatedTeam} está PAUSADA no painel.`);
-      return res.status(200).json({
-        status: 'cancelled',
-        message: `A automação (Limpeza) para a Turma ${validatedTeam} está PAUSADA no painel administrativo.`
-      });
+    const teamsToProcess = [validatedTeam];
+    if (validatedTeam === 'A' || validatedTeam === 'B') {
+      teamsToProcess.push('ESTAGIO');
     }
 
-    const { employees: colEmployeesName, registros: colRegistrosName } = getCollections(validatedTeam);
+    const results = [];
+    for (const currentTeam of teamsToProcess) {
+      // 4. Verificar se a automação está pausada no banco de dados
+      const isPaused = await isAutomacaoPausada(db, currentTeam);
+      if (isPaused) {
+        console.log(`>>> [SERVERLESS] Execução cancelada. A automação da Turma ${currentTeam} está PAUSADA no painel.`);
+        results.push(`A automação para a Turma ${currentTeam} está PAUSADA.`);
+        continue;
+      }
 
-    // 5. Salvar o Histórico do Dia
-    await salvarHistorico(db, validatedTeam, colEmployeesName, colRegistrosName);
+      const { employees: colEmployeesName, registros: colRegistrosName } = getCollections(currentTeam);
 
-    // 6. Executar Limpezas em Paralelo
-    await Promise.all([
-      limparEmployees(db, colEmployeesName),
-      limparRegistros(db, colRegistrosName),
-      limparControleEnvio(db, validatedTeam)
-    ]);
+      // 5. Salvar o Histórico do Dia
+      await salvarHistorico(db, currentTeam, colEmployeesName, colRegistrosName);
 
-    console.log(`>>> [SERVERLESS] Limpeza e histórico concluídos com sucesso para ${validatedTeam} <<<`);
+      // 6. Executar Limpezas em Paralelo
+      await Promise.all([
+        limparEmployees(db, colEmployeesName),
+        limparRegistros(db, colRegistrosName),
+        limparControleEnvio(db, currentTeam)
+      ]);
+
+      console.log(`>>> [SERVERLESS] Limpeza e histórico concluídos com sucesso para ${currentTeam} <<<`);
+      results.push(`Limpeza e histórico concluídos para a Turma ${currentTeam}.`);
+    }
+
     return res.status(200).json({
       status: 'success',
-      message: `Limpeza e histórico concluídos com sucesso para a Turma ${validatedTeam}.`
+      message: results.join(' ')
     });
 
   } catch (error) {

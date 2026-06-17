@@ -7,6 +7,7 @@ const TURMAS = {
   C:   { employees: 'turma c',    registros: 'registrosDSS C' },
   D:   { employees: 'turma d',    registros: 'registrosDSS D' },
   CCG: { employees: 'turma c cg', registros: 'registrosDSS C CG' },
+  ESTAGIO: { employees: 'estagio', registros: 'registrosDSS Estágio' },
 };
 
 const TURMAS_VALIDAS = Object.keys(TURMAS);

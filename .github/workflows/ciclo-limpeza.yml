@@ -80,7 +80,7 @@ jobs:
             if [[ $CYCLE_DAY_A -eq 0 || $CYCLE_DAY_A -eq 1 ]]; then
               echo "Hoje é dia de trabalho da TURMA A."
               echo "should_run=true" >> $GITHUB_OUTPUT
-              echo "target_team=A" >> $GITHUB_OUTPUT
+              echo "target_team=A ESTAGIO" >> $GITHUB_OUTPUT
               exit 0
             fi
 
@@ -93,7 +93,7 @@ jobs:
             if [[ $CYCLE_DAY_B -eq 0 || $CYCLE_DAY_B -eq 1 ]]; then
               echo "Hoje é dia de trabalho da TURMA B."
               echo "should_run=true" >> $GITHUB_OUTPUT
-              echo "target_team=B" >> $GITHUB_OUTPUT
+              echo "target_team=B ESTAGIO" >> $GITHUB_OUTPUT
               exit 0
             fi
           fi

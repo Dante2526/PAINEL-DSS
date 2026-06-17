@@ -17,7 +17,7 @@ interface HeaderProps {
     onHelpClick: () => void;
     isDarkMode: boolean;
     onToggleDarkMode: () => void;
-    turma: 'A' | 'B' | 'C' | 'D' | 'CCG';
+    turma: 'A' | 'B' | 'C' | 'D' | 'CCG' | 'ESTAGIO';
     onReturnToSelection: () => void;
 }
 
@@ -38,7 +38,7 @@ const Header: React.FC<HeaderProps> = React.memo(({ stats, loading, onAdminClick
                     <ShieldLogo className="h-20 w-20 md:h-24 md:w-24" />
                 )}
                 <div className="flex flex-col gap-1">
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-light-text dark:text-dark-text tracking-tight">Painel DSS - TURMA {{ A: 'A', B: 'B', C: 'C', D: 'D', CCG: 'C CG' }[turma]}</h1>
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-light-text dark:text-dark-text tracking-tight">Painel DSS - TURMA {{ A: 'A', B: 'B', C: 'C', D: 'D', CCG: 'C CG', ESTAGIO: 'ESTÁGIO' }[turma]}</h1>
                     <p className="text-lg md:text-xl font-medium text-light-text-secondary dark:text-dark-text-secondary">Diálogo de Saúde e Segurança - Monitoramento em tempo real</p>
                 </div>
             </div>

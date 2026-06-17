@@ -1275,9 +1275,9 @@ const App: React.FC = () => {
 
         try {
             // Cross-turma duplicate check
-            const turmas = ['A', 'B', 'C', 'D'];
-            for (const turma of turmas) {
-                const collectionName = `turma ${turma.toLowerCase()}`;
+            const turmasToCheck = ALL_TURMAS.filter(t => t !== selectedTurma);
+            for (const turma of turmasToCheck) {
+                const collectionName = getTurmaCollectionName(turma);
                 const collRef = collection(db, collectionName);
 
                 const matriculaQuery = query(collRef, where("matricula", "==", matricula));
@@ -1291,7 +1291,7 @@ const App: React.FC = () => {
                 const foundDoc = matriculaSnapshot.docs[0] || nameSnapshot.docs[0];
 
                 if (foundDoc) {
-                    setExistingUserInfo({ name: foundDoc.data().name, turma: turma });
+                    setExistingUserInfo({ name: foundDoc.data().name, turma: TURMA_DISPLAY_NAMES[turma] || turma });
                     setActiveModal(ModalType.UserExistsWarning);
                     return; // Stop execution
                 }
@@ -1817,14 +1817,16 @@ const App: React.FC = () => {
 
                         <div className="flex gap-8 flex-nowrap relative">
                             <div className="flex flex-col gap-8 shrink-0 min-h-screen relative">
-                                <ManualRegisterSection
-                                    subject={mainSubject}
-                                    matricula={mainMatricula}
-                                    onRegister={handleRegister7H}
-                                    employeesForLookup={allEmployeesForLookup}
-                                    administrators={administrators}
-                                    turma={selectedTurma}
-                                />
+                                {selectedTurma !== 'ESTAGIO' && (
+                                    <ManualRegisterSection
+                                        subject={mainSubject}
+                                        matricula={mainMatricula}
+                                        onRegister={handleRegister7H}
+                                        employeesForLookup={allEmployeesForLookup}
+                                        administrators={administrators}
+                                        turma={selectedTurma}
+                                    />
+                                )}
 
                                 <div className="flex gap-6 pr-12 relative w-fit">
                                     <div className="flex flex-col gap-8 w-fit shrink-0 relative pb-[50vh]">
@@ -1843,7 +1845,7 @@ const App: React.FC = () => {
                                                             onTimeChange={handleTimeUpdate}
                                                             onMatriculaChange={handleMatriculaUpdate}
                                                             domId={index === 0 ? "tutorial-first-card" : undefined}
-                                                            hideShiftButton={selectedTurma === 'CCG' || !is6HActive}
+                                                            hideShiftButton={selectedTurma === 'CCG' || selectedTurma === 'ESTAGIO' || !is6HActive}
                                                             shiftLabel={getShiftLabel(selectedTurma)}
                                                         />
                                                     </div>
@@ -1872,7 +1874,7 @@ const App: React.FC = () => {
                                                                     onTimeChange={handleTimeUpdate}
                                                                     onMatriculaChange={handleMatriculaUpdate}
                                                                     domId={index === 0 && group.letter === groupedMainTeam[0]?.letter ? "tutorial-first-card" : undefined}
-                                                                    hideShiftButton={selectedTurma === 'CCG' || !is6HActive}
+                                                                    hideShiftButton={selectedTurma === 'CCG' || selectedTurma === 'ESTAGIO' || !is6HActive}
                                                                     shiftLabel={getShiftLabel(selectedTurma)}
                                                                 />
                                                             </div>
@@ -1923,7 +1925,7 @@ const App: React.FC = () => {
 
                                 </div>
                             </div>
-                            {selectedTurma !== 'CCG' && is6HActive && (
+                            {selectedTurma !== 'CCG' && selectedTurma !== 'ESTAGIO' && is6HActive && (
                                 <SpecialTeamPanel
                                     specialTeam={specialTeam}
                                     onStatusChange={handleStatusChange}

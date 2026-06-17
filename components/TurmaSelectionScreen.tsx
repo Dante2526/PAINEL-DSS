@@ -4,7 +4,7 @@ import DarkModeToggle from './DarkModeToggle';
 import Footer from './Footer';
 
 interface TurmaSelectionScreenProps {
-    onSelect: (turma: 'A' | 'B' | 'C' | 'D' | 'CCG') => void;
+    onSelect: (turma: 'A' | 'B' | 'C' | 'D' | 'CCG' | 'ESTAGIO') => void;
     isDarkMode: boolean;
     onToggleDarkMode: () => void;
 }
@@ -47,6 +47,15 @@ const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, i
                             className="flex items-center justify-center whitespace-nowrap px-4 py-8 md:py-6 font-extrabold text-xl md:text-xl text-white bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl md:rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-amber-300 dark:focus:ring-amber-800"
                         >
                             TURMA D
+                        </button>
+                    </div>
+
+                    <div className="flex justify-center w-full max-w-[280px] md:max-w-[360px] mx-auto mb-4 md:mb-6">
+                        <button
+                            onClick={() => onSelect('ESTAGIO')}
+                            className="flex items-center justify-center whitespace-nowrap w-[calc(50%-0.375rem)] md:w-[calc(50%-0.5rem)] px-4 py-8 md:py-6 font-extrabold text-xl md:text-xl text-white bg-gradient-to-br from-pink-500 to-rose-700 rounded-2xl md:rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-rose-300 dark:focus:ring-rose-800"
+                        >
+                            ESTÁGIO
                         </button>
                     </div>
 
