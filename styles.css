@@ -157,9 +157,45 @@ a {
     overscroll-behavior: contain;
 }
 
+/* === THEME VIEW TRANSITION === */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 2;
+}
+
+html.dark-transition::view-transition-new(root) {
+  animation: circle-in 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+html.light-transition::view-transition-old(root) {
+  animation: circle-out 0.55s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  z-index: 2;
+}
+html.light-transition::view-transition-new(root) {
+  z-index: 1;
+}
+
+@keyframes circle-in {
+  from { clip-path: circle(0px at var(--toggle-x, 50%) var(--toggle-y, 50%)); }
+  to { clip-path: circle(var(--toggle-r, 100%) at var(--toggle-x, 50%) var(--toggle-y, 50%)); }
+}
+
+@keyframes circle-out {
+  from { clip-path: circle(var(--toggle-r, 100%) at var(--toggle-x, 50%) var(--toggle-y, 50%)); }
+  to { clip-path: circle(0px at var(--toggle-x, 50%) var(--toggle-y, 50%)); }
+}
+
 /* === BB-8 TOGGLE STYLES === */
 .bb8-toggle {
-    --toggle-size: 16px;
+    --toggle-size: var(--bb8-size, 16px);
     --toggle-width: 10.625em;
     --toggle-height: 5.625em;
     --toggle-offset: calc((var(--toggle-height) - var(--bb8-diameter)) / 2);
@@ -391,11 +427,13 @@ a {
 .bb8-toggle__scenery::before {
     content: "";
     position: absolute;
+    left: 0;
     width: 100%;
     height: 30%;
     bottom: 0;
     background: #b18d71;
     z-index: 1;
+    transition: background var(--transition);
 }
 
 .bb8-toggle__cloud {

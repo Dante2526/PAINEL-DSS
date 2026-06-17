@@ -2,18 +2,24 @@ import React from 'react';
 
 interface DarkModeToggleProps {
   isDarkMode: boolean;
-  onToggle: () => void;
+  onToggle: (e?: any) => void;
 }
 
 const DarkModeToggle: React.FC<DarkModeToggleProps> = ({ isDarkMode, onToggle }) => {
   return (
-    <label className="bb8-toggle" htmlFor="darkModeToggle" aria-label="Alternar modo escuro">
+    <label 
+      className="bb8-toggle" 
+      aria-label="Alternar modo escuro"
+      onClick={(e) => {
+        e.preventDefault(); // Impede o browser de clicar o input novamente (double-fire)
+        onToggle(e);
+      }}
+    >
         <input 
             className="bb8-toggle__checkbox" 
             type="checkbox" 
-            id="darkModeToggle"
             checked={isDarkMode}
-            onChange={onToggle}
+            onChange={() => {}} // Controlado por onClick no label
         />
         <div className="bb8-toggle__container">
             <div className="bb8-toggle__scenery">
@@ -49,4 +55,4 @@ const DarkModeToggle: React.FC<DarkModeToggleProps> = ({ isDarkMode, onToggle })
   );
 };
 
-export default DarkModeToggle;
+export default React.memo(DarkModeToggle);

@@ -6,19 +6,15 @@ import Footer from './Footer';
 interface LayoutSelectionScreenProps {
     onSelect: (layout: 'standard' | 'custom') => void;
     isDarkMode: boolean;
-    onToggleDarkMode: () => void;
+    onToggleDarkMode: (e?: any) => void;
     onBack: () => void;
     selecionadaTurma: string;
 }
 
 const LayoutSelectionScreen: React.FC<LayoutSelectionScreenProps> = ({ onSelect, isDarkMode, onToggleDarkMode, onBack, selecionadaTurma }) => {
     return (
-        <div className="bg-light-bg-secondary dark:bg-dark-bg h-[100dvh] overflow-hidden text-light-text dark:text-dark-text transition-colors flex flex-col items-center px-2 py-2 pt-[calc(1rem+env(safe-area-inset-top))] pb-[calc(1rem+env(safe-area-inset-bottom))] w-full">
-            <div className="fixed top-2 right-2 selection-screen-toggle z-[100]">
-                <DarkModeToggle isDarkMode={isDarkMode} onToggle={onToggleDarkMode} />
-            </div>
-
-            <button
+        <div className="bg-light-bg-secondary dark:bg-dark-bg h-[100dvh] w-full text-light-text dark:text-dark-text transition-colors flex flex-col items-center p-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] overflow-hidden">
+            <button 
                 onClick={onBack}
                 className="fixed top-2 left-2 md:top-8 md:left-8 z-[100] px-3 py-1.5 md:px-4 md:py-2 text-sm md:text-base font-bold text-light-text-secondary dark:text-dark-text-secondary bg-gray-200 dark:bg-gray-800 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition shadow"
             >

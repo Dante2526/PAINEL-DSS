@@ -1,5 +1,6 @@
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef } from 'react';
+import { flushSync } from 'react-dom';
 import Header from './components/Header';
 import EmployeeCard from './components/EmployeeCard';
 import SpecialTeamPanel from './components/SpecialTeamPanel';
@@ -7,6 +8,7 @@ import Modal from './components/Modal';
 import Notification from './components/Notification';
 import Footer from './components/Footer';
 import InteractiveTutorial, { TutorialStep } from './components/InteractiveTutorial';
+import ThemeSelectionScreen from './components/ThemeSelectionScreen';
 import TurmaSelectionScreen from './components/TurmaSelectionScreen';
 import LayoutSelectionScreen from './components/LayoutSelectionScreen';
 import HistoryModal from './components/HistoryModal';
@@ -163,6 +165,10 @@ const App: React.FC = () => {
         return window.matchMedia('(prefers-color-scheme: dark)').matches;
     });
 
+    const [hasSelectedTheme, setHasSelectedTheme] = useState(() => {
+        return localStorage.getItem('themeSelected') === 'true';
+    });
+
     // Ref to prevent double "loaded" notifications
     const initialLoadDoneRef = useRef(false);
 
@@ -184,7 +190,7 @@ const App: React.FC = () => {
         }
     }, []);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         const themeColorMeta = document.querySelector('meta[name="theme-color"]');
         if (isDarkMode) {
             document.documentElement.classList.add('dark');
@@ -223,7 +229,52 @@ const App: React.FC = () => {
         };
     }, [loading, selectedTurma]);
 
-    const handleToggleDarkMode = useCallback(() => setIsDarkMode(prev => !prev), []);
+    const handleToggleDarkMode = useCallback((e?: any) => {
+        if (!('startViewTransition' in document)) {
+            setIsDarkMode(prev => !prev);
+            return;
+        }
+
+        const isSwitchingToDark = !isDarkMode;
+
+        let x = window.innerWidth / 2;
+        let y = window.innerHeight / 2;
+        
+        if (e && e.nativeEvent && typeof e.nativeEvent.clientX === 'number' && e.nativeEvent.clientX > 0) {
+            x = e.nativeEvent.clientX;
+            y = e.nativeEvent.clientY;
+        } else if (e && e.target instanceof Element) {
+            const targetEl = e.target.closest('.bb8-toggle') || e.target;
+            const rect = targetEl.getBoundingClientRect();
+            x = rect.left + rect.width / 2;
+            y = rect.top + rect.height / 2;
+        }
+
+        const endRadius = Math.hypot(
+            Math.max(x, window.innerWidth - x),
+            Math.max(y, window.innerHeight - y)
+        );
+
+        document.documentElement.style.setProperty('--toggle-x', `${x}px`);
+        document.documentElement.style.setProperty('--toggle-y', `${y}px`);
+        document.documentElement.style.setProperty('--toggle-r', `${endRadius}px`);
+
+        const transitionClass = isSwitchingToDark ? 'dark-transition' : 'light-transition';
+        document.documentElement.classList.add(transitionClass);
+
+        const transition = (document as any).startViewTransition(() => {
+            flushSync(() => {
+                setIsDarkMode(prev => !prev);
+            });
+        });
+
+        transition.finished.finally(() => {
+            document.documentElement.classList.remove(transitionClass);
+            document.documentElement.style.removeProperty('--toggle-x');
+            document.documentElement.style.removeProperty('--toggle-y');
+            document.documentElement.style.removeProperty('--toggle-r');
+        });
+    }, [isDarkMode]);
 
     const showNotification = useCallback((message: string, type: 'success' | 'error' | 'info' = 'success') => {
         const newNotification = { id: Date.now(), message, type };
@@ -1767,6 +1818,21 @@ const App: React.FC = () => {
         };
         return record;
     }, [selectedTurma, employees, mainSubject, mainResponsible, mainMatricula, specialSubject, specialResponsible, specialMatricula, stats]);
+
+    const handleThemeContinue = useCallback(() => {
+        localStorage.setItem('themeSelected', 'true');
+        setHasSelectedTheme(true);
+    }, []);
+
+    if (!hasSelectedTheme) {
+        return (
+            <ThemeSelectionScreen 
+                isDarkMode={isDarkMode} 
+                onToggleDarkMode={handleToggleDarkMode} 
+                onContinue={handleThemeContinue} 
+            />
+        );
+    }
 
     if (!selectedTurma) {
         return (

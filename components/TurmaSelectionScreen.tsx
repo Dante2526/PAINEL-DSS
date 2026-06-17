@@ -6,16 +6,12 @@ import Footer from './Footer';
 interface TurmaSelectionScreenProps {
     onSelect: (turma: 'A' | 'B' | 'C' | 'D' | 'CCG' | 'ESTAGIO') => void;
     isDarkMode: boolean;
-    onToggleDarkMode: () => void;
+    onToggleDarkMode: (e?: any) => void;
 }
 
 const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, isDarkMode, onToggleDarkMode }) => {
     return (
         <div className="bg-light-bg-secondary dark:bg-dark-bg h-[100dvh] w-full text-light-text dark:text-dark-text transition-colors flex flex-col items-center p-4 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] overflow-hidden">
-            <div className="absolute top-4 right-4 md:top-8 md:right-8 selection-screen-toggle z-[100]">
-                <DarkModeToggle isDarkMode={isDarkMode} onToggle={onToggleDarkMode} />
-            </div>
-
             {/* This container grows to push the footer down, and centers the main content within the available space. */}
             <div className="flex-grow flex flex-col justify-center w-full mt-12 md:mt-0 pb-2">
                 <main className="flex flex-col items-center text-center m-auto w-full px-2">
