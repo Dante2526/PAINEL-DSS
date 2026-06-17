@@ -1882,7 +1882,7 @@ const App: React.FC = () => {
                         )}
 
                         <div className="flex gap-8 flex-nowrap relative min-w-[1850px]">
-                            <div className="flex flex-col gap-8 shrink-0 min-h-screen relative w-fit">
+                            <div className="flex flex-col gap-8 shrink-0 relative w-fit">
                                 {selectedTurma !== 'ESTAGIO' && (
                                     <ManualRegisterSection
                                         subject={mainSubject}
@@ -1895,7 +1895,7 @@ const App: React.FC = () => {
                                 )}
 
                                 <div className="flex gap-6 pr-12 relative w-fit">
-                                    <div className="flex flex-col gap-8 w-fit shrink-0 relative pb-[50vh]">
+                                    <div className={`flex flex-col gap-8 w-fit shrink-0 relative ${selectedLayout === 'custom' ? 'pb-[50vh]' : 'pb-8'}`}>
                                         {/* RENDERIZAÇÃO BASEADA NO LAYOUT SELECIONADO */}
                                         {selectedLayout === 'standard' ? (
                                             <div className="flex flex-wrap gap-[24px] w-max max-w-[2660px]">
