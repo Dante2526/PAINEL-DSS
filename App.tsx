@@ -1854,12 +1854,14 @@ const App: React.FC = () => {
                                         ) : (
                                             /* RENDERIZAÇÃO LAYOUT 'CUSTOM' (ALFABÉTICO) */
                                             groupedMainTeam.map((group) => (
-                                                <div key={group.letter} id={`letter-group-${group.letter}`} className="flex flex-col w-fit">
-                                                    <div className="bg-light-bg-secondary/90 dark:bg-dark-header/90 backdrop-blur-md py-4 mb-4 font-bold text-4xl text-light-text-secondary dark:text-dark-text-secondary border-b-2 border-primary/20 flex items-center gap-4 shadow-sm w-full">
-                                                        <div className="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center text-2xl shadow-md shrink-0">
+                                                <div key={group.letter} id={`letter-group-${group.letter}`} className="flex flex-col w-fit mb-4">
+                                                    <div className="bg-light-card dark:bg-dark-card backdrop-blur-md py-4 px-6 mb-6 border-2 border-primary/20 flex items-center gap-6 shadow-md rounded-2xl w-full">
+                                                        <div className="w-14 h-14 bg-primary text-white rounded-xl flex items-center justify-center text-3xl font-bold shadow-lg shrink-0">
                                                             {group.letter}
                                                         </div>
-                                                        <span className="opacity-50 text-xl font-normal ml-auto">{group.employees.length} colaboradores</span>
+                                                        <span className="text-light-text-secondary dark:text-dark-text-secondary opacity-80 text-2xl font-medium ml-auto">
+                                                            {group.employees.length} {group.employees.length === 1 ? 'colaborador' : 'colaboradores'}
+                                                        </span>
                                                     </div>
                                                     <div className="flex flex-wrap gap-[24px] w-max max-w-[2660px]">
                                                         {group.employees.map((emp, index) => (
