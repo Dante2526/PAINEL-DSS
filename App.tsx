@@ -1881,7 +1881,7 @@ const App: React.FC = () => {
                             </div>
                         )}
 
-                        <div className="flex gap-8 flex-nowrap relative min-w-[1850px]">
+                        <div className="flex gap-8 flex-nowrap relative">
                             <div className="flex flex-col gap-8 shrink-0 relative w-fit">
                                 {selectedTurma !== 'ESTAGIO' && (
                                     <ManualRegisterSection
