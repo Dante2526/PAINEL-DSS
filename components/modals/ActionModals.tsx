@@ -381,45 +381,45 @@ export const TutorialChoiceModal: React.FC<{
             className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm"
             onClick={onClose}
         >
-            <div
-                className="bg-light-card dark:bg-dark-card rounded-3xl shadow-2xl p-10 w-full max-w-lg text-center relative mx-4 border border-white/20"
-                style={{ transform: `scale(${scale})`, animation: 'fade-in-scale 0.3s forwards ease-out' }}
-                onClick={(e) => e.stopPropagation()}
-            >
-                <h2 className="text-3xl font-black text-light-text dark:text-white mb-2 tracking-tight">COMO PODEMOS AJUDAR?</h2>
-                <p className="text-light-text-secondary dark:text-dark-text-secondary mb-8 font-medium">Escolha a melhor forma de aprender a usar o sistema</p>
-                <div className="grid grid-cols-1 gap-4">
+        <div
+            className="bg-light-card dark:bg-dark-card rounded-2xl md:rounded-3xl shadow-2xl p-5 md:p-10 w-full max-w-sm md:max-w-lg text-center relative mx-4 border border-white/20"
+            style={{ transform: `scale(${scale})`, animation: 'fade-in-scale 0.3s forwards ease-out' }}
+            onClick={(e) => e.stopPropagation()}
+        >
+                <h2 className="text-xl md:text-3xl font-black text-light-text dark:text-white mb-1 md:mb-2 tracking-tight">COMO PODEMOS AJUDAR?</h2>
+                <p className="text-sm md:text-base text-light-text-secondary dark:text-dark-text-secondary mb-4 md:mb-8 font-medium">Escolha a melhor forma de aprender a usar o sistema</p>
+                <div className="grid grid-cols-1 gap-3 md:gap-4">
                     <button
                         onClick={onSelectInteractive}
-                        className="group flex items-center gap-6 p-6 bg-gradient-to-br from-primary to-primary-dark rounded-2xl text-white shadow-lg hover:shadow-primary/30 transition-all transform hover:-translate-y-1 text-left"
+                        className="group flex items-center gap-4 md:gap-6 p-4 md:p-6 bg-gradient-to-br from-primary to-primary-dark rounded-xl md:rounded-2xl text-white shadow-lg hover:shadow-primary/30 transition-all transform hover:-translate-y-1 text-left"
                     >
-                        <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                            <HelpIcon className="w-8 h-8" />
+                        <div className="w-12 h-12 md:w-16 md:h-16 bg-white/20 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                            <HelpIcon className="w-6 h-6 md:w-8 md:h-8" />
                         </div>
                         <div>
-                            <h3 className="font-bold text-xl leading-tight">Tour Interativo</h3>
-                            <p className="text-white/70 text-sm mt-1 leading-relaxed">Passo a passo guiado diretamente na tela do sistema.</p>
+                            <h3 className="font-bold text-base md:text-xl leading-tight">Tour Interativo</h3>
+                            <p className="text-white/70 text-xs md:text-sm mt-1 leading-relaxed">Passo a passo guiado diretamente na tela do sistema.</p>
                         </div>
                     </button>
                     <button
                         onClick={onSelectVideo}
-                        className="group flex items-center gap-6 p-6 bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl text-white shadow-lg hover:shadow-purple-500/30 transition-all transform hover:-translate-y-1 text-left"
+                        className="group flex items-center gap-4 md:gap-6 p-4 md:p-6 bg-gradient-to-br from-purple-600 to-indigo-700 rounded-xl md:rounded-2xl text-white shadow-lg hover:shadow-purple-500/30 transition-all transform hover:-translate-y-1 text-left"
                     >
-                        <div className="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                            <div className="w-8 h-8 flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-8 h-8">
+                        <div className="w-12 h-12 md:w-16 md:h-16 bg-white/20 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                            <div className="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6 md:w-8 md:h-8">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.91 11.672a.375.375 0 0 1 0 .656l-5.603 3.113a.375.375 0 0 1-.557-.328V8.887c0-.286.307-.466.557-.327l5.603 3.112Z" />
                                 </svg>
                             </div>
                         </div>
                         <div>
-                            <h3 className="font-bold text-xl leading-tight">Vídeo Aula</h3>
-                            <p className="text-white/70 text-sm mt-1 leading-relaxed">Assista ao treinamento completo em vídeo com áudio explicativo.</p>
+                            <h3 className="font-bold text-base md:text-xl leading-tight">Vídeo Aula</h3>
+                            <p className="text-white/70 text-xs md:text-sm mt-1 leading-relaxed">Assista ao treinamento completo em vídeo com áudio explicativo.</p>
                         </div>
                     </button>
                 </div>
-                <div className="mt-10 flex justify-center">
+                <div className="mt-5 md:mt-10 flex justify-center">
                     <button
                         onClick={onClose}
                         className="px-10 py-3 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-light-text-secondary dark:text-dark-text-secondary font-bold rounded-2xl transition-all flex items-center gap-2 border border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 shadow-sm"
