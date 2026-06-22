@@ -763,8 +763,8 @@ const HistoryModal: React.FC<{
                                                 <span className="text-[10px] font-medium text-gray-400">{rec.turma}</span>
                                             </div>
                                         </div>
-                                        <span className="text-sm font-semibold text-gray-800 dark:text-gray-100 line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                                            {matchedAssunto}
+                                        <span className="text-sm font-semibold text-gray-800 dark:text-gray-100 line-clamp-1 text-left group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                            {typeof matchedAssunto === 'string' ? matchedAssunto.trim() : matchedAssunto}
                                         </span>
                                     </button>
                                 </div>
