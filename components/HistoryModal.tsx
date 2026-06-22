@@ -208,10 +208,10 @@ const HistoryModal: React.FC<{
             if (snapshot.empty) {
                 setHasMore(false);
             } else {
-                // Ordenar em memória (descendente por dataISO)
+                // Filtrar pelas turmas selecionadas e ordenar (descendente por dataISO)
                 const newRecords = snapshot.docs
                     .map(doc => doc.data() as HistoryRecord)
-                    .filter(rec => !!rec.dataISO) // Garantir que tem data
+                    .filter(rec => !!rec.dataISO && turmaFilter.includes(rec.turma))
                     .sort((a, b) => b.dataISO.localeCompare(a.dataISO));
                 
                 setAllRecords(newRecords);
@@ -219,7 +219,8 @@ const HistoryModal: React.FC<{
 
                 // Selecionar automaticamente o dia mais recente
                 if (!isManualLoadMore && newRecords.length > 0) {
-                    const mostRecent = newRecords[0];
+                    const mostRecentForTurma = newRecords.find(r => r.turma === turma);
+                    const mostRecent = mostRecentForTurma || newRecords[0];
                     handleDateChange(mostRecent.dataISO);
                 }
             }
@@ -236,6 +237,8 @@ const HistoryModal: React.FC<{
     React.useEffect(() => {
         if (isOpen && turma) {
             setSelectedDate('');
+            setSearchTerm('');
+            setDebouncedSearch('');
             setHistoryData(null);
             setNotFound(false);
             setAllRecords([]);
@@ -720,11 +723,11 @@ const HistoryModal: React.FC<{
                                                 prev.includes(recId) ? prev.filter(id => id !== recId) : [...prev, recId]
                                             );
                                         }}
-                                        className="flex-shrink-0 flex items-center justify-center p-3 cursor-pointer bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl hover:border-indigo-500 dark:hover:border-indigo-500 transition-all w-12"
+                                        className="flex-shrink-0 flex items-center justify-center cursor-pointer px-2 transition-all"
                                     >
-                                        <div className={`w-5 h-5 rounded flex items-center justify-center border transition-colors ${isSelected ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-gray-300 dark:border-gray-600'}`}>
+                                        <div className={`w-6 h-6 rounded-md flex items-center justify-center border-2 transition-colors ${isSelected ? 'bg-indigo-500 border-indigo-500 text-white shadow-sm' : 'border-gray-400 dark:border-gray-500 hover:border-indigo-400'}`}>
                                             {isSelected && (
-                                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                                 </svg>
                                             )}
