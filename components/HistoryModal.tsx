@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import Modal from './Modal';
 import CustomDatePicker from './CustomDatePicker';
-import { FileTextIcon, SubjectIcon, ShiftIcon } from './icons';
+import { FileTextIcon, SubjectIcon, ShiftIcon, PdfIcon, ExcelIcon, DocIcon } from './icons';
 import type { HistoryRecord, HistoryEmployee, Administrator } from '../types';
 import { db } from '../firebase';
 import { luminaDb } from '../luminaFirebase';
@@ -693,8 +693,8 @@ const HistoryModal: React.FC<{
                     </div>
                     
                     {searchTerm && (
-                        <div className="flex flex-wrap gap-2 mt-1 px-1 animate-in fade-in slide-in-from-top-1 duration-300">
-                            <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 w-full mb-1 uppercase tracking-wider">Buscar também nas turmas:</span>
+                        <div className="flex flex-wrap justify-center gap-2 mt-1 px-1 animate-in fade-in slide-in-from-top-1 duration-300">
+                            <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 w-full text-center mb-1 uppercase tracking-wider">Buscar também nas turmas:</span>
                             {['A', 'B', 'C', 'D'].map(t => {
                                 const isSelected = selectedSearchTurmas.includes(t);
                                 return (
@@ -766,12 +766,26 @@ const HistoryModal: React.FC<{
                                         </button>
                                         
                                         {isExportMenuOpen && (
-                                            <div className="absolute top-full mt-2 right-0 w-36 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
+                                            <div className="absolute top-full mt-2 right-0 w-48 bg-white dark:bg-dark-card rounded-xl shadow-xl border border-gray-200 dark:border-white/10 overflow-hidden z-50 origin-top animate-in fade-in slide-in-from-top-2 duration-200">
                                                 <div className="flex flex-col py-1">
-                                                    <button onClick={() => handleExportAllZip('PDF')} className="px-4 py-2 text-left text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">📄 PDF</button>
-                                                    <button onClick={() => handleExportAllZip('EXCEL')} className="px-4 py-2 text-left text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">📊 EXCEL</button>
-                                                    <button onClick={() => handleExportAllZip('DOC')} className="px-4 py-2 text-left text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">📝 WORD (DOC)</button>
-                                                    <button onClick={() => handleExportAllZip('TXT')} className="px-4 py-2 text-left text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">📃 TEXTO (TXT)</button>
+                                                    <button onClick={() => handleExportAllZip('PDF')} className="px-4 py-3 text-left text-sm font-semibold flex items-center gap-3 hover:bg-gray-100 dark:hover:bg-dark-hover text-gray-800 dark:text-gray-200 transition-colors">
+                                                        <PdfIcon className="w-5 h-5 text-red-500" />
+                                                        Documento PDF
+                                                    </button>
+                                                    <div className="h-px bg-gray-200 dark:bg-dark-hover my-1 mx-2"></div>
+                                                    <button onClick={() => handleExportAllZip('EXCEL')} className="px-4 py-3 text-left text-sm font-semibold flex items-center gap-3 hover:bg-gray-100 dark:hover:bg-dark-hover text-gray-800 dark:text-gray-200 transition-colors">
+                                                        <ExcelIcon className="w-5 h-5 text-green-600" />
+                                                        Planilha Excel
+                                                    </button>
+                                                    <button onClick={() => handleExportAllZip('DOC')} className="px-4 py-3 text-left text-sm font-semibold flex items-center gap-3 hover:bg-gray-100 dark:hover:bg-dark-hover text-gray-800 dark:text-gray-200 transition-colors">
+                                                        <DocIcon className="w-5 h-5 text-blue-500" />
+                                                        Word (DOC)
+                                                    </button>
+                                                    <div className="h-px bg-gray-200 dark:bg-dark-hover my-1 mx-2"></div>
+                                                    <button onClick={() => handleExportAllZip('TXT')} className="px-4 py-3 text-left text-sm font-semibold flex items-center gap-3 hover:bg-gray-100 dark:hover:bg-dark-hover text-gray-800 dark:text-gray-200 transition-colors">
+                                                        <FileTextIcon className="w-5 h-5 text-gray-500" />
+                                                        Texto (TXT)
+                                                    </button>
                                                 </div>
                                             </div>
                                         )}
