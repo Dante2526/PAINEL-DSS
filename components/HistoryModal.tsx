@@ -170,16 +170,34 @@ const HistoryModal: React.FC<{
     const [hasMore, setHasMore] = useState(true);
     const [autoFetchCount, setAutoFetchCount] = useState(0);
 
-    // Efeito para debounce da busca
-    React.useEffect(() => {
-        const timer = setTimeout(() => {
-            setDebouncedSearch(prev => {
-                if (prev !== searchTerm) setAutoFetchCount(0);
-                return searchTerm;
-            });
-        }, 500);
-        return () => clearTimeout(timer);
-    }, [searchTerm]);
+    // Função disparada ao clicar em buscar ou dar Enter
+    const handleSearchSubmit = () => {
+        if (debouncedSearch !== searchTerm) {
+            setDebouncedSearch(searchTerm);
+            setAllRecords([]);
+            setHasMore(true);
+            setLastVisible(null);
+            setSelectedRecordsToExport([]);
+            if (searchTerm.trim()) {
+                loadHistoryBatch(false, selectedSearchTurmas);
+            } else {
+                loadHistoryBatch();
+            }
+        }
+    };
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        setSearchTerm(val);
+        if (val.trim() === '') {
+            setDebouncedSearch('');
+            setAllRecords([]);
+            setHasMore(true);
+            setLastVisible(null);
+            setSelectedRecordsToExport([]);
+            loadHistoryBatch();
+        }
+    };
 
     // Função para carregar lote de histórico
     const loadHistoryBatch = async (isManualLoadMore = false, turmasParaBusca?: string[]) => {
@@ -190,11 +208,12 @@ const HistoryModal: React.FC<{
         if (isManualLoadMore) setFetchingMore(true);
 
         try {
+            const fetchLimit = 200; // Limite maior para acelerar a busca profunda no banco todo
             const historicoRef = collection(db, 'historico_dss');
-            let q = query(historicoRef, orderBy('dataISO', 'desc'), limit(15));
+            let q = query(historicoRef, orderBy('dataISO', 'desc'), limit(fetchLimit));
             
             if (isManualLoadMore && lastVisible) {
-                q = query(historicoRef, orderBy('dataISO', 'desc'), startAfter(lastVisible), limit(15));
+                q = query(historicoRef, orderBy('dataISO', 'desc'), startAfter(lastVisible), limit(fetchLimit));
             } else if (!isManualLoadMore) {
                 // Reset states for fresh search
                 setAllRecords([]);
@@ -216,7 +235,7 @@ const HistoryModal: React.FC<{
                 
                 setAllRecords(prev => isManualLoadMore ? [...prev, ...newRecords] : newRecords);
                 setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
-                setHasMore(snapshot.docs.length === 15);
+                setHasMore(snapshot.docs.length === fetchLimit);
 
                 // Selecionar automaticamente o dia mais recente
                 if (!isManualLoadMore && newRecords.length > 0) {
@@ -278,19 +297,17 @@ const HistoryModal: React.FC<{
         });
     }, [allRecords, debouncedSearch]);
 
-    // Busca automática profunda (Auto-fetch)
+    // Busca automática profunda (Auto-fetch) para varrer TODO o banco se houver busca
     React.useEffect(() => {
         if (
             debouncedSearch.trim() && 
-            filteredResults.length === 0 && 
             hasMore && 
-            !fetchingMore && 
-            autoFetchCount < 4
+            !fetchingMore
         ) {
-            setAutoFetchCount(prev => prev + 1);
+            // Se tem busca ativa, não para até hasMore ser false (varre todo o banco)
             loadHistoryBatch(true, selectedSearchTurmas);
         }
-    }, [debouncedSearch, filteredResults.length, hasMore, fetchingMore, autoFetchCount, selectedSearchTurmas]);
+    }, [debouncedSearch, hasMore, fetchingMore, selectedSearchTurmas]);
 
     const handleDateChange = async (dateValue: string) => {
         setSelectedDate(dateValue);
@@ -592,10 +609,19 @@ const HistoryModal: React.FC<{
                             spellCheck={false}
                             placeholder="BUSCAR POR TEMA (EX: SEGURANÇA, EPI...)"
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-base text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-gray-400 font-medium"
+                            onChange={handleSearchChange}
+                            onKeyDown={(e) => { if (e.key === 'Enter') handleSearchSubmit(); }}
+                            className="w-full pl-10 pr-24 py-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-base text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-gray-400 font-medium"
                             style={{ fontSize: '16px', textTransform: 'uppercase' }}
                         />
+                        {searchTerm.trim() && debouncedSearch !== searchTerm && (
+                            <button
+                                onClick={handleSearchSubmit}
+                                className="absolute inset-y-1.5 right-1.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold rounded-lg transition-colors flex items-center shadow-sm"
+                            >
+                                BUSCAR
+                            </button>
+                        )}
                     </div>
                     
                     {searchTerm && (
@@ -778,7 +804,7 @@ const HistoryModal: React.FC<{
                                 </div>
                             )}
 
-                            {hasMore && (
+                            {hasMore && !searchTerm && (
                                 <button
                                     onClick={() => loadHistoryBatch(true, selectedSearchTurmas)}
                                     disabled={fetchingMore}
@@ -787,10 +813,10 @@ const HistoryModal: React.FC<{
                                     {fetchingMore ? (
                                         <>
                                             <div className="w-3 h-3 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
-                                            BUSCANDO NO PASSADO... {autoFetchCount > 0 ? `(AUTO ${autoFetchCount}/4)` : ''}
+                                            BUSCANDO MAIS REGISTROS...
                                         </>
                                     ) : (
-                                        'NÃO ENCONTROU? BUSCAR MAIS ANTIGOS (2025...)'
+                                        'CARREGAR MAIS ANTIGOS (2025...)'
                                     )}
                                 </button>
                             )}
