@@ -47,4 +47,4 @@ const Notification: React.FC<NotificationProps> = ({ notification, onDismiss }) 
   );
 };
 
-export default Notification;
+export default React.memo(Notification);

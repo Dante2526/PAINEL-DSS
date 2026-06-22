@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback, useMemo, useRef, Suspense, lazy } from 'react';
 import { flushSync } from 'react-dom';
 import Header from './components/Header';
 import EmployeeCard from './components/EmployeeCard';
@@ -7,11 +7,10 @@ import SpecialTeamPanel from './components/SpecialTeamPanel';
 import Modal from './components/Modal';
 import Notification from './components/Notification';
 import Footer from './components/Footer';
-import InteractiveTutorial, { TutorialStep } from './components/InteractiveTutorial';
+import type { TutorialStep } from './components/InteractiveTutorial';
 import ThemeSelectionScreen from './components/ThemeSelectionScreen';
 import TurmaSelectionScreen from './components/TurmaSelectionScreen';
 import LayoutSelectionScreen from './components/LayoutSelectionScreen';
-import HistoryModal from './components/HistoryModal';
 import ExportDropdown from './components/ExportDropdown';
 import { exportToPng, exportToPdf, exportToDoc, exportToExcel, exportToTxt } from './utils/exportService';
 import { SubjectIcon, UserIcon, EraserIcon, FileTextIcon, SortIcon, UserPlusIcon, ShiftIcon, AbsentIcon, TrashIcon, ExchangeIcon, MousePointerIcon, InfoIcon, HelpIcon, HistoryIcon } from './components/icons';
@@ -66,24 +65,28 @@ import { getTutorialSteps, adminTutorialSteps } from './utils/tutorialSteps';
 import { generateHealthAlertEmail } from './utils/emailTemplates';
 
 import { ManualRegisterSection } from './components/ManualRegisterSection';
-import { ConfirmBiometricModal } from './components/modals/ConfirmBiometricModal';
-import { AdminLoginModal } from './components/modals/AdminLoginModal';
-import { AdminOptionsModal } from './components/modals/AdminOptionsModal';
-import { AddUserModal } from './components/modals/AddUserModal';
-import { ReportModal } from './components/modals/ReportModal';
-import { DemoPasswordModal, AutomationPasswordModal } from './components/modals/PasswordModals';
-import { ImportEmployeeModal } from './components/modals/ImportEmployeeModal';
-import {
-    UserExistsWarningModal,
-    InvalidMatriculaModal,
-    ConfirmMalModal,
-    ConfirmTurnoModal,
-    ConfirmAbsentModal,
-    ConfirmDeleteModal,
-    ConfirmDeactivate6HModal,
-    TutorialChoiceModal,
-    TutorialVideoModal
-} from './components/modals/ActionModals';
+const InteractiveTutorial = lazy(() => import('./components/InteractiveTutorial'));
+const HistoryModal = lazy(() => import('./components/HistoryModal'));
+
+// Lazy load Modals
+const AdminLoginModal = lazy(() => import('./components/modals/AdminLoginModal').then(module => ({ default: module.AdminLoginModal })));
+const ConfirmBiometricModal = lazy(() => import('./components/modals/ConfirmBiometricModal').then(module => ({ default: module.ConfirmBiometricModal })));
+const AdminOptionsModal = lazy(() => import('./components/modals/AdminOptionsModal').then(module => ({ default: module.AdminOptionsModal })));
+const AddUserModal = lazy(() => import('./components/modals/AddUserModal').then(module => ({ default: module.AddUserModal })));
+const ReportModal = lazy(() => import('./components/modals/ReportModal').then(module => ({ default: module.ReportModal })));
+const DemoPasswordModal = lazy(() => import('./components/modals/PasswordModals').then(module => ({ default: module.DemoPasswordModal })));
+const AutomationPasswordModal = lazy(() => import('./components/modals/PasswordModals').then(module => ({ default: module.AutomationPasswordModal })));
+const ImportEmployeeModal = lazy(() => import('./components/modals/ImportEmployeeModal').then(module => ({ default: module.ImportEmployeeModal })));
+
+const UserExistsWarningModal = lazy(() => import('./components/modals/ActionModals').then(module => ({ default: module.UserExistsWarningModal })));
+const InvalidMatriculaModal = lazy(() => import('./components/modals/ActionModals').then(module => ({ default: module.InvalidMatriculaModal })));
+const ConfirmMalModal = lazy(() => import('./components/modals/ActionModals').then(module => ({ default: module.ConfirmMalModal })));
+const ConfirmTurnoModal = lazy(() => import('./components/modals/ActionModals').then(module => ({ default: module.ConfirmTurnoModal })));
+const ConfirmAbsentModal = lazy(() => import('./components/modals/ActionModals').then(module => ({ default: module.ConfirmAbsentModal })));
+const ConfirmDeleteModal = lazy(() => import('./components/modals/ActionModals').then(module => ({ default: module.ConfirmDeleteModal })));
+const ConfirmDeactivate6HModal = lazy(() => import('./components/modals/ActionModals').then(module => ({ default: module.ConfirmDeactivate6HModal })));
+const TutorialChoiceModal = lazy(() => import('./components/modals/ActionModals').then(module => ({ default: module.TutorialChoiceModal })));
+const TutorialVideoModal = lazy(() => import('./components/modals/ActionModals').then(module => ({ default: module.TutorialVideoModal })));
 
 
 
@@ -729,14 +732,14 @@ const App: React.FC = () => {
 
     }, [initializeScale, setScale, selectedTurma, selectedLayout]);
 
-    const handleConfirmDemoPassword = (password: string) => {
+    const handleConfirmDemoPassword = useCallback((password: string) => {
         if (password === 'Near2203@') {
             handleEnterDemoMode();
         } else {
             showNotification('Senha incorreta.', 'error');
             setActiveModal(ModalType.AdminOptions);
         }
-    };
+    }, [handleEnterDemoMode, showNotification]);
 
     const handleEnterDemoMode = () => {
         if (!selectedTurma) {
@@ -1435,11 +1438,11 @@ const App: React.FC = () => {
         }
     };
 
-    const handleReorganize = () => {
+    const handleReorganize = useCallback(() => {
         setEmployees(prev => [...prev].sort((a, b) => a.name.localeCompare(b.name)));
         setActiveModal(ModalType.None);
         showNotification('Painel reorganizado alfabeticamente!', 'success');
-    };
+    }, [showNotification]);
 
     const handleImportEmployee = async (employeeId: string, sourceTurma: TurmaType) => {
         if (!isAdmin || !selectedTurma) {
@@ -1632,7 +1635,7 @@ const App: React.FC = () => {
         return () => viewport.removeEventListener('scroll', handleScroll);
     }, [selectedLayout, groupedMainTeam]);
 
-    const handleFastScroll = (letter: string) => {
+    const handleFastScroll = useCallback((letter: string) => {
         if (!viewportRef.current) return;
 
         const barElement = document.getElementById('fast-scroller-bar');
@@ -1680,9 +1683,7 @@ const App: React.FC = () => {
 
             // Força o comportamento natural de scroll se ele clicar
         }
-    };
-
-
+    }, []);
     const getPendingEmployeeName = () => {
         return employees.find(e => e.id === pendingEmployeeId)?.name || 'Colaborador';
     };
@@ -1692,7 +1693,7 @@ const App: React.FC = () => {
         return current === '6H' ? getMainShiftLabel(selectedTurma) : getShiftLabel(selectedTurma);
     };
 
-    const handleTutorialStepChange = (step: TutorialStep) => {
+    const handleTutorialStepChange = useCallback((step: TutorialStep) => {
         const isMobile = window.innerWidth < 1024;
         if (!isMobile) return;
 
@@ -1720,7 +1721,7 @@ const App: React.FC = () => {
             newScale = Math.min(Math.max(newScale, 0.3), 1.1);
             setScale(newScale);
         }
-    }
+    }, [selectedTurma]);
 
     // Callbacks estáveis para evitar re-renders de componentes com React.memo
     // IMPORTANTE: Hooks devem ficar ANTES de qualquer return condicional (Regra dos Hooks do React)
@@ -1758,7 +1759,7 @@ const App: React.FC = () => {
         setActiveModal(ModalType.AutomationPassword);
     }, []);
 
-    const handleConfirmAutomationPassword = async (password: string) => {
+    const handleConfirmAutomationPassword = useCallback(async (password: string) => {
         if (!selectedTurma || !db) return;
         
         if (password !== 'Near2203@') {
@@ -1780,7 +1781,7 @@ const App: React.FC = () => {
             console.error(e);
             showNotification('Erro ao pausar as ações. Verifique permissões.', 'error');
         }
-    };
+    }, [selectedTurma, isAutomationPaused, showNotification]);
 
     const currentLiveHistory = useMemo(() => {
         if (!selectedTurma) return null;
@@ -2017,177 +2018,173 @@ const App: React.FC = () => {
                 </div>
             </div>
 
-            <AdminLoginModal
-                isOpen={activeModal === ModalType.AdminLogin}
-                onClose={handleCloseModal}
-                onLogin={handleAdminLogin}
-                showNotification={showNotification}
-                scale={modalScale}
-            />
-            <ConfirmBiometricModal
-                isOpen={activeModal === ModalType.ConfirmBiometric}
-                onClose={handleDeclineBiometrics}
-                onActivate={handleActivateBiometrics}
-                scale={modalScale}
-            />
-                            <AdminOptionsModal
-                                isOpen={activeModal === ModalType.AdminOptions}
-                                onClose={handleCloseModal}
-                                onClear={handleClearData}
-                                onReorganize={handleReorganize}
-                                onAddUser={handleOpenAddUser}
-                                onSendReport={handleOpenReport}
-                                onImportUser={handleOpenImportEmployee}
-                                onEnterDemo={handleOpenDemoPassword}
-                                onStartAdminTutorial={handleStartAdminTutorial}
-                                onToggle6H={handleToggle6H}
-                                onToggleAutomation={handleToggleAutomation}
-                                onHistory={() => setActiveModal(ModalType.HistoryView)}
-                                onClearBiometrics={() => {
-                                    clearBiometricData();
-                                    showNotification('Acesso por impressão digital desativado neste aparelho.', 'success');
-                                    setActiveModal(ModalType.None);
-                                }}
-                                hasBiometrics={hasRegisteredBiometrics()}
-                                is6HActive={is6HActive}
-                                isAutomationPaused={isAutomationPaused}
-                                scale={modalScale}
-                                selectedTurma={selectedTurma}
-                            />
-            <DemoPasswordModal
-                isOpen={activeModal === ModalType.DemoPassword}
-                onClose={handleCloseModal}
-                onConfirm={handleConfirmDemoPassword}
-                scale={modalScale}
-            />
-            <AutomationPasswordModal
-                isOpen={activeModal === ModalType.AutomationPassword}
-                onClose={handleCloseModal}
-                onConfirm={handleConfirmAutomationPassword}
-                scale={modalScale}
-            />
-            <AddUserModal isOpen={activeModal === ModalType.AddUser} onClose={handleCloseModal} onBack={handleBackToAdminOptions} onAdd={handleAddUser} scale={modalScale} />
-            <ReportModal
-                isOpen={activeModal === ModalType.Report}
-                onClose={handleCloseModal}
-                onBack={handleBackToAdminOptions}
-                employees={employees}
-                showNotification={showNotification}
-                scale={modalScale}
-                subject7H={mainSubject}
-                responsible7H={mainResponsible}
-                matricula7H={mainMatricula}
-                subject6H={specialSubject}
-                responsible6H={specialResponsible}
-                matricula6H={specialMatricula}
-                adminEmail={adminEmail}
-                turma={selectedTurma}
-            />
-
-            <HistoryModal
-                isOpen={activeModal === ModalType.HistoryView}
-                onClose={handleCloseModal}
-                onBack={handleBackToAdminOptions}
-                scale={modalScale}
-                turma={selectedTurma}
-                showNotification={showNotification}
-                currentLiveHistory={currentLiveHistory}
-                adminEmail={adminEmail}
-                administrators={administrators}
-            />
-
-            <ImportEmployeeModal
-                isOpen={activeModal === ModalType.ImportEmployee}
-                onClose={handleCloseModal}
-                onBack={handleBackToAdminOptions}
-                onImport={handleImportEmployee}
-                currentTurma={selectedTurma}
-                scale={modalScale}
-                showNotification={showNotification}
-            />
-            <UserExistsWarningModal
-                isOpen={activeModal === ModalType.UserExistsWarning}
-                onClose={handleCloseModal}
-                onImportClick={() => setActiveModal(ModalType.ImportEmployee)}
-                existingUserInfo={existingUserInfo}
-                scale={modalScale}
-            />
-
-            <InteractiveTutorial
-                isOpen={activeModal === ModalType.Tutorial}
-                onClose={handleCloseModal}
-                steps={getTutorialSteps(selectedTurma)}
-                scale={modalScale}
-                onStepChange={handleTutorialStepChange}
-            />
-
-            <InteractiveTutorial
-                isOpen={isAdminTutorialOpen}
-                onClose={() => setIsAdminTutorialOpen(false)}
-                steps={adminTutorialSteps}
-                scale={modalScale}
-                onStepChange={handleTutorialStepChange}
-            />
-
-            <InvalidMatriculaModal
-                isOpen={activeModal === ModalType.InvalidMatricula}
-                onClose={() => setActiveModal(ModalType.None)}
-                scale={modalScale}
-            />
-
-            <ConfirmMalModal
-                isOpen={activeModal === ModalType.ConfirmMal}
-                onClose={() => { setPendingEmployeeId(null); setActiveModal(ModalType.None); }}
-                onConfirm={handleConfirmMal}
-                scale={modalScale}
-            />
-
-            <ConfirmTurnoModal
-                isOpen={activeModal === ModalType.ConfirmTurno}
-                onClose={() => { setPendingEmployeeId(null); setActiveModal(ModalType.None); }}
-                onConfirm={handleConfirmTurno}
-                employeeName={getPendingEmployeeName()}
-                targetTurno={getPendingEmployeeTurno()}
-                scale={modalScale}
-            />
-
-            <ConfirmAbsentModal
-                isOpen={activeModal === ModalType.ConfirmAbsent}
-                onClose={() => { setPendingEmployeeId(null); setActiveModal(ModalType.None); }}
-                onConfirm={handleConfirmAbsent}
-                employeeName={getPendingEmployeeName()}
-                scale={modalScale}
-            />
-
-            <ConfirmDeleteModal
-                isOpen={activeModal === ModalType.ConfirmDelete}
-                onClose={() => { setPendingEmployeeId(null); setActiveModal(ModalType.None); }}
-                onConfirm={handleConfirmDelete}
-                employeeName={getPendingEmployeeName()}
-                scale={modalScale}
-            />
-
-            <ConfirmDeactivate6HModal
-                isOpen={activeModal === ModalType.ConfirmDeactivate6H}
-                onClose={() => setActiveModal(ModalType.None)}
-                onConfirm={handleConfirmDeactivate6H}
-                selectedTurma={selectedTurma}
-                scale={modalScale}
-            />
-
-            <TutorialChoiceModal
-                isOpen={activeModal === ModalType.TutorialChoice}
-                onClose={() => setActiveModal(ModalType.None)}
-                onSelectInteractive={() => setActiveModal(ModalType.Tutorial)}
-                onSelectVideo={() => setActiveModal(ModalType.TutorialVideo)}
-                scale={modalScale}
-            />
-
-            <TutorialVideoModal
-                isOpen={activeModal === ModalType.TutorialVideo}
-                onClose={() => setActiveModal(ModalType.None)}
-                scale={modalScale}
-            />
+                <Suspense fallback={null}>
+                    <AdminLoginModal
+                        isOpen={activeModal === ModalType.AdminLogin}
+                        onClose={handleCloseModal}
+                        onLogin={handleAdminLogin}
+                        showNotification={showNotification}
+                        scale={modalScale}
+                    />
+                    <ConfirmBiometricModal
+                        isOpen={activeModal === ModalType.ConfirmBiometric}
+                        onClose={handleDeclineBiometrics}
+                        onActivate={handleActivateBiometrics}
+                        scale={modalScale}
+                    />
+                    <AdminOptionsModal
+                        isOpen={activeModal === ModalType.AdminOptions}
+                        onClose={handleCloseModal}
+                        onClear={handleClearData}
+                        onReorganize={handleReorganize}
+                        onAddUser={handleOpenAddUser}
+                        onSendReport={handleOpenReport}
+                        onImportUser={handleOpenImportEmployee}
+                        onEnterDemo={handleOpenDemoPassword}
+                        onStartAdminTutorial={handleStartAdminTutorial}
+                        onToggle6H={handleToggle6H}
+                        onToggleAutomation={handleToggleAutomation}
+                        onHistory={() => setActiveModal(ModalType.HistoryView)}
+                        onClearBiometrics={() => {
+                            clearBiometricData();
+                            showNotification('Acesso por impressão digital desativado neste aparelho.', 'success');
+                            setActiveModal(ModalType.None);
+                        }}
+                        hasBiometrics={hasRegisteredBiometrics()}
+                        is6HActive={is6HActive}
+                        isAutomationPaused={isAutomationPaused}
+                        scale={modalScale}
+                        selectedTurma={selectedTurma}
+                    />
+                    <DemoPasswordModal
+                        isOpen={activeModal === ModalType.DemoPassword}
+                        onClose={handleCloseModal}
+                        onConfirm={handleConfirmDemoPassword}
+                        scale={modalScale}
+                    />
+                    <AutomationPasswordModal
+                        isOpen={activeModal === ModalType.AutomationPassword}
+                        onClose={handleCloseModal}
+                        onConfirm={handleConfirmAutomationPassword}
+                        scale={modalScale}
+                    />
+                    <AddUserModal
+                        isOpen={activeModal === ModalType.AddUser}
+                        onClose={handleCloseModal}
+                        onBack={handleBackToAdminOptions}
+                        onAdd={handleAddUser}
+                        scale={modalScale}
+                    />
+                    <ReportModal
+                        isOpen={activeModal === ModalType.Report}
+                        onClose={handleCloseModal}
+                        onBack={handleBackToAdminOptions}
+                        employees={employees}
+                        showNotification={showNotification}
+                        scale={modalScale}
+                        subject7H={mainSubject}
+                        responsible7H={mainResponsible}
+                        matricula7H={mainMatricula}
+                        subject6H={specialSubject}
+                        responsible6H={specialResponsible}
+                        matricula6H={specialMatricula}
+                        adminEmail={adminEmail}
+                        turma={selectedTurma}
+                    />
+                    <HistoryModal
+                        isOpen={activeModal === ModalType.HistoryView}
+                        onClose={handleCloseModal}
+                        onBack={handleBackToAdminOptions}
+                        scale={modalScale}
+                        turma={selectedTurma}
+                        showNotification={showNotification}
+                        currentLiveHistory={currentLiveHistory}
+                        adminEmail={adminEmail}
+                        administrators={administrators}
+                    />
+                    <ImportEmployeeModal
+                        isOpen={activeModal === ModalType.ImportEmployee}
+                        onClose={handleCloseModal}
+                        onBack={handleBackToAdminOptions}
+                        onImport={handleImportEmployee}
+                        currentTurma={selectedTurma}
+                        scale={modalScale}
+                        showNotification={showNotification}
+                    />
+                    <UserExistsWarningModal
+                        isOpen={activeModal === ModalType.UserExistsWarning}
+                        onClose={handleCloseModal}
+                        onImportClick={() => setActiveModal(ModalType.ImportEmployee)}
+                        existingUserInfo={existingUserInfo}
+                        scale={modalScale}
+                    />
+                    <InteractiveTutorial
+                        isOpen={activeModal === ModalType.Tutorial}
+                        onClose={handleCloseModal}
+                        steps={getTutorialSteps(selectedTurma)}
+                        scale={modalScale}
+                        onStepChange={handleTutorialStepChange}
+                    />
+                    <InteractiveTutorial
+                        isOpen={isAdminTutorialOpen}
+                        onClose={() => setIsAdminTutorialOpen(false)}
+                        steps={adminTutorialSteps}
+                        scale={modalScale}
+                        onStepChange={handleTutorialStepChange}
+                    />
+                    <InvalidMatriculaModal
+                        isOpen={activeModal === ModalType.InvalidMatricula}
+                        onClose={() => setActiveModal(ModalType.None)}
+                        scale={modalScale}
+                    />
+                    <ConfirmMalModal
+                        isOpen={activeModal === ModalType.ConfirmMal}
+                        onClose={() => { setPendingEmployeeId(null); setActiveModal(ModalType.None); }}
+                        onConfirm={handleConfirmMal}
+                        scale={modalScale}
+                    />
+                    <ConfirmTurnoModal
+                        isOpen={activeModal === ModalType.ConfirmTurno}
+                        onClose={() => { setPendingEmployeeId(null); setActiveModal(ModalType.None); }}
+                        onConfirm={handleConfirmTurno}
+                        employeeName={getPendingEmployeeName()}
+                        targetTurno={getPendingEmployeeTurno()}
+                        scale={modalScale}
+                    />
+                    <ConfirmAbsentModal
+                        isOpen={activeModal === ModalType.ConfirmAbsent}
+                        onClose={() => { setPendingEmployeeId(null); setActiveModal(ModalType.None); }}
+                        onConfirm={handleConfirmAbsent}
+                        employeeName={getPendingEmployeeName()}
+                        scale={modalScale}
+                    />
+                    <ConfirmDeleteModal
+                        isOpen={activeModal === ModalType.ConfirmDelete}
+                        onClose={() => { setPendingEmployeeId(null); setActiveModal(ModalType.None); }}
+                        onConfirm={handleConfirmDelete}
+                        employeeName={getPendingEmployeeName()}
+                        scale={modalScale}
+                    />
+                    <ConfirmDeactivate6HModal
+                        isOpen={activeModal === ModalType.ConfirmDeactivate6H}
+                        onClose={() => setActiveModal(ModalType.None)}
+                        onConfirm={handleConfirmDeactivate6H}
+                        selectedTurma={selectedTurma}
+                        scale={modalScale}
+                    />
+                    <TutorialChoiceModal
+                        isOpen={activeModal === ModalType.TutorialChoice}
+                        onClose={() => setActiveModal(ModalType.None)}
+                        onSelectInteractive={() => setActiveModal(ModalType.Tutorial)}
+                        onSelectVideo={() => setActiveModal(ModalType.TutorialVideo)}
+                        scale={modalScale}
+                    />
+                    <TutorialVideoModal
+                        isOpen={activeModal === ModalType.TutorialVideo}
+                        onClose={() => setActiveModal(ModalType.None)}
+                        scale={modalScale}
+                    />
+                </Suspense>
 
             <div
                 className="fixed z-[100] space-y-3 top-[calc(1.25rem+env(safe-area-inset-top))] right-[calc(1.25rem+env(safe-area-inset-right))]"

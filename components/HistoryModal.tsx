@@ -146,115 +146,7 @@ const HistoryModal: React.FC<{
         }
     };
 
-    // Gera PDF como Blob (sem baixar)
-    const generatePdfBlob = (data: PdfReportData): Promise<Blob> => {
-        return new Promise((resolve, reject) => {
-            try {
-                const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-                const pageWidth = pdf.internal.pageSize.getWidth();
-                const pageHeight = pdf.internal.pageSize.getHeight();
-                const margin = 15;
-                const contentWidth = pageWidth - margin * 2;
-                let y = margin;
 
-                const checkPageBreak = (needed: number) => {
-                    if (y + needed > pageHeight - margin) { pdf.addPage(); y = margin; }
-                };
-
-                const mainLabel = data.mainShiftLabel || '7H';
-                const secLabel = data.shiftLabel || '6H';
-
-                pdf.setFillColor(30, 41, 59);
-                pdf.rect(0, 0, pageWidth, 28, 'F');
-                pdf.setFont('helvetica', 'bold');
-                pdf.setFontSize(13);
-                pdf.setTextColor(255, 255, 255);
-                pdf.text(`RESUMO DSS - TURMA ${data.turma} - ${data.dataFormatada}`, pageWidth / 2, 18, { align: 'center' });
-                y = 36;
-
-                const bullets = [
-                    `Total: ${data.totalFuncionarios}`,
-                    `Presentes: ${data.totalPresentes}`,
-                    `Pendentes: ${data.totalPendentes}`,
-                    `Ausentes: ${data.totalAusentes}`,
-                ];
-                bullets.forEach(text => {
-                    checkPageBreak(6);
-                    pdf.setFont('helvetica', 'normal');
-                    pdf.setFontSize(10);
-                    pdf.setTextColor(30, 41, 59);
-                    pdf.text(`• ${text}`, margin + 2, y);
-                    y += 5.5;
-                });
-                y += 4;
-
-                // Registros
-                ([[data.registros7H, mainLabel], [data.registros6H, secLabel]] as [typeof data.registros7H, string][]).forEach(([regs, label]) => {
-                    if (data.turma === 'CCG' && label === secLabel) return;
-                    checkPageBreak(14);
-                    pdf.setDrawColor(200, 210, 220);
-                    pdf.line(margin, y, pageWidth - margin, y);
-                    y += 6;
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.setFontSize(11);
-                    pdf.setTextColor(30, 41, 59);
-                    pdf.text(`REGISTROS DSS (TURNO ${label})`, margin, y);
-                    y += 6;
-                    regs.forEach(reg => {
-                        checkPageBreak(10);
-                        pdf.setFont('helvetica', 'italic');
-                        pdf.setFontSize(9);
-                        pdf.setTextColor(60, 80, 100);
-                        const lines = pdf.splitTextToSize(`Assunto: ${reg.assunto || 'NÃO PREENCHIDO'}`, contentWidth - 8);
-                        pdf.text(lines, margin + 4, y);
-                        y += lines.length * 4.5 + 2;
-                        if (reg.name) {
-                            pdf.text(`Responsável: ${reg.name}`, margin + 4, y);
-                            y += 5;
-                        }
-                    });
-                    y += 4;
-                });
-
-                // Lista colaboradores
-                const team7H = data.employees.filter(e => e.turno !== '6H');
-                const team6H = data.employees.filter(e => e.turno === '6H');
-                [[team7H, mainLabel], [team6H, secLabel]].forEach(([team, label]: any) => {
-                    if (team.length === 0) return;
-                    if (data.turma === 'CCG' && label === secLabel) return;
-                    checkPageBreak(14);
-                    pdf.setDrawColor(200, 210, 220);
-                    pdf.line(margin, y, pageWidth - margin, y);
-                    y += 6;
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.setFontSize(11);
-                    pdf.setTextColor(30, 41, 59);
-                    pdf.text(`EQUIPE TURNO ${label}`, margin, y);
-                    y += 7;
-                    team.forEach((emp: any) => {
-                        checkPageBreak(5);
-                        pdf.setFont('helvetica', 'normal');
-                        pdf.setFontSize(9);
-                        pdf.setTextColor(30, 41, 59);
-                        const statusMap: Record<string, string> = { BEM: 'ASS+BEM', MAL: 'MAL', AUS: 'AUSENTE', PEN: 'PENDENTE' };
-                        pdf.text(`• ${emp.n} (${emp.m}) — ${statusMap[emp.s] || emp.s}`, margin + 4, y);
-                        y += 4.5;
-                    });
-                    y += 3;
-                });
-
-                const footerY = pageHeight - 8;
-                pdf.setFont('helvetica', 'italic');
-                pdf.setFontSize(7);
-                pdf.setTextColor(156, 163, 175);
-                pdf.text(`Gerado em ${new Date().toLocaleString('pt-BR')} — Painel DSS`, pageWidth / 2, footerY, { align: 'center' });
-
-                resolve(pdf.output('blob'));
-            } catch (e) {
-                reject(e);
-            }
-        });
-    };
 
     const shiftLabel = useMemo(() => {
         return (turma === 'C' || turma === 'D') ? '18H' : '6H';
@@ -271,6 +163,7 @@ const HistoryModal: React.FC<{
     const [isSearching, setIsSearching] = useState(false);
     const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
     const [isExportingZip, setIsExportingZip] = useState(false);
+    const [selectedRecordsToExport, setSelectedRecordsToExport] = useState<string[]>([]);
     const [allRecords, setAllRecords] = useState<HistoryRecord[]>([]);
     const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
     const [fetchingMore, setFetchingMore] = useState(false);
@@ -297,13 +190,18 @@ const HistoryModal: React.FC<{
         if (isManualLoadMore) setFetchingMore(true);
 
         try {
-            // Simplificamos a query para evitar a exigência de índices compostos manuais.
-            // Buscamos apenas pela turma e ordenamos em memória no cliente.
-            let q = query(
-                collection(db, 'historico_dss'),
-                where('turma', turmaFilter.length === 1 ? '==' : 'in', turmaFilter.length === 1 ? turmaFilter[0] : turmaFilter),
-                limit(400) // Lote maior para cobrir ~1 ano ou mais de uma vez
-            );
+            const historicoRef = collection(db, 'historico_dss');
+            let q = query(historicoRef, orderBy('dataISO', 'desc'), limit(15));
+            
+            if (isManualLoadMore && lastVisible) {
+                q = query(historicoRef, orderBy('dataISO', 'desc'), startAfter(lastVisible), limit(15));
+            } else if (!isManualLoadMore) {
+                // Reset states for fresh search
+                setAllRecords([]);
+                setLastVisible(null);
+                setHasMore(true);
+                setSelectedRecordsToExport([]);
+            }
 
             const snapshot = await getDocs(q);
             
@@ -500,13 +398,17 @@ const HistoryModal: React.FC<{
     };
 
     const handleExportAllZip = async (format: 'TXT' | 'PDF' | 'DOC' | 'EXCEL') => {
-        if (filteredResults.length === 0) return;
+        const recordsToDownload = selectedRecordsToExport.length > 0 
+            ? filteredResults.filter(rec => selectedRecordsToExport.includes(`${rec.turma}_${rec.dataISO}`))
+            : filteredResults;
+
+        if (recordsToDownload.length === 0) return;
         
         setIsExportingZip(true);
         showNotification(`Gerando arquivos ${format}, aguarde...`, 'success');
 
         try {
-            const filesToZip = await Promise.all(filteredResults.map(async (rec) => {
+            const filesToZip = await Promise.all(recordsToDownload.map(async (rec) => {
                 const dataStr = (rec.data || rec.dataISO || 'data').replace(/\//g, '-');
                 const baseName = `historico-${rec.turma}-${dataStr}`;
                 
@@ -753,16 +655,16 @@ const HistoryModal: React.FC<{
                                     <div className="relative">
                                         <button 
                                             onClick={() => setIsExportMenuOpen(!isExportMenuOpen)}
-                                            disabled={isExportingZip}
+                                            disabled={isExportingZip || filteredResults.length === 0}
                                             className="text-[10px] bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-3 py-1.5 rounded-lg font-bold uppercase hover:bg-indigo-200 dark:hover:bg-indigo-800/50 transition-colors flex items-center gap-1.5 disabled:opacity-50"
-                                            title="Baixar todos os resultados encontrados em uma pasta ZIP"
+                                            title="Baixar resultados selecionados ou todos os encontrados"
                                         >
                                             {isExportingZip ? (
                                                 <div className="w-3 h-3 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
                                             ) : (
                                                 <FileTextIcon className="w-3 h-3" />
                                             )}
-                                            {isExportingZip ? 'GERANDO...' : 'BAIXAR TODOS'}
+                                            {isExportingZip ? 'GERANDO...' : (selectedRecordsToExport.length > 0 ? `BAIXAR ${selectedRecordsToExport.length} SELECIONADOS` : 'BAIXAR TODOS')}
                                         </button>
                                         
                                         {isExportMenuOpen && (
@@ -806,34 +708,56 @@ const HistoryModal: React.FC<{
                                 const match6H = rec.registros6H?.some(r => isMatch(r.assunto));
                                 const matchedAssunto = rec.registros7H?.find(r => isMatch(r.assunto))?.assunto || rec.registros6H?.find(r => isMatch(r.assunto))?.assunto || rec.registros7H?.[0]?.assunto || rec.registros6H?.[0]?.assunto || 'Tema não preenchido';
 
+                                const recId = `${rec.turma}_${rec.dataISO}`;
+                                const isSelected = selectedRecordsToExport.includes(recId);
+
                                 return (
-                                <button
-                                    key={rec.dataISO}
-                                    onClick={() => {
-                                        setHistoryData(rec);
-                                        setSelectedDate(rec.dataISO);
-                                        setSearchTerm(''); // Limpa busca ao selecionar
-                                    }}
-                                    className="flex flex-col items-start p-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl hover:border-indigo-500 dark:hover:border-indigo-500 hover:shadow-md transition-all text-left group"
-                                >
-                                    <div className="flex items-center justify-between w-full mb-1">
-                                        <span className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 uppercase">
-                                            {new Date(rec.dataISO + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
-                                        </span>
-                                        <div className="flex items-center gap-2">
-                                            {match7H && (
-                                                <span className="text-[9px] bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">{mainShiftLabel}</span>
+                                <div key={recId} className="flex gap-2 items-stretch group">
+                                    <div 
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedRecordsToExport(prev => 
+                                                prev.includes(recId) ? prev.filter(id => id !== recId) : [...prev, recId]
+                                            );
+                                        }}
+                                        className="flex-shrink-0 flex items-center justify-center p-3 cursor-pointer bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl hover:border-indigo-500 dark:hover:border-indigo-500 transition-all w-12"
+                                    >
+                                        <div className={`w-5 h-5 rounded flex items-center justify-center border transition-colors ${isSelected ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-gray-300 dark:border-gray-600'}`}>
+                                            {isSelected && (
+                                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                </svg>
                                             )}
-                                            {match6H && (
-                                                <span className="text-[9px] bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">{shiftLabel}</span>
-                                            )}
-                                            <span className="text-[10px] font-medium text-gray-400">{rec.turma}</span>
                                         </div>
                                     </div>
-                                    <span className="text-sm font-semibold text-gray-800 dark:text-gray-100 line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                                        {matchedAssunto}
-                                    </span>
-                                </button>
+                                    <button
+                                        onClick={() => {
+                                            setHistoryData(rec);
+                                            setSelectedDate(rec.dataISO);
+                                            setSearchTerm(''); // Limpa busca ao selecionar
+                                            setSelectedRecordsToExport([]); // Limpa a seleção ao abrir
+                                        }}
+                                        className="flex-1 flex flex-col items-start p-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl hover:border-indigo-500 dark:hover:border-indigo-500 hover:shadow-md transition-all text-left"
+                                    >
+                                        <div className="flex items-center justify-between w-full mb-1">
+                                            <span className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 uppercase">
+                                                {new Date(rec.dataISO + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                {match7H && (
+                                                    <span className="text-[9px] bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">{mainShiftLabel}</span>
+                                                )}
+                                                {match6H && (
+                                                    <span className="text-[9px] bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">{shiftLabel}</span>
+                                                )}
+                                                <span className="text-[10px] font-medium text-gray-400">{rec.turma}</span>
+                                            </div>
+                                        </div>
+                                        <span className="text-sm font-semibold text-gray-800 dark:text-gray-100 line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                            {matchedAssunto}
+                                        </span>
+                                    </button>
+                                </div>
                                 );
                             })}
 

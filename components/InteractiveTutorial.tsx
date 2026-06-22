@@ -445,4 +445,4 @@ function getTooltipPosition(rect: DOMRect, scale: number, preferredPosition?: 't
     return { top, left };
 }
 
-export default InteractiveTutorial;
+export default React.memo(InteractiveTutorial);
