@@ -8,6 +8,7 @@ interface ExportDropdownProps {
   onExportExcel: () => void;
   onExportDoc: () => void;
   disabled?: boolean;
+  label?: string;
 }
 
 const ExportDropdown: React.FC<ExportDropdownProps> = ({
@@ -16,7 +17,8 @@ const ExportDropdown: React.FC<ExportDropdownProps> = ({
   onExportPdf,
   onExportExcel,
   onExportDoc,
-  disabled = false
+  disabled = false,
+  label = 'BAIXAR'
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -49,7 +51,7 @@ const ExportDropdown: React.FC<ExportDropdownProps> = ({
         className="w-full py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition flex items-center justify-center gap-2 shadow-md text-sm disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <DownloadIcon className="w-5 h-5" />
-        BAIXAR
+        {label}
       </button>
 
       {isOpen && (

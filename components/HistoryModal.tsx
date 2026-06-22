@@ -935,13 +935,20 @@ const HistoryModal: React.FC<{
                                 COPIAR
                             </button>
                             <div className="w-full">
-                                <ExportDropdown
-                                    onExportTxt={handleExportTxt}
-                                    onExportPng={handleExportPng}
-                                    onExportPdf={handleExportPdf}
-                                    onExportDoc={handleExportDoc}
-                                    onExportExcel={handleExportExcel}
-                                />
+                                {(() => {
+                                    const isMultiSelect = selectedRecordsToExport.length > 1;
+                                    return (
+                                        <ExportDropdown
+                                            label={isMultiSelect ? 'BAIXAR TODOS' : 'BAIXAR'}
+                                            onExportTxt={isMultiSelect ? () => handleExportAllZip('TXT') : handleExportTxt}
+                                            onExportPng={handleExportPng} // PNG só funciona pro DOM atual
+                                            onExportPdf={isMultiSelect ? () => handleExportAllZip('PDF') : handleExportPdf}
+                                            onExportDoc={isMultiSelect ? () => handleExportAllZip('DOC') : handleExportDoc}
+                                            onExportExcel={isMultiSelect ? () => handleExportAllZip('EXCEL') : handleExportExcel}
+                                            disabled={isMultiSelect && isExportingZip}
+                                        />
+                                    );
+                                })()}
                             </div>
                         </div>
 
