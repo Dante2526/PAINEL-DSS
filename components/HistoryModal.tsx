@@ -214,8 +214,9 @@ const HistoryModal: React.FC<{
                     .filter(rec => !!rec.dataISO && turmaFilter.includes(rec.turma))
                     .sort((a, b) => b.dataISO.localeCompare(a.dataISO));
                 
-                setAllRecords(newRecords);
-                setHasMore(false);
+                setAllRecords(prev => isManualLoadMore ? [...prev, ...newRecords] : newRecords);
+                setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
+                setHasMore(snapshot.docs.length === 15);
 
                 // Selecionar automaticamente o dia mais recente
                 if (!isManualLoadMore && newRecords.length > 0) {
