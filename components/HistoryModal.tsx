@@ -646,8 +646,8 @@ const HistoryModal: React.FC<{
                 {/* Lista de Resultados da Busca por Tema */}
                 {searchTerm && (
                     <div className="space-y-3 mb-6 animate-in fade-in zoom-in-95 duration-200">
-                        <div className="flex items-center justify-between px-1">
-                            <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
                                 {(isSearching || searchTerm !== debouncedSearch) ? 'Buscando...' : `${filteredResults.length} resultados encontrados`}
                             </h3>
                             <div className="flex items-center gap-3">
@@ -715,7 +715,14 @@ const HistoryModal: React.FC<{
                                 const isSelected = selectedRecordsToExport.includes(recId);
 
                                 return (
-                                <div key={recId} className="flex gap-2 items-stretch group">
+                                <div 
+                                    key={recId} 
+                                    className={`relative flex items-center gap-3 p-3 bg-white dark:bg-gray-800 border rounded-xl transition-all text-left group ${
+                                        isSelected 
+                                            ? 'border-indigo-500 dark:border-indigo-500 ring-1 ring-indigo-500/50 shadow-sm' 
+                                            : 'border-gray-100 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-sm'
+                                    }`}
+                                >
                                     <div 
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -723,11 +730,11 @@ const HistoryModal: React.FC<{
                                                 prev.includes(recId) ? prev.filter(id => id !== recId) : [...prev, recId]
                                             );
                                         }}
-                                        className="flex-shrink-0 flex items-center justify-center cursor-pointer px-2 transition-all"
+                                        className="flex-shrink-0 flex items-center justify-center cursor-pointer transition-all"
                                     >
-                                        <div className={`w-6 h-6 rounded-md flex items-center justify-center border-2 transition-colors ${isSelected ? 'bg-indigo-500 border-indigo-500 text-white shadow-sm' : 'border-gray-400 dark:border-gray-500 hover:border-indigo-400'}`}>
+                                        <div className={`w-5 h-5 rounded flex items-center justify-center border-2 transition-colors ${isSelected ? 'bg-indigo-500 border-indigo-500 text-white' : 'border-gray-300 dark:border-gray-600 group-hover:border-indigo-400'}`}>
                                             {isSelected && (
-                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                                 </svg>
                                             )}
@@ -740,7 +747,7 @@ const HistoryModal: React.FC<{
                                             setSearchTerm(''); // Limpa busca ao selecionar
                                             setSelectedRecordsToExport([]); // Limpa a seleção ao abrir
                                         }}
-                                        className="flex-1 flex flex-col items-start p-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl hover:border-indigo-500 dark:hover:border-indigo-500 hover:shadow-md transition-all text-left"
+                                        className="flex-1 flex flex-col items-start focus:outline-none"
                                     >
                                         <div className="flex items-center justify-between w-full mb-1">
                                             <span className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 uppercase">
