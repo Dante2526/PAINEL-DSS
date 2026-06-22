@@ -9,6 +9,7 @@ import { doc, getDoc, collection, query, where, orderBy, limit, getDocs, startAf
 import { exportToPng, exportToPdf, exportToDoc, exportToExcel, exportToTxt, exportToZip, generateDocBlob, generateExcelBlob, generatePdfBlob, PdfReportData } from '../utils/exportService';
 import { SearchIcon } from './icons';
 import { jsPDF } from 'jspdf';
+import ExportDropdown from './ExportDropdown';
 
 // Cores do status compacto
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
