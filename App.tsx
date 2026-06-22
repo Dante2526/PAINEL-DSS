@@ -74,19 +74,19 @@ const ConfirmBiometricModal = lazy(() => import('./components/modals/ConfirmBiom
 const AdminOptionsModal = lazy(() => import('./components/modals/AdminOptionsModal').then(module => ({ default: module.AdminOptionsModal })));
 const AddUserModal = lazy(() => import('./components/modals/AddUserModal').then(module => ({ default: module.AddUserModal })));
 const ReportModal = lazy(() => import('./components/modals/ReportModal').then(module => ({ default: module.ReportModal })));
-const DemoPasswordModal = lazy(() => import('./components/modals/PasswordModals').then(module => ({ default: module.DemoPasswordModal })));
-const AutomationPasswordModal = lazy(() => import('./components/modals/PasswordModals').then(module => ({ default: module.AutomationPasswordModal })));
 const ImportEmployeeModal = lazy(() => import('./components/modals/ImportEmployeeModal').then(module => ({ default: module.ImportEmployeeModal })));
-
-const UserExistsWarningModal = lazy(() => import('./components/modals/ActionModals').then(module => ({ default: module.UserExistsWarningModal })));
-const InvalidMatriculaModal = lazy(() => import('./components/modals/ActionModals').then(module => ({ default: module.InvalidMatriculaModal })));
-const ConfirmMalModal = lazy(() => import('./components/modals/ActionModals').then(module => ({ default: module.ConfirmMalModal })));
-const ConfirmTurnoModal = lazy(() => import('./components/modals/ActionModals').then(module => ({ default: module.ConfirmTurnoModal })));
-const ConfirmAbsentModal = lazy(() => import('./components/modals/ActionModals').then(module => ({ default: module.ConfirmAbsentModal })));
-const ConfirmDeleteModal = lazy(() => import('./components/modals/ActionModals').then(module => ({ default: module.ConfirmDeleteModal })));
-const ConfirmDeactivate6HModal = lazy(() => import('./components/modals/ActionModals').then(module => ({ default: module.ConfirmDeactivate6HModal })));
-const TutorialChoiceModal = lazy(() => import('./components/modals/ActionModals').then(module => ({ default: module.TutorialChoiceModal })));
-const TutorialVideoModal = lazy(() => import('./components/modals/ActionModals').then(module => ({ default: module.TutorialVideoModal })));
+import { DemoPasswordModal, AutomationPasswordModal } from './components/modals/PasswordModals';
+import {
+    UserExistsWarningModal,
+    InvalidMatriculaModal,
+    ConfirmMalModal,
+    ConfirmTurnoModal,
+    ConfirmAbsentModal,
+    ConfirmDeleteModal,
+    ConfirmDeactivate6HModal,
+    TutorialChoiceModal,
+    TutorialVideoModal
+} from './components/modals/ActionModals';
 
 
 
