@@ -178,9 +178,7 @@ const HistoryModal: React.FC<{
             setHasMore(true);
             setLastVisible(null);
             setSelectedRecordsToExport([]);
-            if (searchTerm.trim()) {
-                loadHistoryBatch(false, selectedSearchTurmas);
-            } else {
+            if (!searchTerm.trim()) {
                 loadHistoryBatch();
             }
         }
@@ -643,8 +641,7 @@ const HistoryModal: React.FC<{
                                             setSelectedSearchTurmas(nextTurmas);
                                             setAllRecords([]);
                                             setHasMore(true);
-                                            setAutoFetchCount(0);
-                                            loadHistoryBatch(false, nextTurmas);
+                                            setLastVisible(null);
                                         }}
                                         className={`px-3 py-1.5 text-[10px] font-extrabold rounded-full border transition-all uppercase tracking-wider ${
                                             isSelected
