@@ -607,7 +607,7 @@ const HistoryModal: React.FC<{
                             autoComplete="off"
                             autoCorrect="off"
                             spellCheck={false}
-                            placeholder="BUSCAR POR TEMA (EX: SEGURANÇA, EPI...)"
+                            placeholder="BUSCAR TEMA (EX: EPI, SEGURANÇA)"
                             value={searchTerm}
                             onChange={handleSearchChange}
                             onKeyDown={(e) => { if (e.key === 'Enter') handleSearchSubmit(); }}
@@ -675,7 +675,7 @@ const HistoryModal: React.FC<{
                     <div className="space-y-3 mb-6 animate-in fade-in zoom-in-95 duration-200">
                         <div className="flex items-center justify-between">
                             <h3 className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
-                                {(isSearching || searchTerm !== debouncedSearch) ? 'Buscando...' : `${filteredResults.length} resultados encontrados`}
+                                {isSearching ? 'Buscando...' : (searchTerm !== debouncedSearch ? 'Pronto para buscar' : `${filteredResults.length} resultados encontrados`)}
                             </h3>
                             <div className="flex items-center gap-3">
                                 {(isSearching || searchTerm !== debouncedSearch) && (
@@ -798,9 +798,15 @@ const HistoryModal: React.FC<{
                                 );
                             })}
 
-                            {!isSearching && filteredResults.length === 0 && (
+                            {!isSearching && filteredResults.length === 0 && debouncedSearch === searchTerm && (
                                 <div className="text-center py-8 bg-gray-50 dark:bg-gray-800/30 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
                                     <p className="text-sm text-gray-500 dark:text-gray-400">Nenhum tema encontrado neste período.</p>
+                                </div>
+                            )}
+
+                            {searchTerm !== debouncedSearch && (
+                                <div className="text-center py-8 bg-gray-50/50 dark:bg-gray-800/10 rounded-2xl border border-dashed border-gray-200/50 dark:border-gray-700/50">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Clique em <b>BUSCAR</b> ou pressione <b>Enter</b> para pesquisar.</p>
                                 </div>
                             )}
 
