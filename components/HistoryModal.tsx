@@ -6,8 +6,7 @@ import type { HistoryRecord, HistoryEmployee, Administrator } from '../types';
 import { db } from '../firebase';
 import { luminaDb } from '../luminaFirebase';
 import { doc, getDoc, collection, query, where, orderBy, limit, getDocs, startAfter, startAt, endAt, QueryDocumentSnapshot, DocumentData, documentId, addDoc } from 'firebase/firestore';
-import ExportDropdown from './ExportDropdown';
-import { exportToPng, exportToPdf, exportToDoc, exportToExcel, exportToTxt, PdfReportData } from '../utils/exportService';
+import { exportToPng, exportToPdf, exportToDoc, exportToExcel, exportToTxt, exportToZip, generateDocBlob, generateExcelBlob, generatePdfBlob, PdfReportData } from '../utils/exportService';
 import { SearchIcon } from './icons';
 import { jsPDF } from 'jspdf';
 
@@ -266,8 +265,11 @@ const HistoryModal: React.FC<{
 
     // Estados para Busca por Tema
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedSearchTurmas, setSelectedSearchTurmas] = useState<string[]>(turma ? [turma] : []);
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const [isSearching, setIsSearching] = useState(false);
+    const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
+    const [isExportingZip, setIsExportingZip] = useState(false);
     const [allRecords, setAllRecords] = useState<HistoryRecord[]>([]);
     const [lastVisible, setLastVisible] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
     const [fetchingMore, setFetchingMore] = useState(false);
@@ -286,8 +288,9 @@ const HistoryModal: React.FC<{
     }, [searchTerm]);
 
     // Função para carregar lote de histórico
-    const loadHistoryBatch = async (isManualLoadMore = false) => {
-        if (!turma || !db || (fetchingMore && isManualLoadMore)) return;
+    const loadHistoryBatch = async (isManualLoadMore = false, turmasParaBusca?: string[]) => {
+        const turmaFilter = turmasParaBusca ?? (turma ? [turma] : []);
+        if (turmaFilter.length === 0 || !db || (fetchingMore && isManualLoadMore)) return;
         
         setIsSearching(true);
         if (isManualLoadMore) setFetchingMore(true);
@@ -297,7 +300,7 @@ const HistoryModal: React.FC<{
             // Buscamos apenas pela turma e ordenamos em memória no cliente.
             let q = query(
                 collection(db, 'historico_dss'),
-                where('turma', '==', turma),
+                where('turma', turmaFilter.length === 1 ? '==' : 'in', turmaFilter.length === 1 ? turmaFilter[0] : turmaFilter),
                 limit(400) // Lote maior para cobrir ~1 ano ou mais de uma vez
             );
 
@@ -340,6 +343,7 @@ const HistoryModal: React.FC<{
             setLastVisible(null);
             setHasMore(true);
             setAutoFetchCount(0);
+            setSelectedSearchTurmas([turma]);
             loadHistoryBatch();
         }
     }, [isOpen, turma]);
@@ -381,9 +385,9 @@ const HistoryModal: React.FC<{
             autoFetchCount < 4
         ) {
             setAutoFetchCount(prev => prev + 1);
-            loadHistoryBatch(true);
+            loadHistoryBatch(true, selectedSearchTurmas);
         }
-    }, [debouncedSearch, filteredResults.length, hasMore, fetchingMore, autoFetchCount]);
+    }, [debouncedSearch, filteredResults.length, hasMore, fetchingMore, autoFetchCount, selectedSearchTurmas]);
 
     const handleDateChange = async (dateValue: string) => {
         setSelectedDate(dateValue);
@@ -430,16 +434,17 @@ const HistoryModal: React.FC<{
         };
     }, [historyData]);
 
-    const generateExportText = () => {
-        if (!historyData) return '';
+    const generateRecordText = (record: HistoryRecord) => {
+        const dataExibicao = (record.data || '').split('/').map((s, i) => i === 2 && s.length > 2 ? s.slice(-2) : s).join('/');
 
-        const dataExibicao = (historyData.data || '').split('/').map((s, i) => i === 2 && s.length > 2 ? s.slice(-2) : s).join('/');
+        let report = `RESUMO GERAL - TURMA ${record.turma} - ${dataExibicao}\n`;
+        report += `• Total de Funcionários: ${record.totalFuncionarios}\n`;
+        report += `• Presentes (DSS + Bem/Mal): ${record.totalPresentes}\n`;
+        report += `• Pendentes: ${record.totalPendentes}\n`;
+        report += `• Ausentes: ${record.totalAusentes}\n\n`;
 
-        let report = `RESUMO GERAL - TURMA ${historyData.turma} - ${dataExibicao}\n`;
-        report += `• Total de Funcionários: ${historyData.totalFuncionarios}\n`;
-        report += `• Presentes (DSS + Bem/Mal): ${historyData.totalPresentes}\n`;
-        report += `• Pendentes: ${historyData.totalPendentes}\n`;
-        report += `• Ausentes: ${historyData.totalAusentes}\n\n`;
+        const rTeam7H = record.r.filter(e => e.turno !== '6H');
+        const rTeam6H = record.r.filter(e => e.turno === '6H');
 
         const formatTeam = (team: HistoryEmployee[], turnoLabel: string) => {
             report += `EQUIPE TURNO ${turnoLabel}\n`;
@@ -459,15 +464,15 @@ const HistoryModal: React.FC<{
             });
         };
 
-        formatTeam(team7H, mainShiftLabel);
-        if (turma !== 'CCG' && team6H.length > 0) {
-            formatTeam(team6H, shiftLabel);
+        formatTeam(rTeam7H, mainShiftLabel);
+        if (turma !== 'CCG' && rTeam6H.length > 0) {
+            formatTeam(rTeam6H, shiftLabel);
         }
 
         // Registros DSS
         report += `REGISTROS DSS (TURNO ${mainShiftLabel})\n`;
-        if (historyData.registros7H.length > 0) {
-            historyData.registros7H.forEach(reg => {
+        if (record.registros7H && record.registros7H.length > 0) {
+            record.registros7H.forEach(reg => {
                 report += `• Assunto: ${reg.assunto || 'NÃO PREENCHIDO'}\n`;
                 if (reg.name) report += `  Responsável: ${reg.name} (Matrícula: ${reg.matricula || '---'})\n`;
             });
@@ -476,9 +481,9 @@ const HistoryModal: React.FC<{
         }
         report += `\n`;
 
-        if (turma !== 'CCG' && historyData.registros6H.length > 0) {
+        if (turma !== 'CCG' && record.registros6H && record.registros6H.length > 0) {
             report += `REGISTROS DSS (TURNO ${shiftLabel})\n`;
-            historyData.registros6H.forEach(reg => {
+            record.registros6H.forEach(reg => {
                 report += `• Assunto: ${reg.assunto || 'NÃO PREENCHIDO'}\n`;
                 if (reg.name) report += `  Responsável: ${reg.name} (Matrícula: ${reg.matricula || '---'})\n`;
             });
@@ -486,6 +491,64 @@ const HistoryModal: React.FC<{
         }
 
         return report;
+    };
+
+    const generateExportText = () => {
+        if (!historyData) return '';
+        return generateRecordText(historyData);
+    };
+
+    const handleExportAllZip = async (format: 'TXT' | 'PDF' | 'DOC' | 'EXCEL') => {
+        if (filteredResults.length === 0) return;
+        
+        setIsExportingZip(true);
+        showNotification(`Gerando arquivos ${format}, aguarde...`, 'success');
+
+        try {
+            const filesToZip = await Promise.all(filteredResults.map(async (rec) => {
+                const dataStr = (rec.data || rec.dataISO || 'data').replace(/\//g, '-');
+                const baseName = `historico-${rec.turma}-${dataStr}`;
+                
+                if (format === 'TXT') {
+                    return { name: `${baseName}.txt`, content: generateRecordText(rec) };
+                } else if (format === 'DOC') {
+                    return { name: `${baseName}.doc`, content: generateDocBlob(generateRecordText(rec)) };
+                } else {
+                    const pdfData: PdfReportData = {
+                        turma: rec.turma,
+                        dataFormatada: rec.data,
+                        registros7H: rec.registros7H || [],
+                        registros6H: rec.registros6H || [],
+                        employees: rec.r,
+                        totalFuncionarios: rec.totalFuncionarios,
+                        totalPresentes: rec.totalPresentes,
+                        totalAusentes: rec.totalAusentes,
+                        totalMal: rec.totalMal,
+                        totalPendentes: rec.totalPendentes,
+                        mainShiftLabel,
+                        shiftLabel,
+                    };
+                    
+                    if (format === 'PDF') {
+                        return { name: `${baseName}.pdf`, content: await generatePdfBlob(pdfData) };
+                    } else { // EXCEL
+                        return { name: `${baseName}.xlsx`, content: generateExcelBlob(pdfData) };
+                    }
+                }
+            }));
+
+            const safeSearchTerm = searchTerm.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20);
+            const zipFilename = `historicos-busca-${turma}-${safeSearchTerm}`;
+            
+            await exportToZip(filesToZip, zipFilename);
+            showNotification(`${filesToZip.length} resultados compactados em ZIP!`, 'success');
+        } catch (e) {
+            console.error(e);
+            showNotification('Erro ao gerar o arquivo ZIP.', 'error');
+        } finally {
+            setIsExportingZip(false);
+            setIsExportMenuOpen(false);
+        }
     };
 
     const handleCopy = () => {
@@ -623,11 +686,46 @@ const HistoryModal: React.FC<{
                             placeholder="BUSCAR POR TEMA (EX: SEGURANÇA, EPI...)"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-gray-400 font-medium"
+                            className="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl text-base text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-gray-400 font-medium"
                             style={{ fontSize: '16px', textTransform: 'uppercase' }}
                         />
                     </div>
                     
+                    {searchTerm && (
+                        <div className="flex flex-wrap gap-2 mt-1 px-1 animate-in fade-in slide-in-from-top-1 duration-300">
+                            <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 w-full mb-1 uppercase tracking-wider">Buscar também nas turmas:</span>
+                            {['A', 'B', 'C', 'D'].map(t => {
+                                const isSelected = selectedSearchTurmas.includes(t);
+                                return (
+                                    <button
+                                        key={t}
+                                        onClick={() => {
+                                            let nextTurmas;
+                                            if (isSelected) {
+                                                if (selectedSearchTurmas.length === 1) return;
+                                                nextTurmas = selectedSearchTurmas.filter(x => x !== t);
+                                            } else {
+                                                nextTurmas = [...selectedSearchTurmas, t];
+                                            }
+                                            setSelectedSearchTurmas(nextTurmas);
+                                            setAllRecords([]);
+                                            setHasMore(true);
+                                            setAutoFetchCount(0);
+                                            loadHistoryBatch(false, nextTurmas);
+                                        }}
+                                        className={`px-3 py-1.5 text-[10px] font-extrabold rounded-full border transition-all uppercase tracking-wider ${
+                                            isSelected
+                                                ? 'bg-indigo-100 border-indigo-300 text-indigo-700 dark:bg-indigo-900/40 dark:border-indigo-600 dark:text-indigo-300 shadow-sm'
+                                                : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700'
+                                        }`}
+                                    >
+                                        TURMA {t}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
+
                     {!searchTerm && (
                         <div className="animate-in fade-in slide-in-from-top-1 duration-300">
                             <CustomDatePicker 
@@ -646,9 +744,39 @@ const HistoryModal: React.FC<{
                             <h3 className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
                                 {(isSearching || searchTerm !== debouncedSearch) ? 'Buscando...' : `${filteredResults.length} resultados encontrados`}
                             </h3>
-                            {(isSearching || searchTerm !== debouncedSearch) && (
-                                <div className="w-4 h-4 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
-                            )}
+                            <div className="flex items-center gap-3">
+                                {(isSearching || searchTerm !== debouncedSearch) && (
+                                    <div className="w-4 h-4 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
+                                )}
+                                {filteredResults.length > 1 && !(isSearching || searchTerm !== debouncedSearch) && (
+                                    <div className="relative">
+                                        <button 
+                                            onClick={() => setIsExportMenuOpen(!isExportMenuOpen)}
+                                            disabled={isExportingZip}
+                                            className="text-[10px] bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-3 py-1.5 rounded-lg font-bold uppercase hover:bg-indigo-200 dark:hover:bg-indigo-800/50 transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                                            title="Baixar todos os resultados encontrados em uma pasta ZIP"
+                                        >
+                                            {isExportingZip ? (
+                                                <div className="w-3 h-3 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
+                                            ) : (
+                                                <FileTextIcon className="w-3 h-3" />
+                                            )}
+                                            {isExportingZip ? 'GERANDO...' : 'BAIXAR TODOS'}
+                                        </button>
+                                        
+                                        {isExportMenuOpen && (
+                                            <div className="absolute top-full mt-2 right-0 w-36 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
+                                                <div className="flex flex-col py-1">
+                                                    <button onClick={() => handleExportAllZip('PDF')} className="px-4 py-2 text-left text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">📄 PDF</button>
+                                                    <button onClick={() => handleExportAllZip('EXCEL')} className="px-4 py-2 text-left text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">📊 EXCEL</button>
+                                                    <button onClick={() => handleExportAllZip('DOC')} className="px-4 py-2 text-left text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">📝 WORD (DOC)</button>
+                                                    <button onClick={() => handleExportAllZip('TXT')} className="px-4 py-2 text-left text-xs font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">📃 TEXTO (TXT)</button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
@@ -702,7 +830,7 @@ const HistoryModal: React.FC<{
 
                             {hasMore && (
                                 <button
-                                    onClick={() => loadHistoryBatch(true)}
+                                    onClick={() => loadHistoryBatch(true, selectedSearchTurmas)}
                                     disabled={fetchingMore}
                                     className="w-full py-3 mt-2 text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
                                 >

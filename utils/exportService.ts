@@ -49,6 +49,161 @@ export const exportToPng = async (elementId: string, filename: string) => {
     }
 };
 
+export const generatePdfBlob = async (data: PdfReportData): Promise<Blob> => {
+    const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 15;
+    const contentWidth = pageWidth - margin * 2;
+    let y = margin;
+
+    const checkPageBreak = (needed: number) => {
+        if (y + needed > pageHeight - margin) {
+            pdf.addPage();
+            y = margin;
+        }
+    };
+
+    const mainLabel = data.mainShiftLabel || '7H';
+    const secLabel = data.shiftLabel || '6H';
+
+    pdf.setFillColor(30, 41, 59);
+    pdf.rect(0, 0, pageWidth, 28, 'F');
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(14);
+    pdf.setTextColor(255, 255, 255);
+    pdf.text(`RESUMO GERAL - TURMA ${data.turma} - ${data.dataFormatada}`, pageWidth / 2, 18, { align: 'center' });
+    y = 36;
+
+    pdf.setDrawColor(200, 210, 220);
+    pdf.line(margin, y, pageWidth - margin, y);
+    y += 6;
+
+    const bullets = [
+        `Total de Funcionários: ${data.totalFuncionarios}`,
+        `Presentes (DSS + Bem/Mal): ${data.totalPresentes}`,
+        `Pendentes: ${data.totalPendentes}`,
+        `Ausentes: ${data.totalAusentes}`,
+    ];
+    bullets.forEach(text => {
+        checkPageBreak(6);
+        pdf.setFont('helvetica', 'normal');
+        pdf.setFontSize(10);
+        pdf.setTextColor(30, 41, 59);
+        pdf.text(`• ${text}`, margin + 2, y);
+        y += 5.5;
+    });
+    y += 4;
+
+    const team7H = data.employees.filter(e => e.turno !== '6H');
+    const team6H = data.employees.filter(e => e.turno === '6H');
+
+    const drawSection = (emps: { n: string; m: string; s: string }[], turnoLabel: string) => {
+        if (emps.length === 0) return;
+        checkPageBreak(14);
+        pdf.setDrawColor(200, 210, 220);
+        pdf.line(margin, y, pageWidth - margin, y);
+        y += 6.5;
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(13);
+        pdf.setTextColor(30, 41, 59);
+        pdf.text(`EQUIPE TURNO ${turnoLabel}`, margin, y);
+        y += 3.5;
+        pdf.setDrawColor(200, 210, 220);
+        pdf.line(margin, y, pageWidth - margin, y);
+        y += 6;
+
+        const statusGroups: { key: string; label: string; emps: { n: string; m: string; s: string }[] }[] = [
+            { key: 'BEM', label: 'STATUS: "ASS.DSS + ESTOU BEM"', emps: emps.filter(e => e.s === 'BEM') },
+            { key: 'MAL', label: 'STATUS "ESTOU MAL"',            emps: emps.filter(e => e.s === 'MAL') },
+            { key: 'PEN', label: 'PENDENTES',                      emps: emps.filter(e => e.s === 'PEN') },
+            { key: 'AUS', label: 'AUSENTES',                       emps: emps.filter(e => e.s === 'AUS') },
+        ];
+        statusGroups.forEach(group => {
+            checkPageBreak(10);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(10);
+            pdf.setTextColor(30, 41, 59);
+            pdf.text(group.label, margin, y);
+            y += 5;
+            if (group.emps.length === 0) {
+                pdf.setFont('helvetica', 'italic');
+                pdf.setFontSize(9);
+                pdf.setTextColor(120, 130, 145);
+                pdf.text('Nenhum', margin + 4, y);
+                y += 5;
+            } else {
+                group.emps.forEach(emp => {
+                    checkPageBreak(5);
+                    pdf.setFont('helvetica', 'normal');
+                    pdf.setFontSize(9);
+                    pdf.setTextColor(30, 41, 59);
+                    pdf.text(`• ${emp.n} (Matrícula: ${emp.m})`, margin + 4, y);
+                    y += 4.5;
+                });
+            }
+            y += 3;
+        });
+    };
+
+    const drawRegistros = (registros: { assunto: string; name: string; matricula: string }[], turnoLabel: string) => {
+        checkPageBreak(14);
+        pdf.setDrawColor(200, 210, 220);
+        pdf.line(margin, y, pageWidth - margin, y);
+        y += 6.5;
+        pdf.setFont('helvetica', 'bold');
+        pdf.setFontSize(13);
+        pdf.setTextColor(30, 41, 59);
+        pdf.text(`REGISTROS DSS (TURNO ${turnoLabel})`, margin, y);
+        y += 3.5;
+        pdf.setDrawColor(200, 210, 220);
+        pdf.line(margin, y, pageWidth - margin, y);
+        y += 5;
+
+        if (registros.length === 0) {
+            pdf.setFont('helvetica', 'italic');
+            pdf.setFontSize(9);
+            pdf.setTextColor(120, 130, 145);
+            pdf.text(`Nenhum registro de assunto encontrado para ${turnoLabel}.`, margin + 2, y);
+            y += 6;
+        } else {
+            registros.forEach(reg => {
+                checkPageBreak(14);
+                const nameText = reg.name ? `${reg.name} (Matrícula: ${reg.matricula || '---'})` : 'Nome não informado';
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(9);
+                pdf.setTextColor(30, 41, 59);
+                pdf.text(`• ${nameText}`, margin + 2, y);
+                y += 4.5;
+                pdf.setFont('helvetica', 'italic');
+                pdf.setFontSize(9);
+                pdf.setTextColor(60, 80, 100);
+                const assuntoLines = pdf.splitTextToSize(`Assunto: ${reg.assunto || 'NÃO PREENCHIDO'}`, contentWidth - 8);
+                pdf.text(assuntoLines, margin + 6, y);
+                y += assuntoLines.length * 4.5 + 2;
+            });
+        }
+        y += 4;
+    };
+
+    drawRegistros(data.registros7H, mainLabel);
+    if (data.turma !== 'CCG') {
+        drawRegistros(data.registros6H, secLabel);
+    }
+    drawSection(team7H, mainLabel);
+    if (data.turma !== 'CCG' && team6H.length > 0) {
+        drawSection(team6H, secLabel);
+    }
+
+    const footerY = pageHeight - 8;
+    pdf.setFont('helvetica', 'italic');
+    pdf.setFontSize(7);
+    pdf.setTextColor(156, 163, 175);
+    pdf.text(`Gerado em ${new Date().toLocaleString('pt-BR')} — Painel DSS`, pageWidth / 2, footerY, { align: 'center' });
+
+    return pdf.output('blob');
+};
+
 export const exportToPdf = async (_elementIdOrData: string | PdfReportData, filename: string, reportData?: PdfReportData) => {
     try {
         const data = typeof _elementIdOrData === 'object' ? _elementIdOrData : reportData;
@@ -64,213 +219,36 @@ export const exportToPdf = async (_elementIdOrData: string | PdfReportData, file
             return;
         }
 
-        const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
-        const margin = 15;
-        const contentWidth = pageWidth - margin * 2;
-        let y = margin;
-
-        const checkPageBreak = (needed: number) => {
-            if (y + needed > pageHeight - margin) {
-                pdf.addPage();
-                y = margin;
-            }
-        };
-
-        const mainLabel = data.mainShiftLabel || '7H';
-        const secLabel = data.shiftLabel || '6H';
-
-        // ═══════════════════════════════════════════
-        // CABEÇALHO ESCURO (CENTRALIZADO)
-        // ═══════════════════════════════════════════
-        pdf.setFillColor(30, 41, 59);
-        pdf.rect(0, 0, pageWidth, 28, 'F');
-
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(14);
-        pdf.setTextColor(255, 255, 255);
-        pdf.text(`RESUMO GERAL - TURMA ${data.turma} - ${data.dataFormatada}`, pageWidth / 2, 18, { align: 'center' });
-
-        y = 36;
-
-        // ═══════════════════════════════════════════
-        // LINHA SEPARADORA + BULLETS DE RESUMO
-        // ═══════════════════════════════════════════
-        pdf.setDrawColor(200, 210, 220);
-        pdf.line(margin, y, pageWidth - margin, y);
-        y += 6;
-
-        const bullets = [
-            `Total de Funcionários: ${data.totalFuncionarios}`,
-            `Presentes (DSS + Bem/Mal): ${data.totalPresentes}`,
-            `Pendentes: ${data.totalPendentes}`,
-            `Ausentes: ${data.totalAusentes}`,
-        ];
-        
-        bullets.forEach(text => {
-            checkPageBreak(6);
-            pdf.setFont('helvetica', 'normal');
-            pdf.setFontSize(10);
-            pdf.setTextColor(30, 41, 59);
-            pdf.text(`• ${text}`, margin + 2, y);
-            y += 5.5;
-        });
-        y += 4;
-
-        // ═══════════════════════════════════════════
-        // HELPER: Desenhar seção de equipe por turno
-        // ═══════════════════════════════════════════
-        const team7H = data.employees.filter(e => e.turno !== '6H');
-        const team6H = data.employees.filter(e => e.turno === '6H');
-
-        const drawSection = (
-            emps: { n: string; m: string; s: string }[],
-            turnoLabel: string
-        ) => {
-            if (emps.length === 0) return;
-
-            checkPageBreak(14);
-
-            // Título da equipe
-            pdf.setDrawColor(200, 210, 220);
-            pdf.line(margin, y, pageWidth - margin, y);
-            y += 6.5;
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(13);
-            pdf.setTextColor(30, 41, 59);
-            pdf.text(`EQUIPE TURNO ${turnoLabel}`, margin, y);
-            y += 3.5;
-            pdf.setDrawColor(200, 210, 220);
-            pdf.line(margin, y, pageWidth - margin, y);
-            y += 6;
-
-            const statusGroups: { key: string; label: string; emps: { n: string; m: string; s: string }[] }[] = [
-                { key: 'BEM', label: 'STATUS: "ASS.DSS + ESTOU BEM"', emps: emps.filter(e => e.s === 'BEM') },
-                { key: 'MAL', label: 'STATUS "ESTOU MAL"',            emps: emps.filter(e => e.s === 'MAL') },
-                { key: 'PEN', label: 'PENDENTES',                      emps: emps.filter(e => e.s === 'PEN') },
-                { key: 'AUS', label: 'AUSENTES',                       emps: emps.filter(e => e.s === 'AUS') },
-            ];
-
-            statusGroups.forEach(group => {
-                checkPageBreak(10);
-                pdf.setFont('helvetica', 'bold');
-                pdf.setFontSize(10);
-                pdf.setTextColor(30, 41, 59);
-                pdf.text(group.label, margin, y);
-                y += 5;
-
-                if (group.emps.length === 0) {
-                    pdf.setFont('helvetica', 'italic');
-                    pdf.setFontSize(9);
-                    pdf.setTextColor(120, 130, 145);
-                    pdf.text('Nenhum', margin + 4, y);
-                    y += 5;
-                } else {
-                    group.emps.forEach(emp => {
-                        checkPageBreak(5);
-                        pdf.setFont('helvetica', 'normal');
-                        pdf.setFontSize(9);
-                        pdf.setTextColor(30, 41, 59);
-                        const line = `• ${emp.n} (Matrícula: ${emp.m})`;
-                        pdf.text(line, margin + 4, y);
-                        y += 4.5;
-                    });
-                }
-                y += 3;
-            });
-        };
-
-        const drawRegistros = (
-            registros: { assunto: string; name: string; matricula: string }[],
-            turnoLabel: string
-        ) => {
-            checkPageBreak(14);
-            pdf.setDrawColor(200, 210, 220);
-            pdf.line(margin, y, pageWidth - margin, y);
-            y += 6.5;
-            pdf.setFont('helvetica', 'bold');
-            pdf.setFontSize(13);
-            pdf.setTextColor(30, 41, 59);
-            pdf.text(`REGISTROS DSS (TURNO ${turnoLabel})`, margin, y);
-            y += 3.5;
-            pdf.setDrawColor(200, 210, 220);
-            pdf.line(margin, y, pageWidth - margin, y);
-            y += 5;
-
-            if (registros.length === 0) {
-                pdf.setFont('helvetica', 'italic');
-                pdf.setFontSize(9);
-                pdf.setTextColor(120, 130, 145);
-                pdf.text(`Nenhum registro de assunto encontrado para ${turnoLabel}.`, margin + 2, y);
-                y += 6;
-            } else {
-                registros.forEach(reg => {
-                    checkPageBreak(14);
-                    const nameText = reg.name ? `${reg.name} (Matrícula: ${reg.matricula || '---'})` : 'Nome não informado';
-                    pdf.setFont('helvetica', 'bold');
-                    pdf.setFontSize(9);
-                    pdf.setTextColor(30, 41, 59);
-                    pdf.text(`• ${nameText}`, margin + 2, y);
-                    y += 4.5;
-                    pdf.setFont('helvetica', 'italic');
-                    pdf.setFontSize(9);
-                    pdf.setTextColor(60, 80, 100);
-                    const assuntoLines = pdf.splitTextToSize(`Assunto: ${reg.assunto || 'NÃO PREENCHIDO'}`, contentWidth - 8);
-                    pdf.text(assuntoLines, margin + 6, y);
-                    y += assuntoLines.length * 4.5 + 2;
-                });
-            }
-            y += 4;
-        };
-
-        // ═══════════════════════════════════════════
-        // REGISTROS DSS (TEMAS)
-        // ═══════════════════════════════════════════
-        drawRegistros(data.registros7H, mainLabel);
-        if (data.turma !== 'CCG') {
-            drawRegistros(data.registros6H, secLabel);
-        }
-
-        // ═══════════════════════════════════════════
-        // EQUIPE POR TURNO
-        // ═══════════════════════════════════════════
-        drawSection(team7H, mainLabel);
-        if (data.turma !== 'CCG' && team6H.length > 0) {
-            drawSection(team6H, secLabel);
-        }
-
-        // ═══════════════════════════════════════════
-        // RODAPÉ
-        // ═══════════════════════════════════════════
-        const footerY = pageHeight - 8;
-        pdf.setFont('helvetica', 'italic');
-        pdf.setFontSize(7);
-        pdf.setTextColor(156, 163, 175);
-        pdf.text(`Gerado em ${new Date().toLocaleString('pt-BR')} — Painel DSS`, pageWidth / 2, footerY, { align: 'center' });
-
-        pdf.save(`${filename}.pdf`);
+        const blob = await generatePdfBlob(data);
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${filename}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
     } catch (error) {
         console.error('Error generating PDF:', error);
         throw error;
     }
 };
 
-export const exportToDoc = (text: string, filename: string) => {
-    // Generate simple HTML template for the DOC
+
+export const generateDocBlob = (text: string): Blob => {
     const htmlContent = `
         <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-        <head><meta charset='utf-8'><title>${filename}</title></head>
+        <head><meta charset='utf-8'><title>Documento</title></head>
         <body style="font-family: Arial, sans-serif; white-space: pre-wrap; margin: 2rem;">
             ${text.replace(/\n/g, '<br/>')}
         </body>
         </html>
     `;
-
-    const blob = new Blob(['\ufeff', htmlContent], {
+    return new Blob(['\ufeff', htmlContent], {
         type: 'application/msword'
     });
-    
+};
+
+export const exportToDoc = (text: string, filename: string) => {
+    const blob = generateDocBlob(text);
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -279,7 +257,7 @@ export const exportToDoc = (text: string, filename: string) => {
     URL.revokeObjectURL(url);
 };
 
-export const exportToExcel = (dataOrArray: PdfReportData | Array<any>, filename: string) => {
+export const generateExcelBlob = (dataOrArray: PdfReportData | Array<any>): Blob => {
     try {
         const wb = XLSX.utils.book_new();
         let ws: XLSX.WorkSheet;
@@ -376,7 +354,24 @@ export const exportToExcel = (dataOrArray: PdfReportData | Array<any>, filename:
         }
 
         XLSX.utils.book_append_sheet(wb, ws, "Relatório");
-        XLSX.writeFile(wb, `${filename}.xlsx`);
+        
+        const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+        return new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    } catch (error) {
+        console.error('Error generating Excel blob:', error);
+        throw error;
+    }
+};
+
+export const exportToExcel = (dataOrArray: PdfReportData | Array<any>, filename: string) => {
+    try {
+        const blob = generateExcelBlob(dataOrArray);
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${filename}.xlsx`;
+        a.click();
+        window.URL.revokeObjectURL(url);
     } catch (error) {
         console.error('Error generating Excel:', error);
         throw error;
@@ -391,4 +386,30 @@ export const exportToTxt = (text: string, filename: string) => {
     a.download = `${filename}.txt`;
     a.click();
     window.URL.revokeObjectURL(url);
+};
+
+export const exportToZip = async (files: { name: string, content: string | Blob }[], zipFilename: string) => {
+    try {
+        const JSZip = (await import('jszip')).default;
+        const zip = new JSZip();
+        
+        files.forEach(file => {
+            if (typeof file.content === 'string') {
+                zip.file(file.name, '\uFEFF' + file.content);
+            } else {
+                zip.file(file.name, file.content);
+            }
+        });
+
+        const content = await zip.generateAsync({ type: 'blob' });
+        const url = window.URL.createObjectURL(content);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${zipFilename}.zip`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Error generating ZIP:', error);
+        throw error;
+    }
 };
