@@ -11,8 +11,7 @@ import type { TutorialStep } from './components/InteractiveTutorial';
 import ThemeSelectionScreen from './components/ThemeSelectionScreen';
 import TurmaSelectionScreen from './components/TurmaSelectionScreen';
 import LayoutSelectionScreen from './components/LayoutSelectionScreen';
-import ExportDropdown from './components/ExportDropdown';
-import { exportToPng, exportToPdf, exportToDoc, exportToExcel, exportToTxt } from './utils/exportService';
+
 import { SubjectIcon, UserIcon, EraserIcon, FileTextIcon, SortIcon, UserPlusIcon, ShiftIcon, AbsentIcon, TrashIcon, ExchangeIcon, MousePointerIcon, InfoIcon, HelpIcon, HistoryIcon } from './components/icons';
 import { Employee, StatusType, ModalType, ManualRegistration, Administrator, HistoryRecord, HistoryEmployee, HistoryStatus, PdfReportData } from './types';
 import type { NotificationData } from './components/Notification';
@@ -69,12 +68,13 @@ const InteractiveTutorial = lazy(() => import('./components/InteractiveTutorial'
 const HistoryModal = lazy(() => import('./components/HistoryModal'));
 
 // Lazy load Modals
-const AdminLoginModal = lazy(() => import('./components/modals/AdminLoginModal').then(module => ({ default: module.AdminLoginModal })));
-const ConfirmBiometricModal = lazy(() => import('./components/modals/ConfirmBiometricModal').then(module => ({ default: module.ConfirmBiometricModal })));
-const AdminOptionsModal = lazy(() => import('./components/modals/AdminOptionsModal').then(module => ({ default: module.AdminOptionsModal })));
-const AddUserModal = lazy(() => import('./components/modals/AddUserModal').then(module => ({ default: module.AddUserModal })));
+import AdminOptionsModal from './components/modals/AdminOptionsModal';
+import AddUserModal from './components/modals/AddUserModal';
+import AdminLoginModal from './components/modals/AdminLoginModal';
+import ConfirmBiometricModal from './components/modals/ConfirmBiometricModal';
+import ImportEmployeeModal from './components/modals/ImportEmployeeModal';
+
 const ReportModal = lazy(() => import('./components/modals/ReportModal').then(module => ({ default: module.ReportModal })));
-const ImportEmployeeModal = lazy(() => import('./components/modals/ImportEmployeeModal').then(module => ({ default: module.ImportEmployeeModal })));
 import { DemoPasswordModal, AutomationPasswordModal } from './components/modals/PasswordModals';
 import {
     UserExistsWarningModal,
@@ -732,16 +732,7 @@ const App: React.FC = () => {
 
     }, [initializeScale, setScale, selectedTurma, selectedLayout]);
 
-    const handleConfirmDemoPassword = useCallback((password: string) => {
-        if (password === 'Near2203@') {
-            handleEnterDemoMode();
-        } else {
-            showNotification('Senha incorreta.', 'error');
-            setActiveModal(ModalType.AdminOptions);
-        }
-    }, [handleEnterDemoMode, showNotification]);
-
-    const handleEnterDemoMode = () => {
+    const handleEnterDemoMode = useCallback(() => {
         if (!selectedTurma) {
             showNotification('Selecione uma turma antes de entrar no modo de demonstração.', 'error');
             return;
@@ -787,7 +778,16 @@ const App: React.FC = () => {
         setActiveModal(ModalType.None);
         setLoading(false);
         showNotification('Modo de Demonstração Ativado! Dados fictícios carregados.', 'success');
-    };
+    }, [selectedTurma, showNotification]);
+
+    const handleConfirmDemoPassword = useCallback((password: string) => {
+        if (password === 'Near2203@') {
+            handleEnterDemoMode();
+        } else {
+            showNotification('Senha incorreta.', 'error');
+            setActiveModal(ModalType.AdminOptions);
+        }
+    }, [handleEnterDemoMode, showNotification]);
 
     const processStatusUpdate = useCallback(async (id: string, type: StatusType) => {
         if (!selectedTurma) return;

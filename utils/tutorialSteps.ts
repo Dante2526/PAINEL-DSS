@@ -1,4 +1,4 @@
-import { TutorialStep } from '../components/InteractiveTutorial';
+import type { TutorialStep } from '../components/InteractiveTutorial';
 import { getShiftLabel, getMainShiftLabel } from './turmaUtils';
 
 export const getTutorialSteps = (turma: string | null): TutorialStep[] => {
