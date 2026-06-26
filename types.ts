@@ -97,6 +97,7 @@ export enum ModalType {
   SignaturePassword,
   AdminPassword,
   ManageAdmins,
+  AddAdmin,
   AuditLog,
 }
 

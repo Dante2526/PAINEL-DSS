@@ -8,29 +8,10 @@ export const ManageAdminsModal: React.FC<{
     onClose: () => void;
     administrators: Administrator[];
     currentAdminEmail: string;
-    onAddAdmin: (name: string, email: string, matricula: string, nivel: string) => Promise<void>;
+    onOpenAddAdmin: () => void;
     onDeleteAdmin: (id: string) => Promise<void>;
     scale: number;
-}> = ({ isOpen, onClose, administrators, currentAdminEmail, onAddAdmin, onDeleteAdmin, scale }) => {
-    const [isAdding, setIsAdding] = useState(false);
-    const [newName, setNewName] = useState('');
-    const [newEmail, setNewEmail] = useState('');
-    const [newMatricula, setNewMatricula] = useState('');
-    const [newNivel, setNewNivel] = useState('1');
-
-    const handleAdd = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newName.trim() || !newEmail.trim() || !newMatricula.trim()) {
-            alert('Preencha todos os campos obrigatórios.');
-            return;
-        }
-        await onAddAdmin(newName.trim().toUpperCase(), newEmail.trim().toLowerCase(), newMatricula.trim(), newNivel);
-        setIsAdding(false);
-        setNewName('');
-        setNewEmail('');
-        setNewMatricula('');
-        setNewNivel('1');
-    };
+}> = ({ isOpen, onClose, administrators, currentAdminEmail, onOpenAddAdmin, onDeleteAdmin, scale }) => {
 
     if (!isOpen) return null;
 
@@ -53,56 +34,13 @@ export const ManageAdminsModal: React.FC<{
                         <span className="font-bold text-gray-700 dark:text-gray-200">ADMs Cadastrados</span>
                     </div>
                     <button 
-                        onClick={() => setIsAdding(!isAdding)}
+                        onClick={onOpenAddAdmin}
                         className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-md text-sm font-bold flex items-center gap-1 transition-colors shadow-sm"
                     >
-                        {isAdding ? "Cancelar" : "+ Novo ADM"}
+                        <UserPlusIcon className="w-4 h-4" />
+                        <span>Novo ADM</span>
                     </button>
                 </div>
-
-                {/* Formulário de Adição */}
-                {isAdding && (
-                    <form onSubmit={handleAdd} className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800/50 flex flex-col gap-3 animate-fade-in-down">
-                        <h3 className="font-bold text-indigo-800 dark:text-indigo-300 text-sm">CADASTRAR NOVO ADM</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <input
-                                type="text"
-                                placeholder="Nome Completo"
-                                value={newName}
-                                onChange={(e) => setNewName(e.target.value)}
-                                className={inputClassName}
-                            />
-                            <input
-                                type="text"
-                                placeholder="Matrícula"
-                                value={newMatricula}
-                                onChange={(e) => setNewMatricula(e.target.value)}
-                                className={inputClassName}
-                            />
-                            <input
-                                type="email"
-                                placeholder="E-mail Corporativo"
-                                value={newEmail}
-                                onChange={(e) => setNewEmail(e.target.value)}
-                                className={inputClassName}
-                            />
-                            <select
-                                value={newNivel}
-                                onChange={(e) => setNewNivel(e.target.value)}
-                                className={inputClassName}
-                            >
-                                <option value="1">Nível 1 (Padrão)</option>
-                                <option value="2">Nível 2 (Super ADM)</option>
-                            </select>
-                        </div>
-                        <p className="text-xs text-indigo-600 dark:text-indigo-400 font-bold italic bg-white dark:bg-black/20 p-2 rounded">
-                            * A senha inicial será configurada automaticamente igual ao E-mail Corporativo.
-                        </p>
-                        <button type="submit" className="w-full bg-indigo-600 text-white py-2.5 rounded-lg font-bold hover:bg-indigo-700 transition-colors shadow-md mt-1">
-                            SALVAR ADMINISTRADOR
-                        </button>
-                    </form>
-                )}
 
                 {/* Lista de Administradores */}
                 <div className="max-h-[50vh] overflow-y-auto pr-1 space-y-2 custom-scrollbar">

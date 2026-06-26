@@ -76,6 +76,7 @@ import ImportEmployeeModal from './components/modals/ImportEmployeeModal';
 import SignaturePasswordModal from './components/modals/SignaturePasswordModal';
 import AdminPasswordModal from './components/modals/AdminPasswordModal';
 import ManageAdminsModal from './components/modals/ManageAdminsModal';
+import AddAdminModal from './components/modals/AddAdminModal';
 import AuditLogModal from './components/modals/AuditLogModal';
 
 const ReportModal = lazy(() => import('./components/modals/ReportModal').then(module => ({ default: module.ReportModal })));
@@ -2387,8 +2388,14 @@ const App: React.FC = () => {
                         onClose={() => setActiveModal(ModalType.AdminOptions)}
                         administrators={administrators}
                         currentAdminEmail={adminEmail}
-                        onAddAdmin={handleAddAdministrator}
+                        onOpenAddAdmin={() => setActiveModal(ModalType.AddAdmin)}
                         onDeleteAdmin={handleDeleteAdministrator}
+                        scale={modalScale}
+                    />
+                    <AddAdminModal
+                        isOpen={activeModal === ModalType.AddAdmin}
+                        onClose={() => setActiveModal(ModalType.ManageAdmins)}
+                        onAddAdmin={handleAddAdministrator}
                         scale={modalScale}
                     />
                     <ConfirmDeleteModal
