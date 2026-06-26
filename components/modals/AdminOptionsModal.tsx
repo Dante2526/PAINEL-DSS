@@ -28,7 +28,6 @@ export const AdminOptionsModal: React.FC<{
     onClearBiometrics: () => void;
     onManageAdmins: () => void;
     onAuditLog: () => void;
-    onMigrateDatabase: () => void;
     hasBiometrics: boolean;
     is6HActive: boolean;
     isAutomationPaused: boolean;
@@ -36,7 +35,7 @@ export const AdminOptionsModal: React.FC<{
     scale: number;
     selectedTurma: string | null;
     currentAdminNivel: string;
-}> = ({ isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onImportUser, onEnterDemo, onStartAdminTutorial, onToggle6H, onToggleAutomation, onToggleSignaturePassword, onChangeAdminPassword, onHistory, onClearBiometrics, onManageAdmins, onAuditLog, onMigrateDatabase, hasBiometrics, is6HActive, isAutomationPaused, isSignaturePasswordActive, scale, selectedTurma, currentAdminNivel }) => {
+}> = ({ isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onImportUser, onEnterDemo, onStartAdminTutorial, onToggle6H, onToggleAutomation, onToggleSignaturePassword, onChangeAdminPassword, onHistory, onClearBiometrics, onManageAdmins, onAuditLog, hasBiometrics, is6HActive, isAutomationPaused, isSignaturePasswordActive, scale, selectedTurma, currentAdminNivel }) => {
     if (!isOpen) return null;
 
     return (
@@ -145,18 +144,10 @@ export const AdminOptionsModal: React.FC<{
                     <button
                         id="admin-password-btn"
                         onClick={onChangeAdminPassword}
-                        className={`p-3 bg-gray-700 hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-900 text-white rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 shadow-md h-[86px] md:h-[82px] hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] transform col-span-1 md:col-span-1`}
+                        className={`p-3 bg-gray-700 hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-900 text-white rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 shadow-md h-[86px] md:h-[82px] hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] transform col-span-1 md:col-span-2`}
                     >
                         <div className="scale-[0.85] md:scale-90 origin-bottom"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg></div>
                         <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">MINHA SENHA</span>
-                    </button>
-                    <button
-                        id="admin-migrate-btn"
-                        onClick={onMigrateDatabase}
-                        className="p-3 bg-red-600 hover:bg-red-700 text-white rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 shadow-md h-[86px] md:h-[82px] hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] transform col-span-1 md:col-span-1"
-                    >
-                        <div className="scale-[0.85] md:scale-90 origin-bottom"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></div>
-                        <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">MIGRAR DB (AUSENTE)</span>
                     </button>
                     {currentAdminNivel === '2' && (
                         <>

@@ -32,8 +32,7 @@ import {
     getDocs,
     deleteDoc,
     setDoc,
-    getDoc,
-    deleteField
+    getDoc
 } from 'firebase/firestore';
 import { signInAnonymously } from 'firebase/auth';
 import emailjs from '@emailjs/browser';
@@ -1985,48 +1984,7 @@ const App: React.FC = () => {
         }
     }, [db, showNotification]);
 
-    const handleMigrateDatabase = useCallback(async () => {
-        if (!db) return;
-        
-        if (!window.confirm("ATENÇÃO: Você está prestes a migrar o campo 'absent' para 'ausente' em TODAS as turmas.\nIsso pode demorar alguns segundos. Deseja continuar?")) {
-            return;
-        }
 
-        try {
-            showNotification('Iniciando migração do banco de dados...', 'info');
-            let totalAtualizados = 0;
-
-            for (const turma of ALL_TURMAS) {
-                const collectionName = getTurmaCollectionName(turma);
-                const colRef = collection(db, collectionName);
-                const snapshot = await getDocs(colRef);
-
-                // Firestore writeBatch tem limite de 500 operações
-                const docsToMigrate = snapshot.docs.filter(d => d.data().absent !== undefined);
-                
-                for (let i = 0; i < docsToMigrate.length; i += 499) {
-                    const batch = writeBatch(db);
-                    const chunk = docsToMigrate.slice(i, i + 499);
-                    
-                    chunk.forEach(document => {
-                        const data = document.data();
-                        batch.update(document.ref, {
-                            ausente: data.absent,
-                            absent: deleteField()
-                        });
-                    });
-                    
-                    await batch.commit();
-                    totalAtualizados += chunk.length;
-                }
-            }
-
-            showNotification(`Migração concluída com sucesso! ${totalAtualizados} registros atualizados.`, 'success');
-        } catch (error) {
-            console.error("Erro na migração:", error);
-            showNotification("Falha durante a migração. Verifique os logs.", 'error');
-        }
-    }, [db, showNotification]);
 
     const currentLiveHistory = useMemo(() => {
         if (!selectedTurma) return null;
@@ -2300,7 +2258,6 @@ const App: React.FC = () => {
                         onChangeAdminPassword={() => setActiveModal(ModalType.AdminPassword)}
                         onManageAdmins={() => setActiveModal(ModalType.ManageAdmins)}
                         onAuditLog={handleOpenAuditLog}
-                        onMigrateDatabase={handleMigrateDatabase}
                         onToggleSignaturePassword={handleToggleSignaturePassword}
                         hasBiometrics={hasRegisteredBiometrics()}
                         is6HActive={is6HActive}
