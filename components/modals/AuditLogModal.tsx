@@ -2,6 +2,21 @@ import React, { useState, useMemo } from 'react';
 import Modal from '../Modal';
 import { AuditRecord } from '../../types';
 
+const translateAction = (action: string) => {
+    const translations: Record<string, string> = {
+        'STATUS_CHANGE': 'ALTERAÇÃO DE STATUS',
+        'LOGIN': 'LOGIN',
+        'LOGOUT': 'SAÍDA',
+        'CREATE': 'CRIADO',
+        'UPDATE': 'ATUALIZADO',
+        'DELETE': 'EXCLUÍDO',
+        'USER_ADDED': 'USUÁRIO ADICIONADO',
+        'USER_REMOVED': 'USUÁRIO REMOVIDO',
+        'DATA_EXPORT': 'EXPORTAÇÃO DE DADOS',
+    };
+    return translations[action] || action;
+};
+
 export const AuditLogModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
@@ -72,7 +87,7 @@ export const AuditLogModal: React.FC<{
                                 <div key={admin.id} className="border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 shadow-sm overflow-hidden transition-all duration-200">
                                     <button 
                                         onClick={() => setExpandedAdminId(isExpanded ? null : admin.id)}
-                                        className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
+                                        className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                                     >
                                         <div className="flex flex-col items-start text-left">
                                             <span className="font-bold text-gray-800 dark:text-white text-sm md:text-base">
@@ -102,7 +117,7 @@ export const AuditLogModal: React.FC<{
                                                             <div className="w-[calc(100%-2.5rem)] p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm transition-all hover:shadow-md">
                                                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-1 gap-1">
                                                                     <span className="font-bold text-xs text-indigo-600 dark:text-indigo-400 uppercase tracking-wide">
-                                                                        {acao.action}
+                                                                        {translateAction(acao.action)}
                                                                     </span>
                                                                     <span className="text-[10px] font-mono text-gray-500 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">
                                                                         {acao.timestamp}
