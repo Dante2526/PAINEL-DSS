@@ -60,19 +60,25 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children,
         style={modalStyle}
         onClick={(e) => e.stopPropagation()}
       >
-        {onBack && (
-          <button
-            onClick={onBack}
-            className="absolute top-3.5 left-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors z-10"
-            title="Voltar"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
-        )}
-        <button onClick={onClose} className="absolute top-2 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10 font-bold">&times;</button>
-        {title && <h2 className="text-lg md:text-xl font-bold uppercase text-light-text dark:text-dark-text mb-3 md:mb-4 mt-1 md:mt-2 shrink-0">{title}</h2>}
+        <div className="flex items-center justify-between mb-3 md:mb-4 w-full">
+          <div className="w-8 flex justify-start shrink-0">
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors z-10"
+                title="Voltar"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+            )}
+          </div>
+          {title && <h2 className="text-lg md:text-xl font-bold uppercase text-light-text dark:text-dark-text text-center flex-grow px-2">{title}</h2>}
+          <div className="w-8 flex justify-end shrink-0">
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10 font-bold leading-none -mt-1">&times;</button>
+          </div>
+        </div>
         <div className="flex-grow flex flex-col min-h-0">
           {children}
           {/* Espaçador invisível para garantir margem no final do scroll do modal, especialmente em mobile */}

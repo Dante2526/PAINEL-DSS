@@ -92,14 +92,14 @@ export const AuditLogModal: React.FC<{
                                             {sortedActions.length === 0 ? (
                                                 <p className="text-sm text-gray-500 italic">Nenhuma ação registrada para este usuário.</p>
                                             ) : (
-                                                <div className="space-y-3 relative before:absolute before:inset-0 before:ml-2 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-300 dark:before:via-gray-600 before:to-transparent">
+                                                <div className="space-y-3 relative before:absolute before:inset-0 before:ml-2 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-300 dark:before:via-gray-600 before:to-transparent">
                                                     {sortedActions.map((acao, idx) => (
-                                                        <div key={idx} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                                                        <div key={idx} className="relative flex items-center justify-between">
                                                             {/* Timeline Icon / Dot */}
-                                                            <div className="flex items-center justify-center w-5 h-5 rounded-full border-2 border-white dark:border-gray-800 bg-indigo-500 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-sm z-10"></div>
+                                                            <div className="flex items-center justify-center w-5 h-5 rounded-full border-2 border-white dark:border-gray-800 bg-indigo-500 shrink-0 shadow-sm z-10"></div>
                                                             
                                                             {/* Content Card */}
-                                                            <div className="w-[calc(100%-2.5rem)] md:w-[calc(50%-1.5rem)] p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm transition-all hover:shadow-md">
+                                                            <div className="w-[calc(100%-2.5rem)] p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm transition-all hover:shadow-md">
                                                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-1 gap-1">
                                                                     <span className="font-bold text-xs text-indigo-600 dark:text-indigo-400 uppercase tracking-wide">
                                                                         {acao.action}

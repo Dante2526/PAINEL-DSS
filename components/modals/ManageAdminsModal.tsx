@@ -30,17 +30,13 @@ export const ManageAdminsModal: React.FC<{
         >
             <div className="flex flex-col space-y-4">
                 
-                {/* Cabeçalho e Botão de Adicionar */}
-                <div className="flex justify-between items-center bg-gray-100 dark:bg-gray-800 p-3 rounded-lg shadow-inner">
-                    <div className="flex items-center gap-2">
-                        <InfoIcon className="w-6 h-6 text-indigo-500" />
-                        <span className="font-bold text-gray-700 dark:text-gray-200">ADMs Cadastrados</span>
-                    </div>
+                {/* Botão de Adicionar */}
+                <div className="flex justify-center items-center">
                     <button 
                         onClick={onOpenAddAdmin}
-                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-md text-sm font-bold flex items-center gap-1 transition-colors shadow-sm"
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                     >
-                        <UserPlusIcon className="w-4 h-4" />
+                        <UserPlusIcon className="w-5 h-5" />
                         <span>Novo ADM</span>
                     </button>
                 </div>
@@ -65,10 +61,10 @@ export const ManageAdminsModal: React.FC<{
                                         <span>Senha: <strong className="font-mono text-gray-700 dark:text-gray-300">{admin.senha || "N/A"}</strong></span>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-1">
+                                <div className="flex items-center gap-2">
                                     <button
                                         onClick={() => onOpenEditAdmin(admin.id)}
-                                        className="p-2 rounded-full transition-colors text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                                        className="p-2 rounded-lg transition-all text-white bg-blue-500 hover:bg-blue-600 shadow-sm hover:shadow transform hover:-translate-y-0.5"
                                         title="Editar Administrador"
                                     >
                                         <EditIcon className="w-5 h-5" />
@@ -84,7 +80,7 @@ export const ManageAdminsModal: React.FC<{
                                             }
                                         }}
                                         disabled={isMe}
-                                        className={`p-2 rounded-full transition-colors ${isMe ? 'opacity-30 cursor-not-allowed' : 'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30'}`}
+                                        className={`p-2 rounded-lg transition-all text-white shadow-sm hover:shadow transform ${isMe ? 'opacity-50 cursor-not-allowed bg-red-400' : 'bg-red-500 hover:bg-red-600 hover:-translate-y-0.5'}`}
                                         title={isMe ? "Você não pode excluir a si mesmo" : "Excluir Administrador"}
                                     >
                                         <TrashIcon className="w-5 h-5" />
