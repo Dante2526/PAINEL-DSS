@@ -67,7 +67,7 @@ const SignaturePasswordModal: React.FC<SignaturePasswordModalProps> = ({
         const success = await onChangePassword(currentPassword, newPassword);
         if (success) {
             setView('confirm');
-            setSenha(newPassword);
+            setSenha('');
         }
     };
 
