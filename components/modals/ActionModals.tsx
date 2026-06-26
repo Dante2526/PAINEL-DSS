@@ -1,6 +1,6 @@
 import React from 'react';
 import Modal from '../Modal';
-import { UserIcon, ShiftIcon, AbsentIcon, TrashIcon, InfoIcon, HelpIcon, ExchangeIcon } from '../icons';
+import { UserIcon, ShiftIcon, AusenteIcon, TrashIcon, InfoIcon, HelpIcon, ExchangeIcon } from '../icons';
 import { TurmaType, getShiftLabel, getMainShiftLabel } from '../../utils/turmaUtils';
 
 export const UserExistsWarningModal: React.FC<{
@@ -202,7 +202,7 @@ export const ConfirmTurnoModal: React.FC<{
     );
 };
 
-export const ConfirmAbsentModal: React.FC<{
+export const ConfirmAusenteModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
     onConfirm: () => void;
@@ -229,7 +229,7 @@ export const ConfirmAbsentModal: React.FC<{
                 <h2 className="text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6">CONFIRMAR AUSÊNCIA</h2>
                 <div className="space-y-6 text-center p-2 flex flex-col items-center">
                     <div className="mx-auto w-16 h-16 bg-orange/20 rounded-full flex items-center justify-center mb-2 text-orange">
-                        <AbsentIcon className="w-8 h-8" />
+                        <AusenteIcon className="w-8 h-8" />
                     </div>
                     <div className="text-lg text-light-text dark:text-dark-text font-medium flex flex-col items-center gap-2">
                         <span>Marcar <strong>{employeeName}</strong> como:</span>

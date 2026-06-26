@@ -5,8 +5,8 @@ export const EMAILJS_PUBLIC_KEY = "Ef-7IoF9U9NQ_iV8X";
 // ----------------------------
 
 // --- TIPO E HELPERS DE TURMA ---
-export type TurmaType = 'A' | 'B' | 'C' | 'D' | 'CCG' | 'ESTAGIO';
-export const ALL_TURMAS: TurmaType[] = ['A', 'B', 'C', 'D', 'CCG', 'ESTAGIO'];
+export type TurmaType = 'A' | 'B' | 'C' | 'D' | 'CCG' | 'B_CG' | 'ESTAGIO';
+export const ALL_TURMAS: TurmaType[] = ['A', 'B', 'C', 'D', 'CCG', 'B_CG', 'ESTAGIO'];
 
 export const TURMA_DISPLAY_NAMES: Record<TurmaType, string> = {
     A: 'A',
@@ -14,6 +14,7 @@ export const TURMA_DISPLAY_NAMES: Record<TurmaType, string> = {
     C: 'C',
     D: 'D',
     CCG: 'C CG',
+    B_CG: 'B CG',
     ESTAGIO: 'Estágio',
 };
 

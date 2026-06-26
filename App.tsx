@@ -12,8 +12,8 @@ import ThemeSelectionScreen from './components/ThemeSelectionScreen';
 import TurmaSelectionScreen from './components/TurmaSelectionScreen';
 import LayoutSelectionScreen from './components/LayoutSelectionScreen';
 
-import { SubjectIcon, UserIcon, EraserIcon, FileTextIcon, SortIcon, UserPlusIcon, ShiftIcon, AbsentIcon, TrashIcon, ExchangeIcon, MousePointerIcon, InfoIcon, HelpIcon, HistoryIcon } from './components/icons';
-import { Employee, StatusType, ModalType, ManualRegistration, Administrator, HistoryRecord, HistoryEmployee, HistoryStatus, PdfReportData } from './types';
+import { SubjectIcon, UserIcon, EraserIcon, FileTextIcon, SortIcon, UserPlusIcon, ShiftIcon, AusenteIcon, TrashIcon, ExchangeIcon, MousePointerIcon, InfoIcon, HelpIcon, HistoryIcon } from './components/icons';
+import { Employee, StatusType, ModalType, ManualRegistration, Administrator, HistoryRecord, HistoryEmployee, HistoryStatus, PdfReportData, AuditRecord } from './types';
 import type { NotificationData } from './components/Notification';
 import { db, auth, isConfigured } from './firebase';
 import { FALLBACK_LOGO } from './components/logoConstants';
@@ -32,7 +32,8 @@ import {
     getDocs,
     deleteDoc,
     setDoc,
-    getDoc
+    getDoc,
+    deleteField
 } from 'firebase/firestore';
 import { signInAnonymously } from 'firebase/auth';
 import emailjs from '@emailjs/browser';
@@ -73,15 +74,19 @@ import AddUserModal from './components/modals/AddUserModal';
 import AdminLoginModal from './components/modals/AdminLoginModal';
 import ConfirmBiometricModal from './components/modals/ConfirmBiometricModal';
 import ImportEmployeeModal from './components/modals/ImportEmployeeModal';
+import SignaturePasswordModal from './components/modals/SignaturePasswordModal';
+import AdminPasswordModal from './components/modals/AdminPasswordModal';
+import ManageAdminsModal from './components/modals/ManageAdminsModal';
+import AuditLogModal from './components/modals/AuditLogModal';
 
 const ReportModal = lazy(() => import('./components/modals/ReportModal').then(module => ({ default: module.ReportModal })));
-import { DemoPasswordModal, AutomationPasswordModal } from './components/modals/PasswordModals';
+// Remover AutomationPasswordModal
 import {
     UserExistsWarningModal,
     InvalidMatriculaModal,
     ConfirmMalModal,
     ConfirmTurnoModal,
-    ConfirmAbsentModal,
+    ConfirmAusenteModal,
     ConfirmDeleteModal,
     ConfirmDeactivate6HModal,
     TutorialChoiceModal,
@@ -154,9 +159,11 @@ const App: React.FC = () => {
     const [existingUserInfo, setExistingUserInfo] = useState<{ name: string; turma: string } | null>(null);
 
     const [is6HActive, setIs6HActive] = useState(true);
+    const [isSignaturePasswordActive, setIsSignaturePasswordActive] = useState(false);
     const [isAutomationPaused, setIsAutomationPaused] = useState(false);
 
     const [isAdminTutorialOpen, setIsAdminTutorialOpen] = useState(false);
+    const [auditRecords, setAuditRecords] = useState<AuditRecord[]>([]);
 
     // Demo Mode State
     const [isDemoMode, setIsDemoMode] = useState(false);
@@ -394,9 +401,10 @@ const App: React.FC = () => {
                                 assDss: data.assDss,
                                 bem: data.bem,
                                 mal: data.mal,
-                                absent: data.absent,
+                                ausente: data.ausente !== undefined ? data.ausente : (data.absent || false),
                                 time: data.time ? formatTimestamp(data.time as Timestamp) : null,
                                 turno: data.turno || '7H',
+                                senha: data.senha || undefined,
                             };
 
                             if (change.type === 'added') {
@@ -448,9 +456,16 @@ const App: React.FC = () => {
                     
                     const config6H = querySnapshot.docs.find(d => d.id === 'config_6H');
                     if (config6H) {
-                        setIs6HActive(config6H.data().active ?? true);
+                        setIs6HActive(config6H.data().active ?? (selectedTurma === 'B_CG' ? false : true));
                     } else {
-                        setIs6HActive(true);
+                        setIs6HActive(selectedTurma === 'B_CG' ? false : true);
+                    }
+                    
+                    const configSignaturePassword = querySnapshot.docs.find(d => d.id === 'config_signature_password');
+                    if (configSignaturePassword) {
+                        setIsSignaturePasswordActive(configSignaturePassword.data().active ?? (selectedTurma === 'B_CG'));
+                    } else {
+                        setIsSignaturePasswordActive(selectedTurma === 'B_CG');
                     }
                     
                     const newDbMainSubject = mainReg?.assunto || '';
@@ -761,7 +776,7 @@ const App: React.FC = () => {
                 assDss: isBem,
                 bem: isBem,
                 mal: isMal,
-                absent: isAbsent,
+                ausente: isAbsent,
                 time: isPresent ? formatTimestamp(Timestamp.now()) : null,
                 turno: i < 35 ? '7H' : '6H'
             };
@@ -780,15 +795,6 @@ const App: React.FC = () => {
         showNotification('Modo de Demonstração Ativado! Dados fictícios carregados.', 'success');
     }, [selectedTurma, showNotification]);
 
-    const handleConfirmDemoPassword = useCallback((password: string) => {
-        if (password === 'Near2203@') {
-            handleEnterDemoMode();
-        } else {
-            showNotification('Senha incorreta.', 'error');
-            setActiveModal(ModalType.AdminOptions);
-        }
-    }, [handleEnterDemoMode, showNotification]);
-
     const processStatusUpdate = useCallback(async (id: string, type: StatusType) => {
         if (!selectedTurma) return;
         const employee = employeesRef.current.find(e => e.id === id);
@@ -803,8 +809,8 @@ const App: React.FC = () => {
 
         const updatedData: { [key: string]: any } = {};
 
-        if (type === 'absent') {
-            updatedData.absent = isChecking;
+        if (type === 'ausente') {
+            updatedData.ausente = isChecking;
             if (isChecking) {
                 updatedData.assDss = false;
                 updatedData.bem = false;
@@ -812,7 +818,7 @@ const App: React.FC = () => {
             }
         } else {
             if (isChecking) {
-                updatedData.absent = false;
+                updatedData.ausente = false;
             }
 
             if (type === 'assDss') {
@@ -834,14 +840,14 @@ const App: React.FC = () => {
 
         if (isDemoMode) {
             const finalStates = {
-                absent: updatedData.absent !== undefined ? updatedData.absent : employee.absent,
+                ausente: updatedData.ausente !== undefined ? updatedData.ausente : employee.ausente,
                 assDss: updatedData.assDss !== undefined ? updatedData.assDss : employee.assDss,
                 bem: updatedData.bem !== undefined ? updatedData.bem : employee.bem,
                 mal: updatedData.mal !== undefined ? updatedData.mal : employee.mal,
             };
 
             let newTime = employee.time;
-            if (finalStates.absent) {
+            if (finalStates.ausente) {
                 newTime = null;
             } else if (finalStates.assDss) {
                 if (!newTime) {
@@ -863,13 +869,13 @@ const App: React.FC = () => {
 
         try {
             const finalStates = {
-                absent: updatedData.absent !== undefined ? updatedData.absent : employee.absent,
+                ausente: updatedData.ausente !== undefined ? updatedData.ausente : employee.ausente,
                 assDss: updatedData.assDss !== undefined ? updatedData.assDss : employee.assDss,
                 bem: updatedData.bem !== undefined ? updatedData.bem : employee.bem,
                 mal: updatedData.mal !== undefined ? updatedData.mal : employee.mal,
             };
 
-            if (finalStates.absent) {
+            if (finalStates.ausente) {
                 updatedData.time = null;
             } else if (finalStates.assDss) {
                 if (!employee.time) {
@@ -971,20 +977,26 @@ const App: React.FC = () => {
 
         const isChecking = !(employee as any)[type];
 
+        if (isSignaturePasswordActive && type === 'bem' && isChecking) {
+            setPendingEmployeeId(id);
+            setActiveModal(ModalType.SignaturePassword);
+            return;
+        }
+
         if (type === 'mal' && isChecking) {
             setPendingEmployeeId(id);
             setActiveModal(ModalType.ConfirmMal);
             return;
         }
 
-        if (type === 'absent' && isChecking) {
+        if (type === 'ausente' && isChecking) {
             setPendingEmployeeId(id);
-            setActiveModal(ModalType.ConfirmAbsent);
+            setActiveModal(ModalType.ConfirmAusente);
             return;
         }
 
         processStatusUpdate(id, type);
-    }, [processStatusUpdate]);
+    }, [processStatusUpdate, isSignaturePasswordActive]);
 
     const handleConfirmMal = useCallback(() => {
         if (pendingEmployeeId) {
@@ -994,13 +1006,73 @@ const App: React.FC = () => {
         }
     }, [pendingEmployeeId, processStatusUpdate]);
 
-    const handleConfirmAbsent = useCallback(() => {
+    const handleConfirmAusente = useCallback(() => {
         if (pendingEmployeeId) {
-            processStatusUpdate(pendingEmployeeId, 'absent');
+            processStatusUpdate(pendingEmployeeId, 'ausente');
             setPendingEmployeeId(null);
             setActiveModal(ModalType.None);
         }
     }, [pendingEmployeeId, processStatusUpdate]);
+
+    const handleConfirmSignaturePassword = useCallback(async (password: string) => {
+        if (!pendingEmployeeId || !selectedTurma) return;
+        
+        const employee = employeesRef.current.find(e => e.id === pendingEmployeeId);
+        if (!employee) return;
+        
+        const correctPassword = employee.senha || employee.matricula;
+        
+        if (password === correctPassword) {
+            processStatusUpdate(pendingEmployeeId, 'bem');
+            setPendingEmployeeId(null);
+            setActiveModal(ModalType.None);
+            showNotification('Assinatura confirmada com sucesso!', 'success');
+        } else {
+            showNotification('Senha incorreta. Tente novamente.', 'error');
+        }
+    }, [pendingEmployeeId, processStatusUpdate, selectedTurma, showNotification]);
+
+    const handleChangeSignaturePassword = useCallback(async (
+        currentPassword: string, 
+        newPassword: string
+    ) => {
+        if (!pendingEmployeeId || !selectedTurma) return false;
+        
+        const employee = employeesRef.current.find(e => e.id === pendingEmployeeId);
+        if (!employee) return false;
+        
+        const correctPassword = employee.senha || employee.matricula;
+        
+        if (currentPassword !== correctPassword) {
+            showNotification('Senha atual incorreta.', 'error');
+            return false;
+        }
+
+        if (isDemoMode) {
+            // No modo DEMO, atualiza apenas localmente
+            setEmployees(prev => prev.map(e => 
+                e.id === pendingEmployeeId ? { ...e, senha: newPassword } : e
+            ));
+            showNotification('Senha alterada com sucesso (DEMO)!', 'success');
+            return true;
+        }
+
+        if (!db) {
+            showNotification("A conexão com o banco de dados não está disponível.", "error");
+            return false;
+        }
+        
+        try {
+            const collectionName = getTurmaCollectionName(selectedTurma);
+            const docRef = doc(db, collectionName, pendingEmployeeId);
+            await updateDoc(docRef, { senha: newPassword });
+            showNotification('Senha alterada com sucesso!', 'success');
+            return true;
+        } catch (error) {
+            showNotification('Erro ao alterar a senha.', 'error');
+            return false;
+        }
+    }, [pendingEmployeeId, db, isDemoMode, selectedTurma, showNotification]);
 
     const processToggleSpecialTeam = useCallback(async (id: string) => {
         if (!selectedTurma) return;
@@ -1172,6 +1244,36 @@ const App: React.FC = () => {
         setActiveModal(ModalType.None);
     }, [processToggle6HState]);
 
+    const handleToggleSignaturePassword = useCallback(async () => {
+        if (!isAdminRef.current || !selectedTurma) {
+            showNotification('Apenas administradores podem alterar esta configuração.', 'error');
+            return;
+        }
+
+        const newActive = !isSignaturePasswordActive;
+
+        if (isDemoMode) {
+            setIsSignaturePasswordActive(newActive);
+            showNotification(newActive ? 'Senha de assinatura ativada (DEMO).' : 'Senha de assinatura desativada (DEMO).', 'success');
+            return;
+        }
+
+        if (!db) {
+            showNotification("A conexão com o banco de dados não está disponível.", "error");
+            return;
+        }
+
+        try {
+            const docRef = doc(db, getTurmaRegistrationName(selectedTurma), 'config_signature_password');
+            await setDoc(docRef, { active: newActive }, { merge: true });
+            showNotification(newActive ? 'Senha de assinatura ATIVADA para esta turma.' : 'Senha de assinatura DESATIVADA para esta turma.', 'success');
+            logAuditEvent(adminEmailRef.current, 'TOGGLE_SIGNATURE_PASSWORD', `Senha de assinatura: ${newActive ? 'Ativada' : 'Desativada'}`, selectedTurma);
+        } catch (error) {
+            console.error("Error toggling signature password:", error);
+            showNotification('Falha ao alterar configuração de senha.', 'error');
+        }
+    }, [isSignaturePasswordActive, selectedTurma, isDemoMode, db, showNotification]);
+
     const handleManualRegister = useCallback(async (turno: '7H' | '6H', matricula: string, rawSubject: string) => {
         if (!selectedTurma) return;
 
@@ -1226,14 +1328,15 @@ const App: React.FC = () => {
         }
     }, [selectedTurma, isDemoMode, db, administrators, allEmployeesForLookup, showNotification]);
 
-    const handleAdminLogin = async (email: string) => {
-        const normalizedEmail = email.trim().toLowerCase();
+    const handleAdminLogin = async (inputStr: string) => {
+        const normalizedInput = inputStr.trim();
+        const normalizedEmailInput = normalizedInput.toLowerCase();
 
         const isFirstAdminLogin = !localStorage.getItem('hasSeenAdminTutorial');
 
-        const processLogin = async (isDemo = false) => {
+        const processLogin = async (loggedEmail: string, isDemo = false) => {
             setIsAdmin(true);
-            setAdminEmail(normalizedEmail);
+            setAdminEmail(loggedEmail);
             
             // Sugere registro biométrico se estiver no celular e biometria ainda não estiver cadastrada
             const isCell = await isMobileCellularWithBiometrics();
@@ -1247,7 +1350,7 @@ const App: React.FC = () => {
             showNotification(isDemo ? 'Acesso Admin (DEMO) concedido.' : 'Login de administrador bem-sucedido!', 'success');
 
             if (!isDemo) {
-                logAuditEvent(normalizedEmail, 'LOGIN', `Admin logou no sistema`, selectedTurma);
+                logAuditEvent(loggedEmail, 'LOGIN', `Admin logou no sistema`, selectedTurma);
             }
 
             if (isFirstAdminLogin) {
@@ -1256,13 +1359,13 @@ const App: React.FC = () => {
             }
         };
 
-        if (normalizedEmail === 'naylanmoreira350@gmail.com') {
-            await processLogin();
+        if (normalizedEmailInput === 'naylanmoreira350@gmail.com') {
+            await processLogin(normalizedEmailInput);
             return;
         }
 
         if (isDemoMode) {
-            await processLogin(true);
+            await processLogin(normalizedEmailInput, true);
             return;
         }
 
@@ -1270,15 +1373,34 @@ const App: React.FC = () => {
             showNotification("A conexão com o banco de dados não está disponível.", "error");
             return;
         }
-        if (!email) {
-            showNotification('Por favor, insira um e-mail.', 'error');
+        if (!normalizedInput) {
+            showNotification('Por favor, insira um e-mail ou senha.', 'error');
             return;
         }
         try {
-            const q = query(collection(db, 'administrators'), where("email", "==", normalizedEmail));
-            const querySnapshot = await getDocs(q);
-            if (!querySnapshot.empty) {
-                await processLogin();
+            // 1. Tenta buscar pela senha exata
+            const qSenha = query(collection(db, 'administrators'), where("senha", "==", normalizedInput));
+            const snapshotSenha = await getDocs(qSenha);
+            
+            if (!snapshotSenha.empty) {
+                const adminDoc = snapshotSenha.docs[0];
+                await processLogin(adminDoc.data().email);
+                return;
+            }
+
+            // 2. Tenta buscar pelo e-mail
+            const qEmail = query(collection(db, 'administrators'), where("email", "==", normalizedEmailInput));
+            const snapshotEmail = await getDocs(qEmail);
+            
+            if (!snapshotEmail.empty) {
+                const adminDoc = snapshotEmail.docs[0];
+                
+                // Se o admin JÁ TIVER uma senha, ele não pode logar usando só o e-mail
+                if (adminDoc.data().senha) {
+                    showNotification('Credenciais inválidas.', 'error');
+                } else {
+                    await processLogin(adminDoc.data().email);
+                }
             } else {
                 showNotification('Credenciais de administrador inválidas.', 'error');
             }
@@ -1286,6 +1408,73 @@ const App: React.FC = () => {
             console.error("Admin login error:", error);
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
             showNotification(`Erro no login: ${message}`, 'error');
+        }
+    };
+
+    const handleChangeAdminPassword = async (newPassword: string) => {
+        if (!adminEmail || !db) return;
+        
+        try {
+            const q = query(collection(db, 'administrators'), where("email", "==", adminEmail));
+            const snapshot = await getDocs(q);
+            
+            if (!snapshot.empty) {
+                const adminDoc = snapshot.docs[0];
+                await updateDoc(adminDoc.ref, { senha: newPassword });
+                showNotification('Senha alterada com sucesso!', 'success');
+                setActiveModal(ModalType.AdminOptions);
+                logAuditEvent(adminEmail, 'CHANGE_PASSWORD', `Admin alterou a própria senha`, selectedTurma);
+            } else {
+                showNotification('Administrador não encontrado.', 'error');
+            }
+        } catch (error) {
+            console.error("Erro ao alterar senha de admin:", error);
+            showNotification('Falha ao alterar senha.', 'error');
+        }
+    };
+
+    const handleAddAdministrator = async (name: string, email: string, matricula: string, nivel: string) => {
+        if (!db || !adminEmail) return;
+        try {
+            const q = query(collection(db, 'administrators'), where("email", "==", email));
+            const snapshot = await getDocs(q);
+            if (!snapshot.empty) {
+                showNotification('Já existe um administrador com este e-mail.', 'error');
+                return;
+            }
+
+            const qMat = query(collection(db, 'administrators'), where("matricula", "==", matricula));
+            const snapshotMat = await getDocs(qMat);
+            if (!snapshotMat.empty) {
+                showNotification('Já existe um administrador com esta matrícula.', 'error');
+                return;
+            }
+
+            await addDoc(collection(db, 'administrators'), {
+                name,
+                email,
+                matricula,
+                nivel,
+                senha: email // Senha inicial é o próprio e-mail corporativo
+            });
+            showNotification('Administrador adicionado com sucesso!', 'success');
+            logAuditEvent(adminEmail, 'ADD_ADMIN', `Novo administrador adicionado: ${name} (Nível ${nivel})`, selectedTurma);
+        } catch (error) {
+            console.error("Erro ao adicionar administrador:", error);
+            showNotification('Falha ao adicionar administrador.', 'error');
+        }
+    };
+
+    const handleDeleteAdministrator = async (id: string) => {
+        if (!db || !adminEmail) return;
+        try {
+            const adminDocRef = doc(db, 'administrators', id);
+            await deleteDoc(adminDocRef);
+            showNotification('Administrador removido com sucesso!', 'success');
+            logAuditEvent(adminEmail, 'DELETE_ADMIN', `Administrador removido do sistema (ID: ${id})`, selectedTurma);
+        } catch (error) {
+            console.error("Erro ao deletar administrador:", error);
+            showNotification('Falha ao remover administrador.', 'error');
         }
     };
 
@@ -1310,9 +1499,10 @@ const App: React.FC = () => {
                 assDss: false,
                 bem: false,
                 mal: false,
-                absent: false,
+                ausente: false,
                 time: null,
-                turno: '7H'
+                turno: '7H',
+                senha: matricula
             };
             setEmployees(prev => [...prev, newUser].sort((a, b) => a.name.localeCompare(b.name)));
             if (!addAnother) {
@@ -1359,9 +1549,10 @@ const App: React.FC = () => {
                 assDss: false,
                 bem: false,
                 mal: false,
-                absent: false,
+                ausente: false,
                 time: null,
-                turno: '7H'
+                turno: '7H',
+                senha: matricula
             });
 
             if (!addAnother) {
@@ -1388,7 +1579,7 @@ const App: React.FC = () => {
                 assDss: false,
                 bem: false,
                 mal: false,
-                absent: false,
+                ausente: false,
                 time: null
             })));
             setMainSubject('');
@@ -1416,7 +1607,7 @@ const App: React.FC = () => {
                     assDss: false,
                     bem: false,
                     mal: false,
-                    absent: false,
+                    ausente: false,
                     time: null,
                 });
             });
@@ -1424,7 +1615,10 @@ const App: React.FC = () => {
             const registrationCollectionName = getTurmaRegistrationName(selectedTurma);
             const registrationsSnapshot = await getDocs(collection(db, registrationCollectionName));
             registrationsSnapshot.forEach((doc) => {
-                batch.delete(doc.ref);
+                // Preserva documentos de configuração (config_6H, config_signature_password, etc.)
+                if (!doc.id.startsWith('config_')) {
+                    batch.delete(doc.ref);
+                }
             });
 
             await batch.commit();
@@ -1455,7 +1649,7 @@ const App: React.FC = () => {
         }
 
         if (isDemoMode) {
-            const employeeToMove = { id: `demo-moved-${Date.now()}`, name: "Funcionário Importado", matricula: "0000", turno: "7H", time: null, assDss: false, bem: false, mal: false, absent: false };
+            const employeeToMove = { id: `demo-moved-${Date.now()}`, name: "Funcionário Importado", matricula: "0000", turno: "7H", time: null, assDss: false, bem: false, mal: false, ausente: false, senha: "0000" };
             setEmployees(prev => [...prev, employeeToMove].sort((a, b) => a.name.localeCompare(b.name)));
             showNotification(`${employeeToMove.name} importado para a Turma ${TURMA_DISPLAY_NAMES[selectedTurma]} (DEMO).`, 'success');
             setActiveModal(ModalType.None);
@@ -1488,8 +1682,9 @@ const App: React.FC = () => {
                 assDss: false,
                 bem: false,
                 mal: false,
-                absent: false,
+                ausente: false,
                 time: null,
+                senha: employeeData.senha || employeeData.matricula,
             };
 
             const batch = writeBatch(db);
@@ -1543,8 +1738,8 @@ const App: React.FC = () => {
     const stats = useMemo(() => ({
         bem: employees.filter(e => e.bem).length,
         mal: employees.filter(e => e.mal).length,
-        absent: employees.filter(e => e.absent).length,
-        pendente: employees.filter(e => !e.bem && !e.assDss && !e.mal && !e.absent).length,
+        ausente: employees.filter(e => e.ausente).length,
+        pendente: employees.filter(e => !e.bem && !e.assDss && !e.mal && !e.ausente).length,
         total: employees.length,
     }), [employees]);
 
@@ -1731,7 +1926,6 @@ const App: React.FC = () => {
     const handleOpenAddUser = useCallback(() => setActiveModal(ModalType.AddUser), []);
     const handleOpenReport = useCallback(() => setActiveModal(ModalType.Report), []);
     const handleOpenImportEmployee = useCallback(() => setActiveModal(ModalType.ImportEmployee), []);
-    const handleOpenDemoPassword = useCallback(() => setActiveModal(ModalType.DemoPassword), []);
     const handleStartAdminTutorial = useCallback(() => setIsAdminTutorialOpen(true), []);
     const handleRegister7H = useCallback((subject: string, matricula: string) => handleManualRegister('7H', matricula, subject), [handleManualRegister]);
     const handleRegister6H = useCallback((subject: string, matricula: string) => handleManualRegister('6H', matricula, subject), [handleManualRegister]);
@@ -1755,18 +1949,9 @@ const App: React.FC = () => {
         }
     }, [showNotification]);
 
-    const handleToggleAutomation = useCallback(() => {
-        setActiveModal(ModalType.AutomationPassword);
-    }, []);
-
-    const handleConfirmAutomationPassword = useCallback(async (password: string) => {
+    const handleToggleAutomation = useCallback(async () => {
         if (!selectedTurma || !db) return;
         
-        if (password !== 'Near2203@') {
-            showNotification('Senha incorreta para pausar ações.', 'error');
-            return;
-        }
-
         try {
             const configRef = doc(db, 'configuracoes', 'automacao');
             const snap = await getDoc(configRef);
@@ -1781,7 +1966,67 @@ const App: React.FC = () => {
             console.error(e);
             showNotification('Erro ao pausar as ações. Verifique permissões.', 'error');
         }
-    }, [selectedTurma, isAutomationPaused, showNotification]);
+    }, [selectedTurma, isAutomationPaused, showNotification, db]);
+
+    const handleOpenAuditLog = useCallback(async () => {
+        if (!db) return;
+        try {
+            const auditCollection = collection(db, 'registros_auditoria');
+            const auditSnapshot = await getDocs(auditCollection);
+            const records: AuditRecord[] = [];
+            auditSnapshot.forEach(doc => {
+                records.push({ id: doc.id, ...doc.data() } as AuditRecord);
+            });
+            setAuditRecords(records);
+            setActiveModal(ModalType.AuditLog);
+        } catch (error) {
+            console.error("Erro ao buscar registros de auditoria:", error);
+            showNotification('Falha ao carregar registros de auditoria.', 'error');
+        }
+    }, [db, showNotification]);
+
+    const handleMigrateDatabase = useCallback(async () => {
+        if (!db) return;
+        
+        if (!window.confirm("ATENÇÃO: Você está prestes a migrar o campo 'absent' para 'ausente' em TODAS as turmas.\nIsso pode demorar alguns segundos. Deseja continuar?")) {
+            return;
+        }
+
+        try {
+            showNotification('Iniciando migração do banco de dados...', 'info');
+            let totalAtualizados = 0;
+
+            for (const turma of ALL_TURMAS) {
+                const collectionName = getTurmaCollectionName(turma);
+                const colRef = collection(db, collectionName);
+                const snapshot = await getDocs(colRef);
+
+                // Firestore writeBatch tem limite de 500 operações
+                const docsToMigrate = snapshot.docs.filter(d => d.data().absent !== undefined);
+                
+                for (let i = 0; i < docsToMigrate.length; i += 499) {
+                    const batch = writeBatch(db);
+                    const chunk = docsToMigrate.slice(i, i + 499);
+                    
+                    chunk.forEach(document => {
+                        const data = document.data();
+                        batch.update(document.ref, {
+                            ausente: data.absent,
+                            absent: deleteField()
+                        });
+                    });
+                    
+                    await batch.commit();
+                    totalAtualizados += chunk.length;
+                }
+            }
+
+            showNotification(`Migração concluída com sucesso! ${totalAtualizados} registros atualizados.`, 'success');
+        } catch (error) {
+            console.error("Erro na migração:", error);
+            showNotification("Falha durante a migração. Verifique os logs.", 'error');
+        }
+    }, [db, showNotification]);
 
     const currentLiveHistory = useMemo(() => {
         if (!selectedTurma) return null;
@@ -1793,7 +2038,7 @@ const App: React.FC = () => {
         const r: HistoryEmployee[] = employees.map(emp => {
             let s: HistoryStatus = 'PEN';
             if (emp.mal) s = 'MAL';
-            else if (emp.absent) s = 'AUS';
+            else if (emp.ausente) s = 'AUS';
             else if (emp.assDss && emp.bem) s = 'BEM';
             return {
                 m: emp.matricula,
@@ -1813,7 +2058,7 @@ const App: React.FC = () => {
             r,
             totalFuncionarios: stats.total,
             totalPresentes: stats.bem,
-            totalAusentes: stats.absent,
+            totalAusentes: stats.ausente,
             totalMal: stats.mal,
             totalPendentes: stats.pendente
         };
@@ -1914,6 +2159,7 @@ const App: React.FC = () => {
                                                             domId={index === 0 ? "tutorial-first-card" : undefined}
                                                             hideShiftButton={selectedTurma === 'CCG' || selectedTurma === 'ESTAGIO' || !is6HActive}
                                                             shiftLabel={getShiftLabel(selectedTurma)}
+                                                            maskMatricula={selectedTurma === 'B_CG'}
                                                         />
                                                     </div>
                                                 ))}
@@ -1945,6 +2191,7 @@ const App: React.FC = () => {
                                                                     domId={index === 0 && group.letter === groupedMainTeam[0]?.letter ? "tutorial-first-card" : undefined}
                                                                     hideShiftButton={selectedTurma === 'CCG' || selectedTurma === 'ESTAGIO' || !is6HActive}
                                                                     shiftLabel={getShiftLabel(selectedTurma)}
+                                                                    maskMatricula={selectedTurma === 'B_CG'}
                                                                 />
                                                             </div>
                                                         ))}
@@ -2040,7 +2287,7 @@ const App: React.FC = () => {
                         onAddUser={handleOpenAddUser}
                         onSendReport={handleOpenReport}
                         onImportUser={handleOpenImportEmployee}
-                        onEnterDemo={handleOpenDemoPassword}
+                        onEnterDemo={handleEnterDemoMode}
                         onStartAdminTutorial={handleStartAdminTutorial}
                         onToggle6H={handleToggle6H}
                         onToggleAutomation={handleToggleAutomation}
@@ -2050,22 +2297,23 @@ const App: React.FC = () => {
                             showNotification('Acesso por impressão digital desativado neste aparelho.', 'success');
                             setActiveModal(ModalType.None);
                         }}
+                        onChangeAdminPassword={() => setActiveModal(ModalType.AdminPassword)}
+                        onManageAdmins={() => setActiveModal(ModalType.ManageAdmins)}
+                        onAuditLog={handleOpenAuditLog}
+                        onMigrateDatabase={handleMigrateDatabase}
+                        onToggleSignaturePassword={handleToggleSignaturePassword}
                         hasBiometrics={hasRegisteredBiometrics()}
                         is6HActive={is6HActive}
                         isAutomationPaused={isAutomationPaused}
+                        isSignaturePasswordActive={isSignaturePasswordActive}
                         scale={modalScale}
                         selectedTurma={selectedTurma}
+                        currentAdminNivel={administrators.find(a => a.email === adminEmail)?.nivel || '1'}
                     />
-                    <DemoPasswordModal
-                        isOpen={activeModal === ModalType.DemoPassword}
+                    <AuditLogModal
+                        isOpen={activeModal === ModalType.AuditLog}
                         onClose={handleCloseModal}
-                        onConfirm={handleConfirmDemoPassword}
-                        scale={modalScale}
-                    />
-                    <AutomationPasswordModal
-                        isOpen={activeModal === ModalType.AutomationPassword}
-                        onClose={handleCloseModal}
-                        onConfirm={handleConfirmAutomationPassword}
+                        auditRecords={auditRecords}
                         scale={modalScale}
                     />
                     <AddUserModal
@@ -2151,11 +2399,39 @@ const App: React.FC = () => {
                         targetTurno={getPendingEmployeeTurno()}
                         scale={modalScale}
                     />
-                    <ConfirmAbsentModal
-                        isOpen={activeModal === ModalType.ConfirmAbsent}
+                    <ConfirmAusenteModal
+                        isOpen={activeModal === ModalType.ConfirmAusente}
                         onClose={() => { setPendingEmployeeId(null); setActiveModal(ModalType.None); }}
-                        onConfirm={handleConfirmAbsent}
+                        onConfirm={handleConfirmAusente}
                         employeeName={getPendingEmployeeName()}
+                        scale={modalScale}
+                    />
+                    {activeModal === ModalType.SignaturePassword && (
+                        <SignaturePasswordModal
+                            isOpen={true}
+                            onClose={() => {
+                                setActiveModal(ModalType.None);
+                                setPendingEmployeeId(null);
+                            }}
+                            onConfirm={handleConfirmSignaturePassword}
+                            onChangePassword={handleChangeSignaturePassword}
+                            employeeName={getPendingEmployeeName()}
+                            scale={modalScale}
+                        />
+                    )}
+                    <AdminPasswordModal
+                        isOpen={activeModal === ModalType.AdminPassword}
+                        onClose={() => setActiveModal(ModalType.AdminOptions)}
+                        onConfirm={handleChangeAdminPassword}
+                        scale={modalScale}
+                    />
+                    <ManageAdminsModal
+                        isOpen={activeModal === ModalType.ManageAdmins}
+                        onClose={() => setActiveModal(ModalType.AdminOptions)}
+                        administrators={administrators}
+                        currentAdminEmail={adminEmail}
+                        onAddAdmin={handleAddAdministrator}
+                        onDeleteAdmin={handleDeleteAdministrator}
                         scale={modalScale}
                     />
                     <ConfirmDeleteModal

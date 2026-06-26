@@ -2,7 +2,7 @@
 
 import React, { useState, memo } from 'react';
 import { Employee, StatusType } from '../types';
-import { ShiftIcon, AbsentIcon, TrashIcon, EditIcon, CheckIcon, XIcon } from './icons';
+import { ShiftIcon, AusenteIcon, TrashIcon, EditIcon, CheckIcon, XIcon } from './icons';
 import { formatTimestamp } from '../services/employeeService';
 import CustomDateTimePicker from './CustomDateTimePicker';
 import Modal from './Modal';
@@ -20,6 +20,7 @@ interface EmployeeCardProps {
     specialTurnBtnId?: string; // Prop specifically for the shift button tutorial
     hideShiftButton?: boolean; // Hide shift button for turmas without 6H
     shiftLabel?: string; // Dynamic label (6H or 18H)
+    maskMatricula?: boolean; // Mascarar matrícula para o público
 }
 
 interface CheckboxItemProps {
@@ -62,12 +63,36 @@ const CheckboxItem: React.FC<CheckboxItemProps> = ({
 );
 
 
-const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, onToggleSpecialTeam, isTogglingSpecialTeam, isAdmin, onDelete, onTimeChange, onMatriculaChange, domId, specialTurnBtnId, hideShiftButton, shiftLabel = '6H' }) => {
+const EmployeeCard: React.FC<EmployeeCardProps> = ({ 
+    employee, 
+    onStatusChange, 
+    onToggleSpecialTeam, 
+    isTogglingSpecialTeam, 
+    isAdmin, 
+    onDelete, 
+    onTimeChange, 
+    onMatriculaChange, 
+    domId,
+    specialTurnBtnId,
+    hideShiftButton,
+    shiftLabel = '6H',
+    maskMatricula = false
+}) => {
     const [isEditingTime, setIsEditingTime] = useState(false);
-    const [editTimeValue, setEditTimeValue] = useState('');
-
+    const [editTimeValue, setEditTimeValue] = useState<string>('');
     const [isEditingMatricula, setIsEditingMatricula] = useState(false);
     const [editMatriculaValue, setEditMatriculaValue] = useState(employee.matricula);
+
+    const getMaskedMatricula = (mat: string) => {
+        if (!mat) return "";
+        if (mat.length <= 2) return '*'.repeat(mat.length);
+        if (mat.length <= 4) return mat.slice(0, 2) + '*'.repeat(mat.length - 2);
+        return mat.slice(0, 4) + '*'.repeat(mat.length - 4);
+    };
+
+    const displayMatricula = (maskMatricula && !isAdmin) 
+        ? getMaskedMatricula(employee.matricula) 
+        : employee.matricula;
 
     const createRipple = (e: React.MouseEvent<HTMLButtonElement>) => {
         const button = e.currentTarget;
@@ -102,13 +127,13 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, o
 
     const handleAbsentButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
         createRipple(e);
-        onStatusChange(employee.id, 'absent');
+        onStatusChange(employee.id, 'ausente');
     };
 
     const getHeaderClass = () => {
         if (employee.bem) return 'bg-gradient-to-r from-success to-green-600';
         if (employee.mal) return 'bg-gradient-to-r from-danger to-red-600';
-        if (employee.absent) return 'bg-gradient-to-r from-warning to-amber-600';
+        if (employee.ausente) return 'bg-gradient-to-r from-warning to-amber-600';
         if (employee.assDss) return 'bg-gradient-to-r from-neutral to-gray-500';
         return 'bg-gradient-to-r from-primary to-primary-dark';
     };
@@ -210,7 +235,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, o
                             className={`relative group text-sm opacity-90 truncate flex items-center gap-1.5 ${isAdmin ? 'cursor-pointer' : ''}`}
                             onClick={() => isAdmin && setIsEditingMatricula(true)}
                         >
-                            <span>Matrícula: {employee.matricula}</span>
+                            <span>Matrícula: {displayMatricula}</span>
                             {isAdmin && (
                                 <EditIcon className="w-3 h-3 text-white/70 opacity-0 group-hover:opacity-100 transition-opacity" />
                             )}
@@ -239,9 +264,9 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onStatusChange, o
                     )}
                     <button
                         onClick={handleAbsentButtonClick}
-                        className={`absent-button text-base ${employee.absent ? 'marked' : ''}`}
+                        className={`absent-button text-base ${employee.ausente ? 'marked' : ''}`}
                     >
-                        <AbsentIcon className="w-5 h-5" />
+                        <AusenteIcon className="w-5 h-5" />
                         <span>AUSENTE</span>
                     </button>
                     {isAdmin && (
@@ -344,14 +369,15 @@ const arePropsEqual = (prevProps: EmployeeCardProps, nextProps: EmployeeCardProp
         prevProps.onTimeChange === nextProps.onTimeChange &&
         prevProps.onMatriculaChange === nextProps.onMatriculaChange &&
         prevProps.employee.id === nextProps.employee.id &&
-        prevProps.employee.absent === nextProps.employee.absent &&
+        prevProps.employee.ausente === nextProps.employee.ausente &&
         prevProps.employee.assDss === nextProps.employee.assDss &&
         prevProps.employee.bem === nextProps.employee.bem &&
         prevProps.employee.mal === nextProps.employee.mal &&
         prevProps.employee.name === nextProps.employee.name &&
         prevProps.employee.matricula === nextProps.employee.matricula &&
         prevProps.employee.time === nextProps.employee.time &&
-        prevProps.employee.turno === nextProps.employee.turno
+        prevProps.employee.turno === nextProps.employee.turno &&
+        prevProps.maskMatricula === nextProps.maskMatricula
     );
 };
 

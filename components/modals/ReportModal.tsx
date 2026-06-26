@@ -30,8 +30,8 @@ export const ReportModal: React.FC<{
 
         const totalEmployees = employees.length;
         const totalPresent = employees.filter(e => e.bem || e.assDss || e.mal).length;
-        const totalAbsent = employees.filter(e => e.absent).length;
-        const totalPending = employees.filter(e => !e.bem && !e.assDss && !e.mal && !e.absent).length;
+        const totalAusente = employees.filter(e => e.ausente).length;
+        const totalPending = employees.filter(e => !e.bem && !e.assDss && !e.mal && !e.ausente).length;
 
         const dataExibicao = new Date().toLocaleDateString('pt-BR', {
             day: '2-digit',
@@ -43,7 +43,7 @@ export const ReportModal: React.FC<{
         report += `• Total de Funcionários: ${totalEmployees}\n`;
         report += `• Presentes (DSS + Bem/Mal): ${totalPresent}\n`;
         report += `• Pendentes: ${totalPending}\n`;
-        report += `• Ausentes: ${totalAbsent}\n\n`;
+        report += `• Ausentes: ${totalAusente}\n\n`;
 
         const shiftLabel = getShiftLabel(turma);
         const mainShiftLabel = getMainShiftLabel(turma);
@@ -51,8 +51,8 @@ export const ReportModal: React.FC<{
         const getStatusList = (team: Employee[]) => {
             const bem = team.filter(e => e.bem || e.assDss);
             const mal = team.filter(e => e.mal);
-            const absent = team.filter(e => e.absent);
-            const pending = team.filter(e => !e.bem && !e.assDss && !e.mal && !e.absent);
+            const ausente = team.filter(e => e.ausente);
+            const pending = team.filter(e => !e.bem && !e.assDss && !e.mal && !e.ausente);
 
             let section = `STATUS: "ASS.DSS + ESTOU BEM"\n`;
             section += bem.length > 0 ? bem.map(e => `• ${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
@@ -61,7 +61,7 @@ export const ReportModal: React.FC<{
             section += `\n\nPENDENTES\n`;
             section += pending.length > 0 ? pending.map(e => `• ${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
             section += `\n\nAUSENTES\n`;
-            section += absent.length > 0 ? absent.map(e => `• ${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
+            section += ausente.length > 0 ? ausente.map(e => `• ${e.name} (Matrícula: ${e.matricula})`).join('\n') : 'Nenhum';
 
             return section;
         };
@@ -103,11 +103,11 @@ export const ReportModal: React.FC<{
     const visualStats = useMemo(() => ({
         total: employees.length,
         present: employees.filter(e => e.bem || e.assDss || e.mal).length,
-        absentCount: employees.filter(e => e.absent).length,
-        missingCount: employees.filter(e => !e.bem && !e.assDss && !e.mal && !e.absent).length,
+        ausenteCount: employees.filter(e => e.ausente).length,
+        missingCount: employees.filter(e => !e.bem && !e.assDss && !e.mal && !e.ausente).length,
         malCount: employees.filter(e => e.mal).length,
         malList: employees.filter(e => e.mal),
-        absentList: employees.filter(e => e.absent),
+        ausenteList: employees.filter(e => e.ausente),
     }), [employees]);
 
     const handleCopy = () => {
@@ -146,12 +146,12 @@ export const ReportModal: React.FC<{
             totalFuncionarios: employees.length,
             totalPresentes: visualStats.present,
             totalPendentes: visualStats.missingCount,
-            totalAusentes: visualStats.absentCount,
+            totalAusentes: visualStats.ausenteCount,
             totalMal: visualStats.malCount,
             employees: employees.map(e => ({
                 n: e.name,
                 m: e.matricula,
-                s: e.bem || e.assDss ? 'BEM' : e.mal ? 'MAL' : e.absent ? 'AUS' : 'PEN',
+                s: e.bem || e.assDss ? 'BEM' : e.mal ? 'MAL' : e.ausente ? 'AUS' : 'PEN',
                 turno: e.turno || '7H'
             })),
             registros7H: [{
@@ -194,12 +194,12 @@ export const ReportModal: React.FC<{
             totalFuncionarios: employees.length,
             totalPresentes: visualStats.present,
             totalPendentes: visualStats.missingCount,
-            totalAusentes: visualStats.absentCount,
+            totalAusentes: visualStats.ausenteCount,
             totalMal: visualStats.malCount,
             employees: employees.map(e => ({
                 n: e.name,
                 m: e.matricula,
-                s: e.bem || e.assDss ? 'BEM' : e.mal ? 'MAL' : e.absent ? 'AUS' : 'PEN',
+                s: e.bem || e.assDss ? 'BEM' : e.mal ? 'MAL' : e.ausente ? 'AUS' : 'PEN',
                 turno: e.turno || '7H'
             })),
             registros7H: [{
@@ -278,7 +278,7 @@ export const ReportModal: React.FC<{
                         <span className="text-[8px] uppercase text-red-500/80 font-bold tracking-tight">Mal</span>
                     </div>
                     <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30 rounded-lg p-2 flex flex-col items-center justify-center shadow-sm">
-                        <span className="text-xl font-bold text-amber-600 dark:text-amber-400">{visualStats.absentCount}</span>
+                        <span className="text-xl font-bold text-amber-600 dark:text-amber-400">{visualStats.ausenteCount}</span>
                         <span className="text-[8px] uppercase text-amber-500/80 font-bold tracking-tight">Ausentes</span>
                     </div>
                     <div className="bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-2 flex flex-col items-center justify-center opacity-80 shadow-sm">
@@ -288,7 +288,7 @@ export const ReportModal: React.FC<{
                 </div>
 
                 {/* Compact Issues Lists */}
-                {(visualStats.malList.length > 0 || visualStats.absentList.length > 0) && (
+                {(visualStats.malList.length > 0 || visualStats.ausenteList.length > 0) && (
                     <div className="text-left space-y-3 border-t border-gray-200 dark:border-gray-700 pt-4">
                         {visualStats.malList.length > 0 && (
                             <div>
@@ -305,14 +305,14 @@ export const ReportModal: React.FC<{
                                 </div>
                             </div>
                         )}
-                        {visualStats.absentList.length > 0 && (
+                        {visualStats.ausenteList.length > 0 && (
                             <div>
                                 <div className="flex items-center gap-1.5 mb-1.5 text-amber-600 dark:text-amber-400 font-bold text-[10px] uppercase tracking-wide">
                                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
                                     Ausentes
                                 </div>
                                 <div className="flex flex-wrap gap-1.5">
-                                    {visualStats.absentList.map(e => (
+                                    {visualStats.ausenteList.map(e => (
                                         <span key={e.id} className="text-[10px] px-2 py-0.5 bg-amber-50 dark:bg-amber-900/30 rounded border border-amber-100 dark:border-amber-900/50 text-amber-800 dark:text-amber-200 font-medium">
                                             {e.name}
                                         </span>

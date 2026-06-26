@@ -22,14 +22,21 @@ export const AdminOptionsModal: React.FC<{
     onStartAdminTutorial: () => void;
     onToggle6H: () => void;
     onToggleAutomation: () => void;
+    onToggleSignaturePassword: () => void;
+    onChangeAdminPassword: () => void;
     onHistory: () => void;
     onClearBiometrics: () => void;
+    onManageAdmins: () => void;
+    onAuditLog: () => void;
+    onMigrateDatabase: () => void;
     hasBiometrics: boolean;
     is6HActive: boolean;
     isAutomationPaused: boolean;
+    isSignaturePasswordActive: boolean;
     scale: number;
     selectedTurma: string | null;
-}> = ({ isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onImportUser, onEnterDemo, onStartAdminTutorial, onToggle6H, onToggleAutomation, onHistory, onClearBiometrics, hasBiometrics, is6HActive, isAutomationPaused, scale, selectedTurma }) => {
+    currentAdminNivel: string;
+}> = ({ isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onImportUser, onEnterDemo, onStartAdminTutorial, onToggle6H, onToggleAutomation, onToggleSignaturePassword, onChangeAdminPassword, onHistory, onClearBiometrics, onManageAdmins, onAuditLog, onMigrateDatabase, hasBiometrics, is6HActive, isAutomationPaused, isSignaturePasswordActive, scale, selectedTurma, currentAdminNivel }) => {
     if (!isOpen) return null;
 
     return (
@@ -83,7 +90,7 @@ export const AdminOptionsModal: React.FC<{
                         </button>
                     </div>
                 </div>
-                <div className="col-span-2 grid grid-cols-2 gap-2 md:gap-3">
+                <div className={`col-span-2 grid ${currentAdminNivel === '2' ? 'grid-cols-2' : 'grid-cols-1'} gap-2 md:gap-3`}>
                     <AdminButton
                         id="admin-history-btn"
                         onClick={onHistory}
@@ -91,13 +98,26 @@ export const AdminOptionsModal: React.FC<{
                         icon={<HistoryIcon className="w-7 h-7" />}
                         label="Histórico"
                     />
+                    {currentAdminNivel === '2' && (
+                        <button
+                            onClick={onToggleAutomation}
+                            className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 shadow-md h-[86px] md:h-[82px] hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] transform ${isAutomationPaused ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`}
+                        >
+                            <div className="scale-[0.85] md:scale-90 origin-bottom"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
+                            <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">
+                                {isAutomationPaused ? "AÇÕES OFF" : "PAUSAR AÇÕES"}
+                            </span>
+                        </button>
+                    )}
+                </div>
+                <div className="col-span-2 grid grid-cols-1 gap-2 md:gap-3">
                     <button
-                        onClick={onToggleAutomation}
-                        className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 shadow-md h-[86px] md:h-[82px] hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] transform ${isAutomationPaused ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`}
+                        onClick={onToggleSignaturePassword}
+                        className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 shadow-md h-[86px] md:h-[82px] hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] transform ${isSignaturePasswordActive ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`}
                     >
-                        <div className="scale-[0.85] md:scale-90 origin-bottom"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
+                        <div className="scale-[0.85] md:scale-90 origin-bottom"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg></div>
                         <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">
-                            {isAutomationPaused ? "AÇÕES OFF" : "PAUSAR AÇÕES"}
+                            {isSignaturePasswordActive ? "DESATIVAR ASSINATURA COM SENHA" : "ATIVAR ASSINATURA COM SENHA"}
                         </span>
                     </button>
                 </div>
@@ -110,14 +130,54 @@ export const AdminOptionsModal: React.FC<{
                         <HelpIcon className="w-7 h-7" />
                         <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">AJUDA / TUTORIAL</span>
                     </button>
+                    {currentAdminNivel === '2' && (
+                        <button
+                            id="admin-demo-btn"
+                            onClick={onEnterDemo}
+                            className="p-3 bg-violet-600 hover:bg-violet-700 text-white rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 shadow-md border border-violet-500 h-[86px] md:h-[82px] hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] transform"
+                        >
+                            <MousePointerIcon className="w-7 h-7" />
+                            <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">MODO DEMO</span>
+                        </button>
+                    )}
+                </div>
+                <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3 mt-1 md:mt-1">
                     <button
-                        id="admin-demo-btn"
-                        onClick={onEnterDemo}
-                        className="p-3 bg-violet-600 hover:bg-violet-700 text-white rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 shadow-md border border-violet-500 h-[86px] md:h-[82px] hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] transform"
+                        id="admin-password-btn"
+                        onClick={onChangeAdminPassword}
+                        className={`p-3 bg-gray-700 hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-900 text-white rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 shadow-md h-[86px] md:h-[82px] hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] transform col-span-1 md:col-span-1`}
                     >
-                        <MousePointerIcon className="w-7 h-7" />
-                        <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">MODO DEMO</span>
+                        <div className="scale-[0.85] md:scale-90 origin-bottom"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg></div>
+                        <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">MINHA SENHA</span>
                     </button>
+                    <button
+                        id="admin-migrate-btn"
+                        onClick={onMigrateDatabase}
+                        className="p-3 bg-red-600 hover:bg-red-700 text-white rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 shadow-md h-[86px] md:h-[82px] hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] transform col-span-1 md:col-span-1"
+                    >
+                        <div className="scale-[0.85] md:scale-90 origin-bottom"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg></div>
+                        <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">MIGRAR DB (AUSENTE)</span>
+                    </button>
+                    {currentAdminNivel === '2' && (
+                        <>
+                            <button
+                                id="admin-manage-btn"
+                                onClick={onManageAdmins}
+                                className="p-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 shadow-md h-[86px] md:h-[82px] hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] transform"
+                            >
+                                <div className="scale-[0.85] md:scale-90 origin-bottom"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg></div>
+                                <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">GERENCIAR ADMS</span>
+                            </button>
+                            <button
+                                id="admin-audit-btn"
+                                onClick={onAuditLog}
+                                className="p-3 bg-fuchsia-600 hover:bg-fuchsia-700 text-white rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 shadow-md h-[86px] md:h-[82px] hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] transform"
+                            >
+                                <div className="scale-[0.85] md:scale-90 origin-bottom"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg></div>
+                                <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">LOG DE AUDITORIA</span>
+                            </button>
+                        </>
+                    )}
                 </div>
                 {hasBiometrics && (
                     <div className="mt-1">

@@ -3,12 +3,13 @@
 import React from 'react';
 import DarkModeToggle from './DarkModeToggle';
 import { AdminIcon, HelpIcon, ShieldLogo, ExchangeIcon } from './icons';
+import { TurmaType, TURMA_DISPLAY_NAMES } from '../utils/turmaUtils';
 
 interface HeaderProps {
     stats: {
         bem: number;
         mal: number;
-        absent: number;
+        ausente: number;
         pendente: number;
         total: number;
     };
@@ -17,7 +18,7 @@ interface HeaderProps {
     onHelpClick: () => void;
     isDarkMode: boolean;
     onToggleDarkMode: (e?: any) => void;
-    turma: 'A' | 'B' | 'C' | 'D' | 'CCG' | 'ESTAGIO';
+    turma: TurmaType;
     onReturnToSelection: () => void;
 }
 
@@ -38,7 +39,7 @@ const Header: React.FC<HeaderProps> = React.memo(({ stats, loading, onAdminClick
                     <ShieldLogo className="h-20 w-20 md:h-24 md:w-24" />
                 )}
                 <div className="flex flex-col gap-1">
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-light-text dark:text-dark-text tracking-tight whitespace-nowrap">Painel DSS - {{ A: 'TURMA A', B: 'TURMA B', C: 'TURMA C', D: 'TURMA D', CCG: 'TURMA C CG', ESTAGIO: 'ESTÁGIO' }[turma]}</h1>
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-light-text dark:text-dark-text tracking-tight whitespace-nowrap">Painel DSS - {TURMA_DISPLAY_NAMES[turma]}</h1>
                     <p className="text-lg md:text-xl font-medium text-light-text-secondary dark:text-dark-text-secondary whitespace-nowrap">Diálogo de Saúde e Segurança - Monitoramento em tempo real</p>
                 </div>
             </div>
@@ -84,7 +85,7 @@ const Header: React.FC<HeaderProps> = React.memo(({ stats, loading, onAdminClick
                 <div id="tutorial-stats" className="flex gap-6">
                     <StatCard label="Estou Bem" value={stats.bem} colorClass="text-success" />
                     <StatCard label="Estou Mal" value={stats.mal} colorClass="text-danger" />
-                    <StatCard label="Ausente" value={stats.absent} colorClass="text-warning" />
+                    <StatCard label="Ausente" value={stats.ausente} colorClass="text-warning" />
                     <StatCard label="Pendente" value={stats.pendente} colorClass="text-gray-500 dark:text-gray-400" />
                     <StatCard label="Total" value={stats.total} colorClass="text-neutral" />
                 </div>

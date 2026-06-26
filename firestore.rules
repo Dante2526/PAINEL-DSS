@@ -11,12 +11,14 @@ service cloud.firestore {
          collectionId == 'turma c' ||
          collectionId == 'turma d' ||
          collectionId == 'turma c cg' ||
+         collectionId == 'turma b cg' ||
          collectionId == 'estagio' ||
          collectionId == 'registrosDSS A' || 
          collectionId == 'registrosDSS B' ||
          collectionId == 'registrosDSS C' ||
          collectionId == 'registrosDSS D' ||
-         collectionId == 'registrosDSS C CG');
+         collectionId == 'registrosDSS C CG' ||
+         collectionId == 'registrosDSS B CG');
     }
 
     // REGRA PARA LOG DE AUDITORIA
@@ -32,10 +34,9 @@ service cloud.firestore {
     }
 
     // REGRA DE SEGURANÇA PARA ADMINISTRADORES
-    // Permite apenas ler a lista de admins, mas proíbe criar ou editar pelo app.
+    // Permite leitura e escrita pelo app para gerenciar ADMs e senhas.
     match /administrators/{adminId} {
-      allow read: if request.auth != null;
-      allow write: if false;
+      allow read, write: if request.auth != null;
     }
 
     // REGRA PARA HISTÓRICO DSS

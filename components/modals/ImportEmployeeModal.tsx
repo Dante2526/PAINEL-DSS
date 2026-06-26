@@ -81,7 +81,7 @@ export const ImportEmployeeModal: React.FC<{
                         assDss: data.assDss,
                         bem: data.bem,
                         mal: data.mal,
-                        absent: data.absent,
+                        ausente: data.ausente !== undefined ? data.ausente : (data.absent || false),
                         time: data.time ? formatTimestamp(data.time as Timestamp) : null,
                         turno: data.turno || '7H',
                     };

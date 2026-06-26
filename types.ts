@@ -7,9 +7,10 @@ export interface Employee {
   assDss: boolean;
   bem: boolean;
   mal: boolean;
-  absent: boolean;
+  ausente: boolean;
   time: string | null;
   turno: string;
+  senha?: string;
 }
 
 export interface Administrator {
@@ -17,6 +18,8 @@ export interface Administrator {
   name: string;
   matricula: string;
   email: string;
+  senha?: string;
+  nivel?: string;
 }
 
 export interface ManualRegistration {
@@ -27,7 +30,7 @@ export interface ManualRegistration {
   TURNO: string;
 }
 
-export type StatusType = 'assDss' | 'bem' | 'mal' | 'absent';
+export type StatusType = 'assDss' | 'bem' | 'mal' | 'ausente';
 
 export type HistoryStatus = 'BEM' | 'MAL' | 'AUS' | 'PEN';
 
@@ -59,6 +62,19 @@ export interface HistoryRecord {
   totalPendentes: number;
 }
 
+export interface AuditAction {
+    action: string;
+    details: string;
+    timestamp: string;
+    turma: string;
+}
+
+export interface AuditRecord {
+    id: string; // The email of the admin
+    ultimo_acesso: string;
+    acoes: AuditAction[];
+}
+
 export enum ModalType {
   None,
   AdminLogin,
@@ -67,19 +83,21 @@ export enum ModalType {
   Report,
   ConfirmMal, // Existing safety confirmation
   ConfirmTurno, // Added for Turno confirmation
-  ConfirmAbsent, // Added for Absent confirmation
+  ConfirmAusente, // Added for Ausente confirmation
   ConfirmDelete, // Added for Delete confirmation
   InvalidMatricula, // Added for 8-digit validation warning
   Tutorial,
   TutorialChoice,      // Novo: Escolha entre tour ou vídeo
   TutorialVideo,       // Novo: Visualização do vídeo aula
-  DemoPassword,
   ImportEmployee,
   UserExistsWarning,
   ConfirmDeactivate6H,
   HistoryView,
-  AutomationPassword,
   ConfirmBiometric,
+  SignaturePassword,
+  AdminPassword,
+  ManageAdmins,
+  AuditLog,
 }
 
 export interface PdfReportData {

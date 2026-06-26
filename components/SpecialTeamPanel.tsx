@@ -164,6 +164,7 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
                         onMatriculaChange={onMatriculaUpdate} // Pass the function
                         specialTurnBtnId="tutorial-return-turn-btn"
                         shiftLabel={mainShiftLabel}
+                        maskMatricula={turma === 'B_CG'}
                     />
                 )}
             </div>
@@ -182,6 +183,7 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
                             onTimeChange={onTimeChange}
                             onMatriculaChange={onMatriculaUpdate} // Pass the function
                             shiftLabel={mainShiftLabel}
+                            maskMatricula={turma === 'B_CG'}
                         />
                     ))}
                 </div>
@@ -212,7 +214,7 @@ const arePropsEqual = (prevProps: SpecialTeamPanelProps, nextProps: SpecialTeamP
         const nextEmp = nextProps.specialTeam[i];
         if (
             prevEmp.id !== nextEmp.id ||
-            prevEmp.absent !== nextEmp.absent ||
+            prevEmp.ausente !== nextEmp.ausente ||
             prevEmp.assDss !== nextEmp.assDss ||
             prevEmp.bem !== nextEmp.bem ||
             prevEmp.mal !== nextEmp.mal ||

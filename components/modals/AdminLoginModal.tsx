@@ -171,7 +171,7 @@ export const AdminLoginModal: React.FC<{
                     <input
                         ref={inputRef}
                         type="text"
-                        placeholder="Email do Administrador"
+                        placeholder="Email ou Senha"
                         value={email}
                         onChange={handleEmailChange}
                         className={inputClassName}
@@ -212,11 +212,6 @@ export const AdminLoginModal: React.FC<{
                         )}
                     </button>
                 </div>
-                {!isSmallViewport && (
-                    <p className="text-left text-warning font-bold px-1 my-0.5 text-xs">
-                        * Digite tudo em minúsculo
-                    </p>
-                )}
                 <button type="submit" className={`w-full bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition-all duration-300 ${
                     isSmallViewport ? 'py-2.5 text-sm mt-1' : 'py-3'
                 }`}>
