@@ -88,7 +88,8 @@ const SignaturePasswordModal: React.FC<SignaturePasswordModalProps> = ({
                 </p>
                 <div className="space-y-4">
                     <input
-                        type="password"
+                        type="text"
+                        style={{ WebkitTextSecurity: 'disc' } as any}
                         placeholder="Digite sua senha"
                         value={senha}
                         onChange={(e) => setSenha(e.target.value)}
@@ -126,7 +127,8 @@ const SignaturePasswordModal: React.FC<SignaturePasswordModalProps> = ({
         >
             <div className="space-y-3">
                 <input
-                    type="password"
+                    type="text"
+                    style={{ WebkitTextSecurity: 'disc' } as any}
                     placeholder="Senha atual"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
@@ -136,7 +138,8 @@ const SignaturePasswordModal: React.FC<SignaturePasswordModalProps> = ({
                     autoFocus
                 />
                 <input
-                    type="password"
+                    type="text"
+                    style={{ WebkitTextSecurity: 'disc' } as any}
                     placeholder="Nova senha"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
@@ -145,7 +148,8 @@ const SignaturePasswordModal: React.FC<SignaturePasswordModalProps> = ({
                     className="w-full p-3 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
                 />
                 <input
-                    type="password"
+                    type="text"
+                    style={{ WebkitTextSecurity: 'disc' } as any}
                     placeholder="Confirmar nova senha"
                     value={confirmNewPassword}
                     onChange={(e) => setConfirmNewPassword(e.target.value)}
