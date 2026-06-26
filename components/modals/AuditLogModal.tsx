@@ -19,6 +19,7 @@ const translateAction = (action: string) => {
         'REPORT_DOWNLOAD': 'DOWNLOAD DE RELATÓRIO',
         'CLEAR_DATA': 'LIMPEZA DE DADOS',
         'DATA_EXPORT': 'EXPORTAÇÃO DE DADOS',
+        'EDIT_MATRICULA': 'EDIÇÃO DE MATRÍCULA',
     };
     return translations[action.toUpperCase()] || action;
 };
@@ -131,7 +132,7 @@ export const AuditLogModal: React.FC<{
                                                                 </div>
                                                                 <p className="text-sm text-gray-700 dark:text-gray-300 leading-snug">
                                                                     {(() => {
-                                                                        let text = acao.details.replace(/Funcionário/gi, 'ADM');
+                                                                        let text = acao.details;
                                                                         if (text.includes('|')) {
                                                                             return (
                                                                                 <>
