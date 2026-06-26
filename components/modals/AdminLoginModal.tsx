@@ -212,7 +212,7 @@ export const AdminLoginModal: React.FC<{
                         )}
                     </button>
                 </div>
-                <button type="submit" className={`w-full bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition-all duration-300 ${
+                <button type="submit" className={`w-full bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition-all duration-300 transform hover:-translate-y-1 shadow-md hover:shadow-lg ${
                     isSmallViewport ? 'py-2.5 text-sm mt-1' : 'py-3'
                 }`}>
                     ENTRAR

@@ -74,7 +74,7 @@ export const AdminPasswordModal: React.FC<{
                     />
                 </div>
 
-                <button type="submit" className="w-full py-3 bg-gray-800 text-white font-bold rounded-lg hover:bg-gray-900 transition-all duration-300 shadow-md">
+                <button type="submit" className="w-full py-3 bg-gray-800 text-white font-bold rounded-lg hover:bg-gray-900 transition-all duration-300 transform hover:-translate-y-1 shadow-md hover:shadow-lg">
                     SALVAR SENHA
                 </button>
             </form>

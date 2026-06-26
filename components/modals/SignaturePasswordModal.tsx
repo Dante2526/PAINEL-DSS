@@ -101,14 +101,14 @@ const SignaturePasswordModal: React.FC<SignaturePasswordModalProps> = ({
                     <button 
                         type="button" 
                         onClick={handleConfirmSubmit} 
-                        className="w-full py-3 bg-green-600 hover:bg-success text-white font-bold rounded-lg transition uppercase tracking-widest"
+                        className="w-full py-3 bg-green-600 hover:bg-success text-white font-bold rounded-lg transition-all uppercase tracking-widest transform hover:-translate-y-1 shadow-md hover:shadow-lg"
                     >
                         CONFIRMAR ASSINATURA
                     </button>
                     <button 
                         type="button" 
                         onClick={() => setView('change')}
-                        className="w-full py-3 bg-danger dark:bg-[#3A1414] hover:bg-red-700 dark:hover:bg-[#4A1818] border border-transparent dark:border-[#5A1C1C]/40 text-white font-bold rounded-lg transition uppercase tracking-widest mt-2 shadow-sm"
+                        className="w-full py-3 bg-danger dark:bg-[#3A1414] hover:bg-red-700 dark:hover:bg-[#4A1818] border border-transparent dark:border-[#5A1C1C]/40 text-white font-bold rounded-lg transition-all uppercase tracking-widest mt-2 transform hover:-translate-y-1 shadow-md hover:shadow-lg"
                     >
                         Trocar Senha
                     </button>
@@ -165,7 +165,7 @@ const SignaturePasswordModal: React.FC<SignaturePasswordModalProps> = ({
                 <button 
                     type="button" 
                     onClick={handleChangeSubmit} 
-                    className="w-full py-3 bg-primary hover:bg-primary-dark text-white font-bold rounded-lg transition uppercase mt-2"
+                    className="w-full py-3 bg-primary hover:bg-primary-dark text-white font-bold rounded-lg transition-all uppercase mt-2 transform hover:-translate-y-1 shadow-md hover:shadow-lg"
                 >
                     SALVAR NOVA SENHA
                 </button>

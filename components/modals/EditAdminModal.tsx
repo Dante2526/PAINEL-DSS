@@ -101,7 +101,7 @@ export const EditAdminModal: React.FC<{
                     </div>
                 </div>
 
-                <button type="submit" className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-md mt-2 text-lg">
+                <button type="submit" className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all transform hover:-translate-y-1 shadow-md hover:shadow-lg mt-2 text-lg">
                     SALVAR ALTERAÇÕES
                 </button>
             </form>
