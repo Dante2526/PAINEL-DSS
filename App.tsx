@@ -1361,11 +1361,6 @@ const App: React.FC = () => {
             }
         };
 
-        if (normalizedEmailInput === 'naylanmoreira350@gmail.com') {
-            await processLogin(normalizedEmailInput);
-            return;
-        }
-
         if (isDemoMode) {
             await processLogin(normalizedEmailInput, true);
             return;
