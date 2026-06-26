@@ -83,7 +83,7 @@ const SignaturePasswordModal: React.FC<SignaturePasswordModalProps> = ({
                         className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-success dark:text-white text-center tracking-widest text-lg"
                         autoFocus
                     />
-                    <button type="submit" className="w-full py-3 bg-success hover:bg-green-600 text-white font-bold rounded-lg transition uppercase tracking-widest">
+                    <button type="submit" className="w-full py-3 bg-green-600 hover:bg-success text-white font-bold rounded-lg transition uppercase tracking-widest">
                         CONFIRMAR ASSINATURA
                     </button>
                     <button 
