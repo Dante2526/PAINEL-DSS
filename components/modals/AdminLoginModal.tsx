@@ -12,8 +12,6 @@ export const AdminLoginModal: React.FC<{
 }> = ({ isOpen, onClose, onLogin, showNotification, scale }) => {
     const [email, setEmail] = useState('');
     const [showEmail, setShowEmail] = useState(false);
-    const [visibleIndex, setVisibleIndex] = useState<number | null>(null);
-    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [isBioAvailable, setIsBioAvailable] = useState(false);
     const [isSmallViewport, setIsSmallViewport] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -23,7 +21,6 @@ export const AdminLoginModal: React.FC<{
         if (!isOpen) {
             setEmail('');
             setShowEmail(false);
-            setVisibleIndex(null);
         } else {
             // Atraso intencional no focus para não colidir com a animação de abertura do modal
             const timer = setTimeout(() => {
@@ -31,9 +28,6 @@ export const AdminLoginModal: React.FC<{
             }, 350);
             return () => clearTimeout(timer);
         }
-        return () => {
-            if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        };
     }, [isOpen]);
 
     useEffect(() => {
@@ -76,22 +70,7 @@ export const AdminLoginModal: React.FC<{
     };
 
     const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const val = e.target.value;
-        setEmail(val);
-
-        // Se o novo valor for maior, identificamos o caractere recém adicionado
-        if (val.length > email.length) {
-            const addedIdx = val.length - 1;
-            setVisibleIndex(addedIdx);
-
-            if (timeoutRef.current) clearTimeout(timeoutRef.current);
-            timeoutRef.current = setTimeout(() => {
-                setVisibleIndex(null);
-            }, 1000);
-        } else {
-            // Se apagou, reseta o índice visível
-            setVisibleIndex(null);
-        }
+        setEmail(e.target.value);
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -101,12 +80,8 @@ export const AdminLoginModal: React.FC<{
 
     if (!isOpen) return null;
 
-    const inputClassName = `w-full pr-12 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary caret-black dark:caret-white relative z-10 select-text font-mono transition-all duration-300 ${
+    const inputClassName = `w-full pr-12 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary caret-black dark:caret-white relative z-10 select-text font-mono transition-all duration-300 text-light-text dark:text-white ${
         isSmallViewport ? 'p-2.5 text-sm' : 'p-4 text-base'
-    } ${
-        !showEmail && email.length > 0
-            ? 'text-transparent dark:text-transparent'
-            : 'text-light-text dark:text-white'
     }`;
 
     return (
@@ -175,22 +150,12 @@ export const AdminLoginModal: React.FC<{
                         value={email}
                         onChange={handleEmailChange}
                         className={inputClassName}
+                        style={!showEmail && email.length > 0 ? { WebkitTextSecurity: 'disc' } as any : {}}
                         autoCapitalize="none"
                         autoComplete="off"
                         autoCorrect="off"
                         spellCheck="false"
                     />
-                    {!showEmail && email.length > 0 && (
-                        <div className={`absolute right-12 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-light-text dark:text-dark-text font-mono z-20 truncate transition-all duration-300 ${
-                            isSmallViewport ? 'left-3 text-sm' : 'left-4 text-base'
-                        }`}>
-                            {email.split('').map((char, index) => (
-                                <span key={index}>
-                                    {index === visibleIndex ? char : '●'}
-                                </span>
-                            ))}
-                        </div>
-                    )}
                     <button
                         type="button"
                         onClick={() => setShowEmail(!showEmail)}

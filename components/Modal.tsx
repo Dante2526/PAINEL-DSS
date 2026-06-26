@@ -53,12 +53,12 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children,
       style={{
         height: '100dvh', // Usa Dynamic Viewport Height para suportar teclado mobile nativamente
       }}
-      onClick={onClose}
+      onMouseDown={onClose}
     >
       <div
         className={`bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl px-5 pt-5 pb-5 md:px-8 md:pt-8 md:pb-8 w-full max-h-full overflow-y-auto hide-scrollbar ${sizeClass} text-center relative flex flex-col ${className}`}
         style={modalStyle}
-        onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-3 md:mb-4 w-full">
           <div className="w-8 flex justify-start shrink-0">
