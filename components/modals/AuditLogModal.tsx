@@ -11,10 +11,16 @@ const translateAction = (action: string) => {
         'UPDATE': 'ATUALIZADO',
         'DELETE': 'EXCLUÍDO',
         'USER_ADDED': 'USUÁRIO ADICIONADO',
+        'ADD_USER': 'USUÁRIO ADICIONADO',
         'USER_REMOVED': 'USUÁRIO REMOVIDO',
+        'REMOVE_USER': 'USUÁRIO REMOVIDO',
+        'IMPORT_USER': 'USUÁRIO IMPORTADO',
+        'TOGGLE_TURNO': 'ALTERAÇÃO DE TURNO',
+        'REPORT_DOWNLOAD': 'DOWNLOAD DE RELATÓRIO',
+        'CLEAR_DATA': 'LIMPEZA DE DADOS',
         'DATA_EXPORT': 'EXPORTAÇÃO DE DADOS',
     };
-    return translations[action] || action;
+    return translations[action.toUpperCase()] || action;
 };
 
 export const AuditLogModal: React.FC<{
@@ -124,7 +130,21 @@ export const AuditLogModal: React.FC<{
                                                                     </span>
                                                                 </div>
                                                                 <p className="text-sm text-gray-700 dark:text-gray-300 leading-snug">
-                                                                    {acao.details}
+                                                                    {(() => {
+                                                                        let text = acao.details.replace(/Funcionário/gi, 'ADM');
+                                                                        if (text.includes('|')) {
+                                                                            return (
+                                                                                <>
+                                                                                    {text.split('|').map((part, i) => (
+                                                                                        <span key={i} className="block">
+                                                                                            {part.trim()}
+                                                                                        </span>
+                                                                                    ))}
+                                                                                </>
+                                                                            );
+                                                                        }
+                                                                        return text;
+                                                                    })()}
                                                                 </p>
                                                                 {acao.turma && acao.turma !== 'N/A' && (
                                                                     <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-bold text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded-full">
