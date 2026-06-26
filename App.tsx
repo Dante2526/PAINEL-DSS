@@ -2469,7 +2469,7 @@ const App: React.FC = () => {
                 </Suspense>
 
             <div
-                className="fixed z-[100] space-y-3 top-[calc(1.25rem+env(safe-area-inset-top))] right-[calc(1.25rem+env(safe-area-inset-right))]"
+                className="fixed z-[99999] space-y-3 top-[calc(1.25rem+env(safe-area-inset-top))] right-[calc(1.25rem+env(safe-area-inset-right))]"
                 style={{ transform: `scale(${modalScale})`, transformOrigin: 'top right' }}
             >
                 {notifications.map(n => <Notification key={n.id} notification={n} onDismiss={dismissNotification} />)}
