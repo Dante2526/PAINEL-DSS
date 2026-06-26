@@ -72,8 +72,7 @@ const SignaturePasswordModal: React.FC<SignaturePasswordModalProps> = ({
         return (
             <Modal isOpen={isOpen} onClose={onClose} title="Confirmar Assinatura" scale={scale}>
                 <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-4">
-                    Confirme sua assinatura para o funcionário <br/>
-                    <strong className="text-light-text dark:text-dark-text">{employeeName}</strong>
+                    Confirme sua assinatura, <strong className="text-light-text dark:text-dark-text">{employeeName}</strong>
                 </p>
                 <form onSubmit={handleConfirmSubmit} className="space-y-4">
                     <input
