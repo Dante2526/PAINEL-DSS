@@ -40,13 +40,18 @@ const SignaturePasswordModal: React.FC<SignaturePasswordModalProps> = ({
         }
     }, [isOpen]);
 
-    const handleConfirmSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleConfirmSubmit = () => {
         onConfirm(senha);
     };
 
-    const handleChangeSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleConfirmKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleConfirmSubmit();
+        }
+    };
+
+    const handleChangeSubmit = async () => {
         setErrorMsg('');
         
         if (!newPassword) {
@@ -66,6 +71,13 @@ const SignaturePasswordModal: React.FC<SignaturePasswordModalProps> = ({
         }
     };
 
+    const handleChangeKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleChangeSubmit();
+        }
+    };
+
     if (!isOpen) return null;
 
     if (view === 'confirm') {
@@ -74,16 +86,22 @@ const SignaturePasswordModal: React.FC<SignaturePasswordModalProps> = ({
                 <p className="text-sm text-light-text-secondary dark:text-dark-text-secondary mb-4">
                     Confirme sua assinatura, <strong className="text-light-text dark:text-dark-text">{employeeName}</strong>
                 </p>
-                <form onSubmit={handleConfirmSubmit} className="space-y-4">
+                <div className="space-y-4">
                     <input
                         type="password"
                         placeholder="Digite sua senha"
                         value={senha}
                         onChange={(e) => setSenha(e.target.value)}
+                        onKeyDown={handleConfirmKeyDown}
+                        autoComplete="new-password"
                         className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-success dark:text-white text-center tracking-widest text-lg"
                         autoFocus
                     />
-                    <button type="submit" className="w-full py-3 bg-green-600 hover:bg-success text-white font-bold rounded-lg transition uppercase tracking-widest">
+                    <button 
+                        type="button" 
+                        onClick={handleConfirmSubmit} 
+                        className="w-full py-3 bg-green-600 hover:bg-success text-white font-bold rounded-lg transition uppercase tracking-widest"
+                    >
                         CONFIRMAR ASSINATURA
                     </button>
                     <button 
@@ -93,7 +111,7 @@ const SignaturePasswordModal: React.FC<SignaturePasswordModalProps> = ({
                     >
                         Trocar Senha
                     </button>
-                </form>
+                </div>
             </Modal>
         );
     }
@@ -106,12 +124,14 @@ const SignaturePasswordModal: React.FC<SignaturePasswordModalProps> = ({
             title="Trocar Senha" 
             scale={scale}
         >
-            <form onSubmit={handleChangeSubmit} className="space-y-3">
+            <div className="space-y-3">
                 <input
                     type="password"
                     placeholder="Senha atual"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
+                    onKeyDown={handleChangeKeyDown}
+                    autoComplete="new-password"
                     className="w-full p-3 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
                     autoFocus
                 />
@@ -120,6 +140,8 @@ const SignaturePasswordModal: React.FC<SignaturePasswordModalProps> = ({
                     placeholder="Nova senha"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
+                    onKeyDown={handleChangeKeyDown}
+                    autoComplete="new-password"
                     className="w-full p-3 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
                 />
                 <input
@@ -127,6 +149,8 @@ const SignaturePasswordModal: React.FC<SignaturePasswordModalProps> = ({
                     placeholder="Confirmar nova senha"
                     value={confirmNewPassword}
                     onChange={(e) => setConfirmNewPassword(e.target.value)}
+                    onKeyDown={handleChangeKeyDown}
+                    autoComplete="new-password"
                     className="w-full p-3 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
                 />
                 
@@ -134,10 +158,14 @@ const SignaturePasswordModal: React.FC<SignaturePasswordModalProps> = ({
                     <p className="text-danger text-sm font-bold">{errorMsg}</p>
                 )}
                 
-                <button type="submit" className="w-full py-3 bg-primary hover:bg-primary-dark text-white font-bold rounded-lg transition uppercase mt-2">
+                <button 
+                    type="button" 
+                    onClick={handleChangeSubmit} 
+                    className="w-full py-3 bg-primary hover:bg-primary-dark text-white font-bold rounded-lg transition uppercase mt-2"
+                >
                     SALVAR NOVA SENHA
                 </button>
-            </form>
+            </div>
         </Modal>
     );
 };
