@@ -5,9 +5,10 @@ import { AuditRecord } from '../../types';
 export const AuditLogModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
+    onBack?: () => void;
     auditRecords: AuditRecord[];
     scale: number;
-}> = ({ isOpen, onClose, auditRecords, scale }) => {
+}> = ({ isOpen, onClose, onBack, auditRecords, scale }) => {
     const [expandedAdminId, setExpandedAdminId] = useState<string | null>(null);
 
     // Função utilitária para converter timestamp "DD/MM/YYYY, HH:mm:ss" para objeto Date
@@ -37,6 +38,7 @@ export const AuditLogModal: React.FC<{
         <Modal 
             isOpen={isOpen} 
             onClose={onClose} 
+            onBack={onBack}
             title="Registros de Auditoria" 
             scale={scale}
             size="lg"

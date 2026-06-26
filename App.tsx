@@ -889,7 +889,7 @@ const App: React.FC = () => {
             const collectionName = getTurmaCollectionName(selectedTurma);
             const docRef = doc(db, collectionName, id);
             await updateDoc(docRef, updatedData);
-            logAuditEvent(adminEmailRef.current, 'STATUS_CHANGE', `Funcionário: ${employee.name} | Alteração: ${type} → ${isChecking ? 'marcado' : 'desmarcado'}`, selectedTurma);
+            logAuditEvent(adminEmailRef.current, 'ALTERAÇÃO DE STATUS', `Funcionário: ${employee.name} | Alteração: ${type} → ${isChecking ? 'marcado' : 'desmarcado'}`, selectedTurma);
         } catch (error) {
             console.error("Error updating status:", error);
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
@@ -923,7 +923,7 @@ const App: React.FC = () => {
             });
             showNotification('Horário atualizado com sucesso!', 'success');
             const emp = employeesRef.current.find(e => e.id === id);
-            logAuditEvent(adminEmailRef.current, 'EDIT_TIME', `Funcionário: ${emp?.name || id} | Novo horário: ${newDate ? newDate.toLocaleString('pt-BR') : 'Vazio'}`, selectedTurma);
+            logAuditEvent(adminEmailRef.current, 'EDIÇÃO DE HORÁRIO', `Funcionário: ${emp?.name || id} | Novo horário: ${newDate ? newDate.toLocaleString('pt-BR') : 'Vazio'}`, selectedTurma);
         } catch (error) {
             console.error("Error updating time:", error);
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
@@ -965,7 +965,7 @@ const App: React.FC = () => {
             });
             showNotification('Matrícula atualizada com sucesso!', 'success');
             const emp = employeesRef.current.find(e => e.id === id);
-            logAuditEvent(adminEmailRef.current, 'EDIT_MATRICULA', `Funcionário: ${emp?.name || id} | Nova matrícula: ${newMatricula}`, selectedTurma);
+            logAuditEvent(adminEmailRef.current, 'EDIÇÃO DE MATRÍCULA', `Funcionário: ${emp?.name || id} | Nova matrícula: ${newMatricula}`, selectedTurma);
         } catch (error) {
             console.error("Error updating matricula:", error);
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
@@ -1108,7 +1108,7 @@ const App: React.FC = () => {
                 turno: newTurno
             });
             showNotification(`${employee.name} foi movido para o turno ${displayTurno}.`, 'success');
-            logAuditEvent(adminEmailRef.current, 'TOGGLE_TURNO', `Funcionário: ${employee.name} | Novo turno: ${displayTurno}`, selectedTurma);
+            logAuditEvent(adminEmailRef.current, 'ALTERAÇÃO DE TURNO', `Funcionário: ${employee.name} | Novo turno: ${displayTurno}`, selectedTurma);
         } catch (error) {
             console.error("Failed to toggle special team status:", error);
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
@@ -1150,7 +1150,7 @@ const App: React.FC = () => {
             const docRef = doc(db, collectionName, employeeId);
             await deleteDoc(docRef);
             showNotification(`Usuário ${employeeToDelete.name} deletado com sucesso!`, 'success');
-            logAuditEvent(adminEmailRef.current, 'DELETE_USER', `Funcionário deletado: ${employeeToDelete.name} (Matrícula: ${employeeToDelete.matricula})`, selectedTurma);
+            logAuditEvent(adminEmailRef.current, 'EXCLUSÃO DE USUÁRIO', `Funcionário deletado: ${employeeToDelete.name} (Matrícula: ${employeeToDelete.matricula})`, selectedTurma);
         } catch (error) {
             console.error("Error deleting user:", error);
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
@@ -1233,7 +1233,7 @@ const App: React.FC = () => {
 
             const label = getShiftLabel(selectedTurma);
             showNotification(active ? `Turno ${label} Ativado com sucesso!` : `Turno ${label} Desativado. Todos os funcionários foram movidos para 7H.`, 'success');
-            logAuditEvent(adminEmailRef.current, 'TOGGLE_6H_COLUMN', `Turno ${label}: ${active ? 'Ativado' : 'Desativado'}`, selectedTurma);
+            logAuditEvent(adminEmailRef.current, 'ALTERAÇÃO DE COLUNA 6H', `Turno ${label}: ${active ? 'Ativado' : 'Desativado'}`, selectedTurma);
         } catch (error) {
             console.error("Error toggling 6H state:", error);
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
@@ -1269,7 +1269,7 @@ const App: React.FC = () => {
             const docRef = doc(db, getTurmaRegistrationName(selectedTurma), 'config_signature_password');
             await setDoc(docRef, { active: newActive }, { merge: true });
             showNotification(newActive ? 'Senha de assinatura ATIVADA para esta turma.' : 'Senha de assinatura DESATIVADA para esta turma.', 'success');
-            logAuditEvent(adminEmailRef.current, 'TOGGLE_SIGNATURE_PASSWORD', `Senha de assinatura: ${newActive ? 'Ativada' : 'Desativada'}`, selectedTurma);
+            logAuditEvent(adminEmailRef.current, 'ALTERAÇÃO SENHA ASSINATURA', `Senha de assinatura: ${newActive ? 'Ativada' : 'Desativada'}`, selectedTurma);
         } catch (error) {
             console.error("Error toggling signature password:", error);
             showNotification('Falha ao alterar configuração de senha.', 'error');
@@ -1322,7 +1322,7 @@ const App: React.FC = () => {
             await setDoc(docRef, registrationData);
 
             showNotification(`Registro para turno ${turno} salvo com sucesso.`, 'success');
-            logAuditEvent(adminEmail, 'MANUAL_REGISTER', `Registro manual salvo | Turno: ${turno} | Matrícula: ${matricula} | Assunto: ${subject || 'Não preenchido'}`, selectedTurma);
+            logAuditEvent(adminEmail, 'REGISTRO MANUAL', `Registro manual salvo | Turno: ${turno} | Matrícula: ${matricula} | Assunto: ${subject || 'Não preenchido'}`, selectedTurma);
         } catch (error) {
             console.error("Error saving manual registration:", error);
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
@@ -1425,7 +1425,7 @@ const App: React.FC = () => {
                 await updateDoc(adminDoc.ref, { senha: newPassword });
                 showNotification('Senha alterada com sucesso!', 'success');
                 setActiveModal(ModalType.AdminOptions);
-                logAuditEvent(adminEmail, 'CHANGE_PASSWORD', `Admin alterou a própria senha`, selectedTurma);
+                logAuditEvent(adminEmail, 'ALTERAÇÃO DE SENHA', `Admin alterou a própria senha`, selectedTurma);
             } else {
                 showNotification('Administrador não encontrado.', 'error');
             }
@@ -1460,7 +1460,7 @@ const App: React.FC = () => {
                 senha: email // Senha inicial é o próprio e-mail corporativo
             });
             showNotification('Administrador adicionado com sucesso!', 'success');
-            logAuditEvent(adminEmail, 'ADD_ADMIN', `Novo administrador adicionado: ${name} (Nível ${nivel})`, selectedTurma);
+            logAuditEvent(adminEmail, 'NOVO ADMINISTRADOR', `Novo administrador adicionado: ${name} (Nível ${nivel})`, selectedTurma);
         } catch (error) {
             console.error("Erro ao adicionar administrador:", error);
             showNotification('Falha ao adicionar administrador.', 'error');
@@ -1478,7 +1478,7 @@ const App: React.FC = () => {
                 nivel
             });
             showNotification('Administrador atualizado com sucesso!', 'success');
-            logAuditEvent(adminEmail, 'EDIT_ADMIN', `Administrador atualizado: ${name} (Nível ${nivel})`, selectedTurma);
+            logAuditEvent(adminEmail, 'EDIÇÃO DE ADMINISTRADOR', `Administrador atualizado: ${name} (Nível ${nivel})`, selectedTurma);
         } catch (error) {
             console.error("Erro ao atualizar administrador:", error);
             showNotification('Falha ao atualizar administrador.', 'error');
@@ -1491,7 +1491,7 @@ const App: React.FC = () => {
             const adminDocRef = doc(db, 'administrators', id);
             await deleteDoc(adminDocRef);
             showNotification('Administrador removido com sucesso!', 'success');
-            logAuditEvent(adminEmail, 'DELETE_ADMIN', `Administrador removido do sistema (ID: ${id})`, selectedTurma);
+            logAuditEvent(adminEmail, 'EXCLUSÃO DE ADMINISTRADOR', `Administrador removido do sistema (ID: ${id})`, selectedTurma);
         } catch (error) {
             console.error("Erro ao deletar administrador:", error);
             showNotification('Falha ao remover administrador.', 'error');
@@ -1579,7 +1579,7 @@ const App: React.FC = () => {
                 setActiveModal(ModalType.None);
             }
             showNotification(`Usuário ${finalName} adicionado com sucesso!`, 'success');
-            logAuditEvent(adminEmail, 'ADD_USER', `Novo funcionário: ${finalName} (Matrícula: ${matricula}) na Turma ${TURMA_DISPLAY_NAMES[selectedTurma]}`, selectedTurma);
+            logAuditEvent(adminEmail, 'NOVO USUÁRIO', `Novo funcionário: ${finalName} (Matrícula: ${matricula}) na Turma ${TURMA_DISPLAY_NAMES[selectedTurma]}`, selectedTurma);
         } catch (error) {
             console.error("Error adding user:", error);
             const errorMessage = error instanceof Error ? error.message : 'Ocorreu um erro.';
@@ -1644,7 +1644,7 @@ const App: React.FC = () => {
             await batch.commit();
             setActiveModal(ModalType.None);
             showNotification('Dados de status diário e registros manuais foram limpos!', 'success');
-            logAuditEvent(adminEmail, 'CLEAR_DATA', `Dados diários limpos da Turma ${TURMA_DISPLAY_NAMES[selectedTurma]}`, selectedTurma);
+            logAuditEvent(adminEmail, 'LIMPEZA DE DADOS', `Dados diários limpos da Turma ${TURMA_DISPLAY_NAMES[selectedTurma]}`, selectedTurma);
         } catch (error) {
             console.error("Error clearing data:", error);
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
@@ -1717,7 +1717,7 @@ const App: React.FC = () => {
             await batch.commit();
 
             showNotification(`${employeeName} foi importado para a Turma ${TURMA_DISPLAY_NAMES[selectedTurma]} com sucesso!`, 'success');
-            logAuditEvent(adminEmail, 'IMPORT_USER', `Funcionário: ${employeeName} importado da Turma ${TURMA_DISPLAY_NAMES[sourceTurma]} para Turma ${TURMA_DISPLAY_NAMES[selectedTurma]}`, selectedTurma);
+            logAuditEvent(adminEmail, 'IMPORTAÇÃO DE USUÁRIO', `Funcionário: ${employeeName} importado da Turma ${TURMA_DISPLAY_NAMES[sourceTurma]} para Turma ${TURMA_DISPLAY_NAMES[selectedTurma]}`, selectedTurma);
             setActiveModal(ModalType.None);
 
         } catch (error) {
@@ -2291,6 +2291,7 @@ const App: React.FC = () => {
                     <AuditLogModal
                         isOpen={activeModal === ModalType.AuditLog}
                         onClose={handleCloseModal}
+                        onBack={handleBackToAdminOptions}
                         auditRecords={auditRecords}
                         scale={modalScale}
                     />
@@ -2399,13 +2400,15 @@ const App: React.FC = () => {
                     )}
                     <AdminPasswordModal
                         isOpen={activeModal === ModalType.AdminPassword}
-                        onClose={() => setActiveModal(ModalType.AdminOptions)}
+                        onClose={handleCloseModal}
+                        onBack={handleBackToAdminOptions}
                         onConfirm={handleChangeAdminPassword}
                         scale={modalScale}
                     />
                     <ManageAdminsModal
                         isOpen={activeModal === ModalType.ManageAdmins}
-                        onClose={() => setActiveModal(ModalType.AdminOptions)}
+                        onClose={handleCloseModal}
+                        onBack={handleBackToAdminOptions}
                         administrators={administrators}
                         currentAdminEmail={adminEmail}
                         onOpenAddAdmin={() => setActiveModal(ModalType.AddAdmin)}
@@ -2418,13 +2421,18 @@ const App: React.FC = () => {
                     />
                     <AddAdminModal
                         isOpen={activeModal === ModalType.AddAdmin}
-                        onClose={() => setActiveModal(ModalType.ManageAdmins)}
+                        onClose={handleCloseModal}
+                        onBack={() => setActiveModal(ModalType.ManageAdmins)}
                         onAddAdmin={handleAddAdministrator}
                         scale={modalScale}
                     />
                     <EditAdminModal
                         isOpen={activeModal === ModalType.EditAdmin}
                         onClose={() => {
+                            setEditingAdminId(null);
+                            handleCloseModal();
+                        }}
+                        onBack={() => {
                             setEditingAdminId(null);
                             setActiveModal(ModalType.ManageAdmins);
                         }}

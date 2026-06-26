@@ -4,9 +4,10 @@ import Modal from '../Modal';
 export const AdminPasswordModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
+    onBack?: () => void;
     onConfirm: (newPassword: string) => void;
     scale: number;
-}> = ({ isOpen, onClose, onConfirm, scale }) => {
+}> = ({ isOpen, onClose, onBack, onConfirm, scale }) => {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
@@ -38,6 +39,7 @@ export const AdminPasswordModal: React.FC<{
         <Modal 
             isOpen={isOpen} 
             onClose={onClose} 
+            onBack={onBack}
             title="Alterar Minha Senha" 
             scale={scale}
         >

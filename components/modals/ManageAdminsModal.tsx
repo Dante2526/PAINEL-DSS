@@ -6,13 +6,14 @@ import { TrashIcon, InfoIcon, UserPlusIcon, EditIcon } from '../icons';
 export const ManageAdminsModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
+    onBack?: () => void;
     administrators: Administrator[];
     currentAdminEmail: string;
     onOpenAddAdmin: () => void;
     onOpenEditAdmin: (id: string) => void;
     onDeleteAdmin: (id: string) => Promise<void>;
     scale: number;
-}> = ({ isOpen, onClose, administrators, currentAdminEmail, onOpenAddAdmin, onOpenEditAdmin, onDeleteAdmin, scale }) => {
+}> = ({ isOpen, onClose, onBack, administrators, currentAdminEmail, onOpenAddAdmin, onOpenEditAdmin, onDeleteAdmin, scale }) => {
 
     if (!isOpen) return null;
 
@@ -22,6 +23,7 @@ export const ManageAdminsModal: React.FC<{
         <Modal 
             isOpen={isOpen} 
             onClose={onClose} 
+            onBack={onBack}
             title="Gerenciar Administradores" 
             scale={scale}
             size="lg"

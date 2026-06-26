@@ -5,10 +5,11 @@ import { Administrator } from '../../types';
 export const EditAdminModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
+    onBack?: () => void;
     admin: Administrator | null;
     onEditAdmin: (id: string, name: string, email: string, matricula: string, nivel: string) => Promise<void>;
     scale: number;
-}> = ({ isOpen, onClose, admin, onEditAdmin, scale }) => {
+}> = ({ isOpen, onClose, onBack, admin, onEditAdmin, scale }) => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [matricula, setMatricula] = useState('');
@@ -42,6 +43,7 @@ export const EditAdminModal: React.FC<{
         <Modal 
             isOpen={isOpen} 
             onClose={onClose} 
+            onBack={onBack}
             title="Editar Administrador" 
             scale={scale}
             size="md"

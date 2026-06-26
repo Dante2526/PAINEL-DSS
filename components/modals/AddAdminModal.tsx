@@ -4,9 +4,10 @@ import Modal from '../Modal';
 export const AddAdminModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
+    onBack?: () => void;
     onAddAdmin: (name: string, email: string, matricula: string, nivel: string) => Promise<void>;
     scale: number;
-}> = ({ isOpen, onClose, onAddAdmin, scale }) => {
+}> = ({ isOpen, onClose, onBack, onAddAdmin, scale }) => {
     const [newName, setNewName] = useState('');
     const [newEmail, setNewEmail] = useState('');
     const [newMatricula, setNewMatricula] = useState('');
@@ -34,6 +35,7 @@ export const AddAdminModal: React.FC<{
         <Modal 
             isOpen={isOpen} 
             onClose={onClose} 
+            onBack={onBack}
             title="Cadastrar Novo ADM" 
             scale={scale}
             size="md"
