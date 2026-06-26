@@ -77,6 +77,7 @@ import SignaturePasswordModal from './components/modals/SignaturePasswordModal';
 import AdminPasswordModal from './components/modals/AdminPasswordModal';
 import ManageAdminsModal from './components/modals/ManageAdminsModal';
 import AddAdminModal from './components/modals/AddAdminModal';
+import EditAdminModal from './components/modals/EditAdminModal';
 import AuditLogModal from './components/modals/AuditLogModal';
 
 const ReportModal = lazy(() => import('./components/modals/ReportModal').then(module => ({ default: module.ReportModal })));
@@ -118,6 +119,7 @@ const App: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [activeModal, setActiveModal] = useState<ModalType>(ModalType.None);
     const [notifications, setNotifications] = useState<NotificationData[]>([]);
+    const [editingAdminId, setEditingAdminId] = useState<string | null>(null);
     const [togglingSpecialTeamId, setTogglingSpecialTeamId] = useState<string | null>(null);
     const [isAdmin, setIsAdmin] = useState(false);
     const [adminEmail, setAdminEmail] = useState('');
@@ -1465,6 +1467,24 @@ const App: React.FC = () => {
         }
     };
 
+    const handleEditAdministrator = async (id: string, name: string, email: string, matricula: string, nivel: string) => {
+        if (!db || !adminEmail) return;
+        try {
+            const adminDocRef = doc(db, 'administrators', id);
+            await updateDoc(adminDocRef, {
+                name,
+                email,
+                matricula,
+                nivel
+            });
+            showNotification('Administrador atualizado com sucesso!', 'success');
+            logAuditEvent(adminEmail, 'EDIT_ADMIN', `Administrador atualizado: ${name} (Nível ${nivel})`, selectedTurma);
+        } catch (error) {
+            console.error("Erro ao atualizar administrador:", error);
+            showNotification('Falha ao atualizar administrador.', 'error');
+        }
+    };
+
     const handleDeleteAdministrator = async (id: string) => {
         if (!db || !adminEmail) return;
         try {
@@ -2389,6 +2409,10 @@ const App: React.FC = () => {
                         administrators={administrators}
                         currentAdminEmail={adminEmail}
                         onOpenAddAdmin={() => setActiveModal(ModalType.AddAdmin)}
+                        onOpenEditAdmin={(id) => {
+                            setEditingAdminId(id);
+                            setActiveModal(ModalType.EditAdmin);
+                        }}
                         onDeleteAdmin={handleDeleteAdministrator}
                         scale={modalScale}
                     />
@@ -2396,6 +2420,16 @@ const App: React.FC = () => {
                         isOpen={activeModal === ModalType.AddAdmin}
                         onClose={() => setActiveModal(ModalType.ManageAdmins)}
                         onAddAdmin={handleAddAdministrator}
+                        scale={modalScale}
+                    />
+                    <EditAdminModal
+                        isOpen={activeModal === ModalType.EditAdmin}
+                        onClose={() => {
+                            setEditingAdminId(null);
+                            setActiveModal(ModalType.ManageAdmins);
+                        }}
+                        admin={administrators.find(a => a.id === editingAdminId) || null}
+                        onEditAdmin={handleEditAdministrator}
                         scale={modalScale}
                     />
                     <ConfirmDeleteModal

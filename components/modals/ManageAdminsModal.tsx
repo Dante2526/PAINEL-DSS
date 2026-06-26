@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import Modal from '../Modal';
 import { Administrator } from '../../types';
-import { TrashIcon, InfoIcon, UserPlusIcon } from '../icons';
+import { TrashIcon, InfoIcon, UserPlusIcon, EditIcon } from '../icons';
 
 export const ManageAdminsModal: React.FC<{
     isOpen: boolean;
@@ -9,9 +9,10 @@ export const ManageAdminsModal: React.FC<{
     administrators: Administrator[];
     currentAdminEmail: string;
     onOpenAddAdmin: () => void;
+    onOpenEditAdmin: (id: string) => void;
     onDeleteAdmin: (id: string) => Promise<void>;
     scale: number;
-}> = ({ isOpen, onClose, administrators, currentAdminEmail, onOpenAddAdmin, onDeleteAdmin, scale }) => {
+}> = ({ isOpen, onClose, administrators, currentAdminEmail, onOpenAddAdmin, onOpenEditAdmin, onDeleteAdmin, scale }) => {
 
     if (!isOpen) return null;
 
@@ -52,8 +53,7 @@ export const ManageAdminsModal: React.FC<{
                                 <div className="flex flex-col overflow-hidden">
                                     <div className="flex items-center gap-2">
                                         <span className="font-bold text-gray-800 dark:text-white truncate">{admin.name}</span>
-                                        {isSuper && <span className="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase">Super ADM</span>}
-                                        {isMe && <span className="bg-green-100 text-green-800 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase">Você</span>}
+                                        {isSuper && <span className="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase whitespace-nowrap">Super ADM</span>}
                                     </div>
                                     <div className="flex flex-wrap gap-2 text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                                         <span className="truncate">{admin.email}</span>
@@ -63,22 +63,31 @@ export const ManageAdminsModal: React.FC<{
                                         <span>Senha: <strong className="font-mono text-gray-700 dark:text-gray-300">{admin.senha || "N/A"}</strong></span>
                                     </div>
                                 </div>
-                                <button
-                                    onClick={() => {
-                                        if (isMe) {
-                                            alert("Você não pode excluir sua própria conta.");
-                                            return;
-                                        }
-                                        if (window.confirm(`Tem certeza que deseja excluir o administrador ${admin.name}?`)) {
-                                            onDeleteAdmin(admin.id);
-                                        }
-                                    }}
-                                    disabled={isMe}
-                                    className={`p-2 rounded-full transition-colors ${isMe ? 'opacity-30 cursor-not-allowed' : 'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30'}`}
-                                    title={isMe ? "Você não pode excluir a si mesmo" : "Excluir Administrador"}
-                                >
-                                    <TrashIcon className="w-5 h-5" />
-                                </button>
+                                <div className="flex items-center gap-1">
+                                    <button
+                                        onClick={() => onOpenEditAdmin(admin.id)}
+                                        className="p-2 rounded-full transition-colors text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                                        title="Editar Administrador"
+                                    >
+                                        <EditIcon className="w-5 h-5" />
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            if (isMe) {
+                                                alert("Você não pode excluir sua própria conta.");
+                                                return;
+                                            }
+                                            if (window.confirm(`Tem certeza que deseja excluir o administrador ${admin.name}?`)) {
+                                                onDeleteAdmin(admin.id);
+                                            }
+                                        }}
+                                        disabled={isMe}
+                                        className={`p-2 rounded-full transition-colors ${isMe ? 'opacity-30 cursor-not-allowed' : 'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30'}`}
+                                        title={isMe ? "Você não pode excluir a si mesmo" : "Excluir Administrador"}
+                                    >
+                                        <TrashIcon className="w-5 h-5" />
+                                    </button>
+                                </div>
                             </div>
                         );
                     })}
