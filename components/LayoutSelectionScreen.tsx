@@ -24,7 +24,7 @@ const LayoutSelectionScreen: React.FC<LayoutSelectionScreenProps> = ({ onSelect,
             <div className="flex-grow flex flex-col w-full mt-10 md:mt-8 pb-2">
                 <main className="flex-grow flex flex-col items-center justify-center text-center m-auto w-full max-w-2xl px-2">
                     <ShieldLogo className="h-8 w-8 md:h-24 md:w-24 mb-1 md:mb-4" />
-                    <h1 className="text-xl md:text-4xl font-extrabold text-light-text dark:text-dark-text tracking-tight mb-0.5 md:mb-1">Turma {selecionadaTurma}</h1>
+                    <h1 className="text-xl md:text-4xl font-extrabold text-light-text dark:text-dark-text tracking-tight mb-0.5 md:mb-1">Turma {selecionadaTurma.replace('_', ' - ')}</h1>
                     <p className="text-[11px] md:text-lg font-medium text-light-text-secondary dark:text-dark-text-secondary mb-4 md:mb-8">Escolha como deseja visualizar o painel</p>
 
                     <div className="flex flex-col md:grid md:grid-cols-2 gap-4 md:gap-4 w-[300px] md:w-full md:max-w-xl mx-auto mb-6 md:mb-10">
