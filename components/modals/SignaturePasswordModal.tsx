@@ -90,12 +90,11 @@ const SignaturePasswordModal: React.FC<SignaturePasswordModalProps> = ({
                     <button 
                         type="button" 
                         onClick={() => setView('change')}
-                        className="w-full text-sm font-bold text-primary dark:text-primary-light hover:underline mt-2"
+                        className="w-full py-3 bg-danger dark:bg-[#3A1414] hover:bg-red-700 dark:hover:bg-[#4A1818] border border-transparent dark:border-[#5A1C1C]/40 text-white font-bold rounded-lg transition uppercase tracking-widest mt-2 shadow-sm"
                     >
                         Trocar Senha
                     </button>
                 </form>
-                <p className="text-xs text-light-text-secondary dark:text-dark-text-secondary mt-4">A senha padrão é a sua matrícula.</p>
             </Modal>
         );
     }
