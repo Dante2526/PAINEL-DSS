@@ -114,7 +114,7 @@ export const AuditLogModal: React.FC<{
                                             {sortedActions.length === 0 ? (
                                                 <p className="text-sm text-gray-500 italic">Nenhuma ação registrada para este usuário.</p>
                                             ) : (
-                                                <div className="space-y-3 relative before:absolute before:inset-0 before:ml-2 before:-translate-x-px before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-300 dark:before:via-gray-600 before:to-transparent">
+                                                <div className="space-y-3 relative before:absolute before:top-0 before:bottom-0 before:left-[10px] before:-translate-x-1/2 before:w-1 before:bg-gradient-to-b before:from-transparent before:via-gray-400 dark:before:via-gray-500 before:to-transparent">
                                                     {sortedActions.map((acao, idx) => (
                                                         <div key={idx} className="relative flex items-center justify-between">
                                                             {/* Timeline Icon / Dot */}
