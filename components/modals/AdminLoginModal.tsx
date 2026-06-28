@@ -177,6 +177,9 @@ export const AdminLoginModal: React.FC<{
                         )}
                     </button>
                 </div>
+                <p className={`text-yellow-500 dark:text-yellow-400 font-bold ${isSmallViewport ? 'text-[10px] mt-0.5 mb-1' : 'text-xs mt-1 mb-2'}`}>
+                    * Digite tudo em minúsculo
+                </p>
                 <button type="submit" className={`w-full bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition-all duration-300 transform hover:-translate-y-1 shadow-md hover:shadow-lg ${
                     isSmallViewport ? 'py-2.5 text-sm mt-1' : 'py-3'
                 }`}>
