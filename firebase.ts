@@ -3,7 +3,7 @@
 // FIX: Switched to standard firebase packages to resolve production build errors.
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import type { FirebaseApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
 import type { Firestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import type { Auth } from 'firebase/auth';
@@ -37,7 +37,17 @@ if (isConfigured) {
         } else {
             app = getApp(); // Get the default app
         }
-        db = getFirestore(app);
+        // Ativa o cache local (Offline Persistence) para otimização de leituras
+        // Usamos try/catch específico porque no ambiente de desenvolvimento (Vite Hot Reload)
+        // o initializeFirestore dispara erro se chamado duas vezes, então caímos para o getFirestore()
+        try {
+            db = initializeFirestore(app, {
+                localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+            });
+        } catch (error) {
+            // Se já foi inicializado (hot reload), apenas pega a instância existente
+            db = getFirestore(app);
+        }
         auth = getAuth(app);
     } catch(e) {
         console.error("Error initializing Firebase. Please check your environment variables.", e);
