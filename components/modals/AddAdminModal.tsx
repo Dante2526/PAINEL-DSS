@@ -24,7 +24,8 @@ export const AddAdminModal: React.FC<{
         setNewEmail('');
         setNewMatricula('');
         setNewNivel('1');
-        onClose();
+        if (onBack) onBack();
+        else onClose();
     };
 
     if (!isOpen) return null;

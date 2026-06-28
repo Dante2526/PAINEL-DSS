@@ -32,7 +32,8 @@ export const EditAdminModal: React.FC<{
             return;
         }
         await onEditAdmin(admin.id, name.trim().toUpperCase(), email.trim().toLowerCase(), matricula.trim(), nivel);
-        onClose();
+        if (onBack) onBack();
+        else onClose();
     };
 
     if (!isOpen || !admin) return null;
