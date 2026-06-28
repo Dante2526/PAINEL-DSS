@@ -10,9 +10,10 @@ interface ModalProps {
   scale?: number;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  showScrollbar?: boolean;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children, scale = 1, size = 'sm', className = '' }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children, scale = 1, size = 'sm', className = '', showScrollbar = false }) => {
   useEffect(() => {
     if (!isOpen) return;
 
@@ -56,7 +57,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children,
       onMouseDown={onClose}
     >
       <div
-        className={`bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl px-5 pt-5 pb-5 md:px-8 md:pt-8 md:pb-8 w-full max-h-full overflow-y-auto hide-scrollbar ${sizeClass} text-center relative flex flex-col ${className}`}
+        className={`bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl px-5 pt-5 pb-5 md:px-8 md:pt-8 md:pb-8 w-full max-h-full overflow-y-auto ${showScrollbar ? 'custom-scrollbar' : 'hide-scrollbar'} ${sizeClass} text-center relative flex flex-col ${className}`}
         style={modalStyle}
         onMouseDown={(e) => e.stopPropagation()}
       >

@@ -39,7 +39,7 @@ export const AdminOptionsModal: React.FC<{
     if (!isOpen) return null;
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Painel do Administrador" scale={scale} size="md">
+        <Modal isOpen={isOpen} onClose={onClose} title="PAINEL ADM" scale={scale} size="md" showScrollbar={true}>
             <div className="flex flex-col gap-2 md:gap-3">
                 <div className="grid grid-cols-2 gap-2 md:gap-3">
                     <AdminButton

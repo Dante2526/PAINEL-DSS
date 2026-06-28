@@ -53,7 +53,7 @@ const HistoryModal: React.FC<{
     const luminaClassId = useMemo(() => {
         if (!turma) return null;
         const map: Record<string, string> = {
-            'A': 'Turma A', 'B': 'Turma B', 'C': 'Turma C', 'D': 'Turma D', 'CCG': 'Turma A', 'ESTAGIO': 'Estágio'
+            'A': 'Turma A', 'B': 'Turma B', 'C': 'Turma C', 'D': 'Turma D', 'CCG': 'Turma A', 'B_CG': 'Turma B', 'ESTAGIO': 'Estágio'
         };
         return map[turma] || `Turma ${turma}`;
     }, [turma]);
@@ -625,7 +625,7 @@ const HistoryModal: React.FC<{
                     {searchTerm && (
                         <div className="flex flex-wrap justify-center gap-2 mt-1 px-1 animate-in fade-in slide-in-from-top-1 duration-300">
                             <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 w-full text-center mb-1 uppercase tracking-wider">Buscar também nas turmas:</span>
-                            {['A', 'B', 'C', 'D'].map(t => {
+                            {['A', 'B', 'C', 'D', 'B_CG'].map(t => {
                                 const isSelected = selectedSearchTurmas.includes(t);
                                 return (
                                     <button
@@ -649,7 +649,7 @@ const HistoryModal: React.FC<{
                                                 : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700'
                                         }`}
                                     >
-                                        TURMA {t}
+                                        TURMA {t === 'B_CG' ? 'B CG' : t}
                                     </button>
                                 );
                             })}

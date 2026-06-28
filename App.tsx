@@ -32,7 +32,8 @@ import {
     getDocs,
     deleteDoc,
     setDoc,
-    getDoc
+    getDoc,
+    limit
 } from 'firebase/firestore';
 import { signInAnonymously } from 'firebase/auth';
 import emailjs from '@emailjs/browser';
@@ -115,7 +116,6 @@ const App: React.FC = () => {
 
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [administrators, setAdministrators] = useState<Administrator[]>([]);
-    const [allEmployeesForLookup, setAllEmployeesForLookup] = useState<(Pick<Employee, 'name' | 'matricula'>)[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeModal, setActiveModal] = useState<ModalType>(ModalType.None);
     const [notifications, setNotifications] = useState<NotificationData[]>([]);
@@ -329,39 +329,19 @@ const App: React.FC = () => {
         }
     };
 
-    // Effect for one-time global data fetching (like the employee lookup list)
+    // Efetua login anônimo para acesso ao Firestore
     useEffect(() => {
-        const fetchGlobalData = async () => {
-            const currentDb = db;
-            if (!isConfigured || !currentDb) return;
-
+        const initAuth = async () => {
             try {
-                await signInAnonymously(auth!);
-                console.log("Signed in anonymously for global data fetch.");
-
-                if (allEmployeesForLookup.length === 0) {
-                    const promises = ALL_TURMAS.map(turma => getDocs(query(collection(currentDb, getTurmaCollectionName(turma)))));
-
-                    const snapshots = await Promise.all(promises);
-                    const allEmps: Pick<Employee, 'name' | 'matricula'>[] = [];
-                    snapshots.forEach(snapshot => {
-                        snapshot.forEach(doc => {
-                            const data = doc.data();
-                            if (data.name && data.matricula) {
-                                allEmps.push({ name: data.name, matricula: data.matricula });
-                            }
-                        });
-                    });
-
-                    const uniqueEmps = Array.from(new Map(allEmps.map(item => [item.matricula, item])).values());
-                    setAllEmployeesForLookup(uniqueEmps);
+                if (auth) {
+                    await signInAnonymously(auth);
                 }
             } catch (error) {
-                console.error("Global data fetch or anonymous sign-in failed:", error);
+                console.error("Anonymous sign-in failed:", error);
             }
-        }
-        fetchGlobalData();
-    }, []); // Empty dependency array ensures this runs only once
+        };
+        initAuth();
+    }, []);
 
     // Effect for fetching data specific to the selected Turma
     useEffect(() => {
@@ -379,7 +359,6 @@ const App: React.FC = () => {
         initialLoadDoneRef.current = false; // Reset notification flag when turma changes
 
         let unsubscribeEmployees = () => { };
-        let unsubscribeAdministrators = () => { };
         let unsubscribeRegistrations = () => { };
         let unsubscribeAutomacao = () => { };
 
@@ -440,13 +419,6 @@ const App: React.FC = () => {
                     if (!isDemoModeRef.current) showNotification(`Erro ao carregar funcionários: ${error.message}`, "error");
                     setLoading(false);
                 });
-
-                const administratorsQuery = query(collection(db, 'administrators'));
-                unsubscribeAdministrators = onSnapshot(administratorsQuery, (querySnapshot) => {
-                    if (isDemoModeRef.current) return;
-                    const adminsData: Administrator[] = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Administrator));
-                    setAdministrators(adminsData);
-                }, (error) => console.error("Error listening to admin updates:", error));
 
                 const registrationCollectionName = getTurmaRegistrationName(selectedTurma);
                 const registrationsQuery = query(collection(db, registrationCollectionName));
@@ -519,11 +491,23 @@ const App: React.FC = () => {
 
         return () => {
             unsubscribeEmployees();
-            unsubscribeAdministrators();
             unsubscribeRegistrations();
             unsubscribeAutomacao();
         };
     }, [selectedTurma]);
+
+    // Carrega administradores SOMENTE quando um admin está logado
+    useEffect(() => {
+        if (!isAdmin || !db) return;
+        
+        const administratorsQuery = query(collection(db, 'administrators'));
+        const unsubscribeAdministrators = onSnapshot(administratorsQuery, (querySnapshot) => {
+            const adminsData: Administrator[] = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Administrator));
+            setAdministrators(adminsData);
+        }, (error) => console.error("Error listening to admin updates:", error));
+
+        return () => unsubscribeAdministrators();
+    }, [isAdmin]);
 
     const setScale = useCallback((newScale: number, scrollX?: number, scrollY?: number) => {
         const viewport = viewportRef.current;
@@ -1291,9 +1275,27 @@ const App: React.FC = () => {
             return;
         }
 
-        const admin = administrators.find(a => a.matricula === matricula);
-        const emp = allEmployeesForLookup.find(e => e.matricula === matricula);
-        const resolvedName = admin ? admin.name : (emp ? emp.name : '');
+        let resolvedName = '';
+        const currentEmp = employees.find(e => e.matricula === matricula);
+        if (currentEmp) {
+            resolvedName = currentEmp.name;
+        } else {
+            const adminQ = query(collection(db, 'administrators'), where('matricula', '==', matricula), limit(1));
+            const adminSnap = await getDocs(adminQ);
+            if (!adminSnap.empty) {
+                resolvedName = adminSnap.docs[0].data().name;
+            } else {
+                for (const t of ALL_TURMAS) {
+                    if (t === selectedTurma) continue;
+                    const q = query(collection(db, getTurmaCollectionName(t)), where("matricula", "==", matricula), limit(1));
+                    const snap = await getDocs(q);
+                    if (!snap.empty) {
+                        resolvedName = snap.docs[0].data().name;
+                        break;
+                    }
+                }
+            }
+        }
 
         if (isDemoMode) {
             showNotification(`Registro para turno ${turno} salvo com sucesso (DEMO).`, 'success');
@@ -1328,7 +1330,7 @@ const App: React.FC = () => {
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
             showNotification(`Falha ao salvar registro: ${message}`, 'error');
         }
-    }, [selectedTurma, isDemoMode, db, administrators, allEmployeesForLookup, showNotification]);
+    }, [selectedTurma, isDemoMode, db, employees, showNotification]);
 
     const handleAdminLogin = async (inputStr: string) => {
         const normalizedInput = inputStr.trim();
@@ -2108,7 +2110,7 @@ const App: React.FC = () => {
                                         subject={mainSubject}
                                         matricula={mainMatricula}
                                         onRegister={handleRegister7H}
-                                        employeesForLookup={allEmployeesForLookup}
+                                        employeesForLookup={employees}
                                         administrators={administrators}
                                         turma={selectedTurma}
                                     />
@@ -2228,7 +2230,7 @@ const App: React.FC = () => {
                                     subject={specialSubject}
                                     matricula={specialMatricula}
                                     onRegister={handleRegister6H}
-                                    employeesForLookup={allEmployeesForLookup}
+                                    employeesForLookup={employees}
                                     administrators={administrators}
                                     turma={selectedTurma}
                                 />
