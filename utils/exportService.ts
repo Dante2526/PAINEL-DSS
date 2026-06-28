@@ -257,37 +257,58 @@ export const exportToDoc = (text: string, filename: string) => {
     URL.revokeObjectURL(url);
 };
 
-export const generateExcelBlob = (dataOrArray: PdfReportData | Array<any>): Blob => {
-    try {
-        const wb = XLSX.utils.book_new();
-        let ws: XLSX.WorkSheet;
+const createSheetForReport = (data: PdfReportData): XLSX.WorkSheet => {
+    const rows: any[][] = [];
 
-        if (!Array.isArray(dataOrArray)) {
-            const data = dataOrArray as PdfReportData;
-            const rows: any[][] = [];
+    // 1. Cabeçalho Principal
+    rows.push([`RESUMO GERAL - TURMA ${data.turma} - ${data.dataFormatada}`]);
+    rows.push([]);
 
-            // 1. Cabeçalho Principal
-            rows.push([`RESUMO GERAL - TURMA ${data.turma} - ${data.dataFormatada}`]);
-            rows.push([]);
+    // 2. Resumo Estatístico
+    rows.push(['RESUMO ESTATÍSTICO']);
+    rows.push(['Total de Funcionários:', data.totalFuncionarios]);
+    rows.push(['Presentes (DSS + Bem/Mal):', data.totalPresentes]);
+    rows.push(['Pendentes:', data.totalPendentes]);
+    rows.push(['Ausentes:', data.totalAusentes]);
+    rows.push([]);
 
-            // 2. Resumo Estatístico
-            rows.push(['RESUMO ESTATÍSTICO']);
-            rows.push(['Total de Funcionários:', data.totalFuncionarios]);
-            rows.push(['Presentes (DSS + Bem/Mal):', data.totalPresentes]);
-            rows.push(['Pendentes:', data.totalPendentes]);
-            rows.push(['Ausentes:', data.totalAusentes]);
-            rows.push([]);
+    const mainLabel = data.mainShiftLabel || '7H';
+    const secLabel = data.shiftLabel || '6H';
 
-            const mainLabel = data.mainShiftLabel || '7H';
-            const secLabel = data.shiftLabel || '6H';
+    // 3. Seção Turno Principal
+    rows.push([`=== EQUIPE TURNO ${mainLabel} ===`]);
+    
+    // Registros DSS do Turno Principal
+    rows.push(['REGISTROS DSS']);
+    if (data.registros7H && data.registros7H.length > 0) {
+        data.registros7H.forEach(reg => {
+            rows.push(['Assunto:', reg.assunto || 'NÃO PREENCHIDO']);
+            rows.push(['Responsável:', `${reg.name || '---'} (Matrícula: ${reg.matricula || '---'})`]);
+        });
+    } else {
+        rows.push(['Nenhum tema registrado.']);
+    }
+    rows.push([]);
 
-            // 3. Seção Turno Principal
-            rows.push([`=== EQUIPE TURNO ${mainLabel} ===`]);
+    // Lista do Turno Principal
+    rows.push(['NOME', 'MATRÍCULA', 'TURNO', 'STATUS']);
+    const mainTeam = (data.employees || []).filter(e => e.turno !== '6H');
+    mainTeam.forEach(e => {
+        let statusLabel = e.s === 'BEM' ? 'ASS.DSS + BEM' : e.s === 'MAL' ? 'ESTOU MAL' : e.s === 'AUS' ? 'AUSENTE' : 'PENDENTE';
+        rows.push([e.n, e.m, e.turno || '7H', statusLabel]);
+    });
+    rows.push([]);
+    rows.push([]);
+
+    // 4. Seção Turno Secundário (se existir)
+    if (data.turma !== 'CCG') {
+        const secTeam = (data.employees || []).filter(e => e.turno === '6H');
+        if (secTeam.length > 0 || (data.registros6H && data.registros6H.length > 0)) {
+            rows.push([`=== EQUIPE TURNO ${secLabel} ===`]);
             
-            // Registros DSS do Turno Principal
             rows.push(['REGISTROS DSS']);
-            if (data.registros7H.length > 0) {
-                data.registros7H.forEach(reg => {
+            if (data.registros6H && data.registros6H.length > 0) {
+                data.registros6H.forEach(reg => {
                     rows.push(['Assunto:', reg.assunto || 'NÃO PREENCHIDO']);
                     rows.push(['Responsável:', `${reg.name || '---'} (Matrícula: ${reg.matricula || '---'})`]);
                 });
@@ -296,64 +317,60 @@ export const generateExcelBlob = (dataOrArray: PdfReportData | Array<any>): Blob
             }
             rows.push([]);
 
-            // Lista do Turno Principal
-            rows.push(['NOME', 'MATRÍCULA', 'TURNO', 'STATUS']);
-            const mainTeam = data.employees.filter(e => e.turno !== '6H');
-            mainTeam.forEach(e => {
-                let statusLabel = e.s === 'BEM' ? 'ASS.DSS + BEM' : e.s === 'MAL' ? 'ESTOU MAL' : e.s === 'AUS' ? 'AUSENTE' : 'PENDENTE';
-                rows.push([e.n, e.m, e.turno || '7H', statusLabel]);
-            });
-            rows.push([]);
-            rows.push([]);
-
-            // 4. Seção Turno Secundário (se existir)
-            if (data.turma !== 'CCG') {
-                const secTeam = data.employees.filter(e => e.turno === '6H');
-                if (secTeam.length > 0 || data.registros6H.length > 0) {
-                    rows.push([`=== EQUIPE TURNO ${secLabel} ===`]);
-                    
-                    rows.push(['REGISTROS DSS']);
-                    if (data.registros6H.length > 0) {
-                        data.registros6H.forEach(reg => {
-                            rows.push(['Assunto:', reg.assunto || 'NÃO PREENCHIDO']);
-                            rows.push(['Responsável:', `${reg.name || '---'} (Matrícula: ${reg.matricula || '---'})`]);
-                        });
-                    } else {
-                        rows.push(['Nenhum tema registrado.']);
-                    }
-                    rows.push([]);
-
-                    if (secTeam.length > 0) {
-                        rows.push(['NOME', 'MATRÍCULA', 'TURNO', 'STATUS']);
-                        secTeam.forEach(e => {
-                            let statusLabel = e.s === 'BEM' ? 'ASS.DSS + BEM' : e.s === 'MAL' ? 'ESTOU MAL' : e.s === 'AUS' ? 'AUSENTE' : 'PENDENTE';
-                            rows.push([e.n, e.m, e.turno || '6H', statusLabel]);
-                        });
-                    }
-                }
+            if (secTeam.length > 0) {
+                rows.push(['NOME', 'MATRÍCULA', 'TURNO', 'STATUS']);
+                secTeam.forEach(e => {
+                    let statusLabel = e.s === 'BEM' ? 'ASS.DSS + BEM' : e.s === 'MAL' ? 'ESTOU MAL' : e.s === 'AUS' ? 'AUSENTE' : 'PENDENTE';
+                    rows.push([e.n, e.m, e.turno || '6H', statusLabel]);
+                });
             }
+        }
+    }
 
-            ws = XLSX.utils.aoa_to_sheet(rows);
+    const ws = XLSX.utils.aoa_to_sheet(rows);
 
-            // Ajustar larguras
-            ws['!cols'] = [
-                { wpx: 300 }, // NOME / Labels
-                { wpx: 150 }, // MATRICULA / Valores
-                { wpx: 100 }, // TURNO
-                { wpx: 150 }, // STATUS
-            ];
+    // Ajustar larguras
+    ws['!cols'] = [
+        { wpx: 300 }, // NOME / Labels
+        { wpx: 150 }, // MATRICULA / Valores
+        { wpx: 100 }, // TURNO
+        { wpx: 150 }, // STATUS
+    ];
+    return ws;
+};
+
+export const generateExcelBlob = (dataOrArray: PdfReportData | Array<any>): Blob => {
+    try {
+        const wb = XLSX.utils.book_new();
+        
+        const isPdfReportDataArray = Array.isArray(dataOrArray) && dataOrArray.length > 0 && typeof dataOrArray[0] === 'object' && 'turma' in dataOrArray[0] && 'employees' in dataOrArray[0];
+
+        if (isPdfReportDataArray) {
+            const reports = dataOrArray as PdfReportData[];
+            reports.forEach((data, index) => {
+                const ws = createSheetForReport(data);
+                let safeDate = (data.dataFormatada || '').replace(/\//g, '-').substring(0, 10);
+                let sheetName = `${data.turma} ${safeDate}`.substring(0, 31);
+                if (wb.SheetNames.includes(sheetName)) {
+                    sheetName = `${sheetName.substring(0, 27)}_${index}`;
+                }
+                XLSX.utils.book_append_sheet(wb, ws, sheetName);
+            });
+        } else if (!Array.isArray(dataOrArray)) {
+            const data = dataOrArray as PdfReportData;
+            const ws = createSheetForReport(data);
+            XLSX.utils.book_append_sheet(wb, ws, "Relatório");
         } else {
             // Fallback para o modo antigo (array de objetos)
-            ws = XLSX.utils.json_to_sheet(dataOrArray);
+            const ws = XLSX.utils.json_to_sheet(dataOrArray);
             ws['!cols'] = [
                 { wpx: 200 },
                 { wpx: 100 },
                 { wpx: 100 },
                 { wpx: 150 },
             ];
+            XLSX.utils.book_append_sheet(wb, ws, "Relatório");
         }
-
-        XLSX.utils.book_append_sheet(wb, ws, "Relatório");
         
         const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
         return new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -362,7 +379,6 @@ export const generateExcelBlob = (dataOrArray: PdfReportData | Array<any>): Blob
         throw error;
     }
 };
-
 export const exportToExcel = (dataOrArray: PdfReportData | Array<any>, filename: string) => {
     try {
         const blob = generateExcelBlob(dataOrArray);

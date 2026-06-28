@@ -424,9 +424,41 @@ const HistoryModal: React.FC<{
         if (recordsToDownload.length === 0) return;
         
         setIsExportingZip(true);
-        showNotification(`Gerando arquivos ${format}, aguarde...`, 'success');
+        showNotification(format === 'EXCEL' ? `Gerando planilha agrupada, aguarde...` : `Gerando arquivos ${format}, aguarde...`, 'success');
 
         try {
+            if (format === 'EXCEL' && recordsToDownload.length > 1) {
+                const pdfDataList: PdfReportData[] = recordsToDownload.map(rec => ({
+                    turma: rec.turma,
+                    dataFormatada: rec.data,
+                    registros7H: rec.registros7H || [],
+                    registros6H: rec.registros6H || [],
+                    employees: rec.r,
+                    totalFuncionarios: rec.totalFuncionarios,
+                    totalPresentes: rec.totalPresentes,
+                    totalAusentes: rec.totalAusentes,
+                    totalMal: rec.totalMal,
+                    totalPendentes: rec.totalPendentes,
+                    mainShiftLabel: (rec.turma === 'C' || rec.turma === 'D') ? '19H' : '7H',
+                    shiftLabel: (rec.turma === 'C' || rec.turma === 'D') ? '18H' : '6H',
+                }));
+                const blob = generateExcelBlob(pdfDataList);
+                const safeSearchTerm = searchTerm.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20);
+                const filename = `relatorios-agrupados-${turma || 'busca'}-${safeSearchTerm}.xlsx`;
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showNotification(`Planilha agrupada baixada com sucesso!`, 'success');
+                setIsExportingZip(false);
+                setIsExportMenuOpen(false);
+                return;
+            }
+
             const filesToZip = await Promise.all(recordsToDownload.map(async (rec) => {
                 const dataStr = (rec.data || rec.dataISO || 'data').replace(/\//g, '-');
                 const baseName = `historico-${rec.turma}-${dataStr}`;
@@ -447,8 +479,8 @@ const HistoryModal: React.FC<{
                         totalAusentes: rec.totalAusentes,
                         totalMal: rec.totalMal,
                         totalPendentes: rec.totalPendentes,
-                        mainShiftLabel,
-                        shiftLabel,
+                        mainShiftLabel: (rec.turma === 'C' || rec.turma === 'D') ? '19H' : '7H',
+                        shiftLabel: (rec.turma === 'C' || rec.turma === 'D') ? '18H' : '6H',
                     };
                     
                     if (format === 'PDF') {
@@ -459,11 +491,26 @@ const HistoryModal: React.FC<{
                 }
             }));
 
-            const safeSearchTerm = searchTerm.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20);
-            const zipFilename = `historicos-busca-${turma}-${safeSearchTerm}`;
-            
-            await exportToZip(filesToZip, zipFilename);
-            showNotification(`${filesToZip.length} resultados compactados em ZIP!`, 'success');
+            if (filesToZip.length === 1) {
+                const singleFile = filesToZip[0];
+                const fileBlob = typeof singleFile.content === 'string' 
+                    ? new Blob([singleFile.content], { type: 'text/plain;charset=utf-8' }) 
+                    : singleFile.content;
+                const url = URL.createObjectURL(fileBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = singleFile.name;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showNotification(`Arquivo baixado com sucesso!`, 'success');
+            } else {
+                const safeSearchTerm = searchTerm.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20);
+                const zipFilename = `historicos-busca-${turma}-${safeSearchTerm}`;
+                await exportToZip(filesToZip, zipFilename);
+                showNotification(`${filesToZip.length} resultados compactados em ZIP!`, 'success');
+            }
         } catch (e) {
             console.error(e);
             showNotification('Erro ao gerar o arquivo ZIP.', 'error');
@@ -936,10 +983,10 @@ const HistoryModal: React.FC<{
                             </button>
                             <div className="w-full">
                                 {(() => {
-                                    const isMultiSelect = selectedRecordsToExport.length > 1;
+                                    const isMultiSelect = selectedRecordsToExport.length > 0;
                                     return (
                                         <ExportDropdown
-                                            label={isMultiSelect ? 'BAIXAR TODOS' : 'BAIXAR'}
+                                            label={isMultiSelect ? (selectedRecordsToExport.length === 1 ? 'BAIXAR SELECIONADO' : 'BAIXAR TODOS') : 'BAIXAR'}
                                             onExportTxt={isMultiSelect ? () => handleExportAllZip('TXT') : handleExportTxt}
                                             onExportPng={handleExportPng} // PNG só funciona pro DOM atual
                                             onExportPdf={isMultiSelect ? () => handleExportAllZip('PDF') : handleExportPdf}
