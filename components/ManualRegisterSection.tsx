@@ -10,7 +10,8 @@ export const ManualRegisterSection: React.FC<{
     employeesForLookup: (Pick<Employee, 'name' | 'matricula'>)[];
     administrators: Administrator[];
     turma: string | null;
-}> = React.memo(({ subject, matricula, onRegister, employeesForLookup, administrators, turma }) => {
+    dbName?: string;
+}> = React.memo(({ subject, matricula, onRegister, employeesForLookup, administrators, turma, dbName }) => {
     const [localSubject, setLocalSubject] = useState(subject);
     const [localMatricula, setLocalMatricula] = useState(matricula);
 
@@ -21,20 +22,26 @@ export const ManualRegisterSection: React.FC<{
     useEffect(() => {
         setLocalMatricula(matricula);
     }, [matricula]);
+    const isRegistered = subject && subject !== 'Não preenchido' && matricula && localSubject === subject && localMatricula === matricula;
+
     const foundName = useMemo(() => {
         if (!localMatricula) return '';
+
+        // If currently viewing the saved registration, use the name from the database
+        // This is crucial for cross-turma registrations where the employee isn't in employeesForLookup
+        if (isRegistered && dbName) return dbName;
+
         const admin = administrators.find(a => a.matricula === localMatricula);
         if (admin) return admin.name;
 
         const employee = employeesForLookup.find(e => e.matricula === localMatricula);
         return employee ? employee.name : '';
-    }, [localMatricula, employeesForLookup, administrators]);
+    }, [localMatricula, employeesForLookup, administrators, isRegistered, dbName]);
 
     const handleMatriculaChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setLocalMatricula(e.target.value.replace(/[^0-9]/g, ''));
     }, []);
 
-    const isRegistered = subject && subject !== 'Não preenchido' && matricula && localSubject === subject && localMatricula === matricula;
     const isSubjectEmpty = !localSubject || localSubject === 'Não preenchido';
     const isMatriculaEmpty = !localMatricula;
 
@@ -109,7 +116,8 @@ export const ManualRegisterSection: React.FC<{
     prev.turma === next.turma &&
     prev.onRegister === next.onRegister &&
     prev.employeesForLookup.length === next.employeesForLookup.length &&
-    prev.administrators.length === next.administrators.length
+    prev.administrators.length === next.administrators.length &&
+    prev.dbName === next.dbName
 );
 
 export default ManualRegisterSection;

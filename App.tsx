@@ -2113,6 +2113,7 @@ const App: React.FC = () => {
                                         employeesForLookup={employees}
                                         administrators={administrators}
                                         turma={selectedTurma}
+                                        dbName={mainResponsible}
                                     />
                                 )}
 
