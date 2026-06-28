@@ -18,7 +18,8 @@ service cloud.firestore {
          collectionId == 'registrosDSS C' ||
          collectionId == 'registrosDSS D' ||
          collectionId == 'registrosDSS C CG' ||
-         collectionId == 'registrosDSS B CG');
+         collectionId == 'registrosDSS B CG' ||
+         collectionId == 'registrosDSS Estágio');
     }
 
     // REGRA PARA LOG DE AUDITORIA

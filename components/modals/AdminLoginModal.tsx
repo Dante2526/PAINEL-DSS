@@ -142,40 +142,42 @@ export const AdminLoginModal: React.FC<{
                     </div>
                 )}
 
-                <div className="relative w-full">
-                    <input
-                        ref={inputRef}
-                        type="text"
-                        placeholder="Email ou Senha"
-                        value={email}
-                        onChange={handleEmailChange}
-                        className={inputClassName}
-                        style={!showEmail && email.length > 0 ? { WebkitTextSecurity: 'disc' } as any : {}}
-                        autoCapitalize="none"
-                        autoComplete="off"
-                        autoCorrect="off"
-                        spellCheck="false"
-                    />
-                    <button
-                        type="button"
-                        onClick={() => setShowEmail(!showEmail)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 z-20 focus:outline-none"
-                        title={showEmail ? "Ocultar Email" : "Exibir Email"}
-                    >
-                        {showEmail ? (
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                                <circle cx="12" cy="12" r="3" />
-                            </svg>
-                        ) : (
-                            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-                                <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
-                                <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
-                                <line x1="2" x2="22" y1="2" y2="22" />
-                            </svg>
-                        )}
-                    </button>
+                <div className="w-full flex flex-col">
+                    <div className="relative w-full">
+                        <input
+                            ref={inputRef}
+                            type="text"
+                            placeholder="Email ou Senha"
+                            value={email}
+                            onChange={handleEmailChange}
+                            className={inputClassName}
+                            style={!showEmail && email.length > 0 ? { WebkitTextSecurity: 'disc' } as any : {}}
+                            autoCapitalize="none"
+                            autoComplete="off"
+                            autoCorrect="off"
+                            spellCheck="false"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowEmail(!showEmail)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 z-20 focus:outline-none"
+                            title={showEmail ? "Ocultar Email" : "Exibir Email"}
+                        >
+                            {showEmail ? (
+                                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                                    <circle cx="12" cy="12" r="3" />
+                                </svg>
+                            ) : (
+                                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
+                                    <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
+                                    <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61" />
+                                    <line x1="2" x2="22" y1="2" y2="22" />
+                                </svg>
+                            )}
+                        </button>
+                    </div>
                     <p className={`text-yellow-500 dark:text-yellow-400 font-bold text-left pl-1 pt-1 ${isSmallViewport ? 'text-[10px]' : 'text-xs'}`}>
                         * Digite tudo em minúsculo
                     </p>
