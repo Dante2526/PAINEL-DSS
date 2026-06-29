@@ -20,6 +20,7 @@ const translateAction = (action: string) => {
         'CLEAR_DATA': 'LIMPEZA DE DADOS',
         'DATA_EXPORT': 'EXPORTAÇÃO DE DADOS',
         'EDIT_MATRICULA': 'EDIÇÃO DE MATRÍCULA',
+        'REPORT_COPY': 'RELATÓRIO COPIADO',
     };
     return translations[action.toUpperCase()] || action;
 };
