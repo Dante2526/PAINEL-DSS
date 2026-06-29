@@ -127,11 +127,11 @@ async function gerarRelatorio(empSnapshot, dataExibicao, is6HActive = true) {
   htmlBody += `<li><strong>Pendentes:</strong> ${totalPendentes}</li>`;
   htmlBody += `<li><strong>Ausentes:</strong> ${totalAusentesDeclarados}</li></ul>`;
 
-  htmlBody += `<br><h2>REGISTROS DSS (TURNO ${mainShiftLabel})</h2><hr>`;
+  htmlBody += `<br><h2>TEMA DSS (TURNO ${mainShiftLabel})</h2><hr>`;
   if (registros7H.length === 0) { htmlBody += `Nenhum registro de assunto encontrado para ${mainShiftLabel}.`; } else { htmlBody += `<ul ${ulStyle}>`; registros7H.forEach(reg => { const n = reg.name ? limparTexto(reg.name) : "Nome não informado"; htmlBody += `<li style="margin-bottom: 10px;"><strong>${n}</strong> (Matrícula: ${reg.matricula})<br><span style="font-style: italic; color: #000;">Assunto: ${limparTexto(reg.assunto)}</span></li>`; }); htmlBody += `</ul>`; }
 
   if (is6HActive && TARGET_TEAM !== 'CCG') {
-    htmlBody += `<br><h2>REGISTROS DSS (TURNO ${shiftLabel})</h2><hr>`;
+    htmlBody += `<br><h2>TEMA DSS (TURNO ${shiftLabel})</h2><hr>`;
     if (registrosSH.length === 0) { htmlBody += `Nenhum registro de assunto encontrado para ${shiftLabel}.`; } else { htmlBody += `<ul ${ulStyle}>`; registrosSH.forEach(reg => { const n = reg.name ? limparTexto(reg.name) : "Nome não informado"; htmlBody += `<li style="margin-bottom: 10px;"><strong>${n}</strong> (Matrícula: ${reg.matricula})<br><span style="font-style: italic; color: #000;">Assunto: ${limparTexto(reg.assunto)}</span></li>`; }); htmlBody += `</ul>`; }
   }
 
