@@ -75,7 +75,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children,
               </button>
             )}
           </div>
-          {title && <h2 className="text-lg md:text-lg font-bold uppercase text-light-text dark:text-dark-text text-center flex-grow px-2 md:whitespace-nowrap md:tracking-tight">{title}</h2>}
+          {title && <h2 className="text-[15px] sm:text-lg font-bold uppercase text-light-text dark:text-dark-text text-center flex-grow px-1 whitespace-nowrap tracking-tighter sm:tracking-normal">{title}</h2>}
           <div className="w-8 flex justify-end shrink-0">
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10 font-bold leading-none -mt-1">&times;</button>
           </div>
