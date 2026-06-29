@@ -56,10 +56,7 @@ export const ManageAdminsModal: React.FC<{
                                     <div className="flex flex-col gap-1 text-xs text-gray-500 dark:text-gray-400 mt-1 text-left">
                                         <span className="truncate">{admin.email}</span>
                                         <span>Mat: {admin.matricula}</span>
-                                        <div className="flex flex-col">
-                                            <span>Senha:</span>
-                                            <strong className="font-mono text-gray-700 dark:text-gray-300 truncate">{admin.senha || "N/A"}</strong>
-                                        </div>
+                                        <span className="truncate">Senha: <strong className="font-mono text-gray-700 dark:text-gray-300">{admin.senha || "N/A"}</strong></span>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
