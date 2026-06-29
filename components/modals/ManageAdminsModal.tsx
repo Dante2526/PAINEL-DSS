@@ -53,17 +53,13 @@ export const ManageAdminsModal: React.FC<{
                                 <div key={admin.id} className="flex items-center justify-between p-3 rounded-lg border-2 border-red-500 bg-red-50 dark:bg-red-900/20 shadow-sm transition-all">
                                     <div className="flex flex-col overflow-hidden">
                                         <div className="flex items-center gap-2">
-                                            <span className="font-bold text-light-text dark:text-dark-text truncate uppercase text-sm">
-                                                {admin.name}
-                                            </span>
-                                            {isSuper && (
-                                                <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold rounded-full border border-indigo-200 dark:border-indigo-700/50">
-                                                    SUPER
-                                                </span>
-                                            )}
+                                            <span className="font-bold text-red-800 dark:text-red-200 truncate">{admin.name}</span>
+                                            {isSuper && <span className="bg-red-200 text-red-900 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase whitespace-nowrap border border-red-300">Super ADM</span>}
                                         </div>
-                                        <div className="flex flex-col gap-1 text-xs text-red-600 dark:text-red-400 mt-1 text-left font-medium">
-                                            <span>Tem certeza que deseja excluir?</span>
+                                        <div className="flex flex-col gap-1 text-xs text-red-700 dark:text-red-300 mt-1 text-left">
+                                            <span className="truncate">{admin.email}</span>
+                                            <span>Mat: {admin.matricula}</span>
+                                            <span className="truncate">Senha: <strong className="font-mono text-red-900 dark:text-red-100">{admin.senha || "N/A"}</strong></span>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
