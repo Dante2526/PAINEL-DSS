@@ -11,7 +11,7 @@ export const ManageAdminsModal: React.FC<{
     currentAdminEmail: string;
     onOpenAddAdmin: () => void;
     onOpenEditAdmin: (id: string) => void;
-    onDeleteAdmin: (id: string) => Promise<void>;
+    onDeleteAdmin: (id: string, name?: string, matricula?: string) => Promise<void>;
     scale: number;
 }> = ({ isOpen, onClose, onBack, administrators, currentAdminEmail, onOpenAddAdmin, onOpenEditAdmin, onDeleteAdmin, scale }) => {
 
@@ -74,7 +74,7 @@ export const ManageAdminsModal: React.FC<{
                                                 return;
                                             }
                                             if (window.confirm(`Tem certeza que deseja excluir o administrador ${admin.name}?`)) {
-                                                onDeleteAdmin(admin.id);
+                                                onDeleteAdmin(admin.id, admin.name, admin.matricula);
                                             }
                                         }}
                                         disabled={isMe}

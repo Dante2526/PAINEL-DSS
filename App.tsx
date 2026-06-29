@@ -1528,13 +1528,13 @@ const App: React.FC = () => {
         }
     };
 
-    const handleDeleteAdministrator = async (id: string) => {
+    const handleDeleteAdministrator = async (id: string, name?: string, matricula?: string) => {
         if (!db || !adminEmail) return;
         try {
             const adminDocRef = doc(db, 'administrators', id);
             await deleteDoc(adminDocRef);
             showNotification('Administrador removido com sucesso!', 'success');
-            logAuditEvent(adminEmail, 'EXCLUSÃO DE ADMINISTRADOR', `Administrador removido do sistema (ID: ${id})`, selectedTurma);
+            logAuditEvent(adminEmail, 'EXCLUSÃO DE ADMINISTRADOR', `Administrador removido: ${name || 'Desconhecido'} (Mat: ${matricula || 'N/A'})`, selectedTurma);
         } catch (error) {
             console.error("Erro ao deletar administrador:", error);
             showNotification('Falha ao remover administrador.', 'error');
