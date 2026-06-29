@@ -2184,7 +2184,6 @@ const App: React.FC = () => {
                                                             domId={index === 0 ? "tutorial-first-card" : undefined}
                                                             hideShiftButton={selectedTurma === 'CCG' || selectedTurma === 'ESTAGIO' || !is6HActive}
                                                             shiftLabel={getShiftLabel(selectedTurma)}
-                                                            maskMatricula={selectedTurma === 'B_CG' || selectedTurma === 'A_CG'}
                                                         />
                                                     </div>
                                                 ))}
@@ -2216,7 +2215,6 @@ const App: React.FC = () => {
                                                                     domId={index === 0 && group.letter === groupedMainTeam[0]?.letter ? "tutorial-first-card" : undefined}
                                                                     hideShiftButton={selectedTurma === 'CCG' || selectedTurma === 'ESTAGIO' || !is6HActive}
                                                                     shiftLabel={getShiftLabel(selectedTurma)}
-                                                                    maskMatricula={selectedTurma === 'B_CG' || selectedTurma === 'A_CG'}
                                                                 />
                                                             </div>
                                                         ))}

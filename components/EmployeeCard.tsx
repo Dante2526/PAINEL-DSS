@@ -76,7 +76,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
     specialTurnBtnId,
     hideShiftButton,
     shiftLabel = '6H',
-    maskMatricula = false
+    maskMatricula = true
 }) => {
     const [isEditingTime, setIsEditingTime] = useState(false);
     const [editTimeValue, setEditTimeValue] = useState<string>('');
