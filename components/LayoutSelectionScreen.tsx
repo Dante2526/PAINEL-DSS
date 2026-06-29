@@ -27,7 +27,7 @@ const LayoutSelectionScreen: React.FC<LayoutSelectionScreenProps> = ({ onSelect,
                     <h1 className="text-xl md:text-4xl font-extrabold text-light-text dark:text-dark-text tracking-tight mb-0.5 md:mb-1">Turma {selecionadaTurma.replace('_', ' - ')}</h1>
                     <p className="text-[11px] md:text-lg font-medium text-light-text-secondary dark:text-dark-text-secondary mb-4 md:mb-8">Escolha como deseja visualizar o painel</p>
 
-                    <div className="flex flex-col md:grid md:grid-cols-2 gap-4 md:gap-4 w-[300px] md:w-full md:max-w-xl mx-auto mb-6 md:mb-10">
+                    <div className="flex flex-col md:grid md:grid-cols-2 gap-4 md:gap-4 w-[300px] md:w-full md:max-w-xl mx-auto mb-3 md:mb-6">
                         {/* Padrão */}
                         <button
                             onClick={() => onSelect('standard')}
