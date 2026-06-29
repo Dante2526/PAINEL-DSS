@@ -25,7 +25,13 @@ export const AddUserModal: React.FC<{
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (name.trim()) {
+        
+        if (matricula.length !== 8) {
+            alert('A matrícula deve ter exatamente 8 dígitos!');
+            return;
+        }
+
+        if (name.trim() && matricula.trim()) {
             onAdd(name.trim(), matricula, addAnother);
             // Sempre limpa os campos após enviar
             setName('');
@@ -80,14 +86,22 @@ export const AddUserModal: React.FC<{
                         *Coloque apenas o primeiro nome e o último sobrenome
                     </p>
                 </div>
-                <input
-                    type="text"
-                    placeholder="Matrícula"
-                    value={matricula}
-                    onChange={(e) => setMatricula(e.target.value.replace(/[^0-9]/g, ''))}
-                    className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
-                    inputMode="numeric"
-                />
+                <div>
+                    <input
+                        type="text"
+                        placeholder="Matrícula"
+                        value={matricula}
+                        onChange={(e) => setMatricula(e.target.value.replace(/[^0-9]/g, ''))}
+                        className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
+                        inputMode="numeric"
+                        maxLength={8}
+                        minLength={8}
+                        required
+                    />
+                    <p className="text-xs text-left text-light-text-secondary dark:text-dark-text-secondary px-1 mt-1.5 leading-relaxed">
+                        Se você é da <strong className="text-light-text dark:text-white">Velha Guarda</strong>, adicione <strong className="text-light-text dark:text-white bg-yellow-200 dark:bg-yellow-800 px-1 rounded text-black dark:text-white">01</strong> na frente dos demais números para completar os 8 dígitos.
+                    </p>
+                </div>
                 <label htmlFor="add-another-user-checkbox" className="flex items-center justify-center gap-4 py-2 cursor-pointer group">
                     <span className="text-sm font-medium text-light-text-secondary dark:text-dark-text-secondary group-hover:text-light-text dark:group-hover:text-dark-text transition-colors select-none">
                         Continuar adicionando
