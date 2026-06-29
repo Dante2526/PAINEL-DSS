@@ -54,8 +54,8 @@ const SignaturePasswordModal: React.FC<SignaturePasswordModalProps> = ({
     const handleChangeSubmit = async () => {
         setErrorMsg('');
         
-        if (!newPassword) {
-            setErrorMsg('A nova senha não pode ser vazia.');
+        if (!newPassword || newPassword.length < 8) {
+            setErrorMsg('A nova senha deve ter no mínimo 8 dígitos.');
             return;
         }
         
