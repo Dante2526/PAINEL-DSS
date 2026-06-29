@@ -57,7 +57,7 @@ async function registrarEnvioSucesso(db, team, dataID) {
 }
 
 // --- FUNÇÃO AUXILIAR: Geração do Corpo do Relatório ---
-async function gerarRelatorio(db, team, empSnapshot, dataExibicao, colRegistrosName, mainShiftLabel, shiftLabel, estagioSnapshot = null) {
+async function gerarRelatorio(db, team, empSnapshot, dataExibicao, colRegistrosName, mainShiftLabel, shiftLabel, estagioSnapshot = null, is6HActive = true) {
   console.log("[Relatório] Gerando corpo do relatório HTML...");
   const cat_7H_EstouBem = [], cat_7H_EstouMal = [], cat_7H_Ausentes = [], cat_7H_Pendentes = [];
   const cat_SH_EstouBem = [], cat_SH_EstouMal = [], cat_SH_Ausentes = [], cat_SH_Pendentes = [];
@@ -120,7 +120,7 @@ async function gerarRelatorio(db, team, empSnapshot, dataExibicao, colRegistrosN
     htmlBody += `</ul>`; 
   }
 
-  if (team !== 'CCG') {
+  if (is6HActive && team !== 'CCG') {
     htmlBody += `<br><h2>REGISTROS DSS (TURNO ${shiftLabel})</h2><hr>`;
     if (registrosSH.length === 0) { 
       htmlBody += `Nenhum registro de assunto encontrado para ${shiftLabel}.`; 
@@ -149,7 +149,7 @@ async function gerarRelatorio(db, team, empSnapshot, dataExibicao, colRegistrosN
   if (cat_7H_Ausentes.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_7H_Ausentes.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }
 
   // EQUIPE TURNO SECUNDÁRIO
-  if (team !== 'CCG') {
+  if (is6HActive && team !== 'CCG') {
     htmlBody += `<br><h2>EQUIPE TURNO ${shiftLabel}</h2><hr>`;
     htmlBody += `<h3>STATUS: "ASS.DSS + ESTOU BEM"</h3>`;
     if (cat_SH_EstouBem.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_SH_EstouBem.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }
@@ -302,8 +302,21 @@ export default async function handler(req, res) {
       estagioSnapshot = await db.collection(colEstagioEmp).get();
     }
 
+    // 10.5 Verificar Status do Turno de 6H
+    const config6HRef = db.collection(colRegistrosName).doc('config_6H');
+    const config6HSnap = await config6HRef.get();
+    let is6HActive = true;
+    if (config6HSnap.exists) {
+      const configData = config6HSnap.data();
+      if (typeof configData.active !== 'undefined') {
+        is6HActive = configData.active;
+      }
+    } else if (validatedTeam === 'B_CG') {
+      is6HActive = false; // B_CG default is false
+    }
+
     // 11. Gerar HTML Integrado
-    const htmlRelatorio = await gerarRelatorio(db, validatedTeam, empSnapshot, dataExibicao, colRegistrosName, mainShiftLabel, shiftLabel, estagioSnapshot);
+    const htmlRelatorio = await gerarRelatorio(db, validatedTeam, empSnapshot, dataExibicao, colRegistrosName, mainShiftLabel, shiftLabel, estagioSnapshot, is6HActive);
     
 
     // 11. Disparar E-mail

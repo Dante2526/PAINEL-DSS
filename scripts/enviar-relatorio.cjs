@@ -77,7 +77,7 @@ async function registrarEnvioSucesso(dataID) {
 }
 
 // --- 2. LER DADOS ---
-async function gerarRelatorio(empSnapshot, dataExibicao) {
+async function gerarRelatorio(empSnapshot, dataExibicao, is6HActive = true) {
   console.log("Iniciando geração do corpo do relatório...");
   const cat_7H_EstouBem = [], cat_7H_EstouMal = [], cat_7H_Ausentes = [], cat_7H_Pendentes = [];
   const cat_SH_EstouBem = [], cat_SH_EstouMal = [], cat_SH_Ausentes = [], cat_SH_Pendentes = [];
@@ -130,7 +130,7 @@ async function gerarRelatorio(empSnapshot, dataExibicao) {
   htmlBody += `<br><h2>REGISTROS DSS (TURNO ${mainShiftLabel})</h2><hr>`;
   if (registros7H.length === 0) { htmlBody += `Nenhum registro de assunto encontrado para ${mainShiftLabel}.`; } else { htmlBody += `<ul ${ulStyle}>`; registros7H.forEach(reg => { const n = reg.name ? limparTexto(reg.name) : "Nome não informado"; htmlBody += `<li style="margin-bottom: 10px;"><strong>${n}</strong> (Matrícula: ${reg.matricula})<br><span style="font-style: italic; color: #000;">Assunto: ${limparTexto(reg.assunto)}</span></li>`; }); htmlBody += `</ul>`; }
 
-  if (TARGET_TEAM !== 'CCG') {
+  if (is6HActive && TARGET_TEAM !== 'CCG') {
     htmlBody += `<br><h2>REGISTROS DSS (TURNO ${shiftLabel})</h2><hr>`;
     if (registrosSH.length === 0) { htmlBody += `Nenhum registro de assunto encontrado para ${shiftLabel}.`; } else { htmlBody += `<ul ${ulStyle}>`; registrosSH.forEach(reg => { const n = reg.name ? limparTexto(reg.name) : "Nome não informado"; htmlBody += `<li style="margin-bottom: 10px;"><strong>${n}</strong> (Matrícula: ${reg.matricula})<br><span style="font-style: italic; color: #000;">Assunto: ${limparTexto(reg.assunto)}</span></li>`; }); htmlBody += `</ul>`; }
   }
@@ -146,7 +146,7 @@ async function gerarRelatorio(empSnapshot, dataExibicao) {
   htmlBody += `<h3>AUSENTES</h3>`;
   if (cat_7H_Ausentes.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_7H_Ausentes.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }
 
-  if (TARGET_TEAM !== 'CCG') {
+  if (is6HActive && TARGET_TEAM !== 'CCG') {
     htmlBody += `<br><h2>EQUIPE TURNO ${shiftLabel}</h2><hr>`;
     htmlBody += `<h3>STATUS: "ASS.DSS + ESTOU BEM"</h3>`;
     if (cat_SH_EstouBem.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_SH_EstouBem.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }
@@ -209,7 +209,20 @@ async function main() {
       process.exit(0);
     }
 
-    const htmlRelatorio = await gerarRelatorio(empSnapshot, dataExibicao);
+    // Verificar config de 6H
+    const config6HRef = db.collection(colRegistrosName).doc('config_6H');
+    const config6HSnap = await config6HRef.get();
+    let is6HActive = true;
+    if (config6HSnap.exists) {
+      const configData = config6HSnap.data();
+      if (typeof configData.active !== 'undefined') {
+        is6HActive = configData.active;
+      }
+    } else if (TARGET_TEAM === 'B_CG') {
+      is6HActive = false;
+    }
+
+    const htmlRelatorio = await gerarRelatorio(empSnapshot, dataExibicao, is6HActive);
     await enviarEmail(htmlRelatorio, dataExibicao, dataID);
     console.log("Script de relatório concluído.");
   } catch (error) {
