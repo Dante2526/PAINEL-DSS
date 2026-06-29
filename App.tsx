@@ -125,6 +125,7 @@ const App: React.FC = () => {
     const [togglingSpecialTeamId, setTogglingSpecialTeamId] = useState<string | null>(null);
     const [isAdmin, setIsAdmin] = useState(false);
     const [adminEmail, setAdminEmail] = useState('');
+    const [adminNivel, setAdminNivel] = useState<string>('1');
     const [activeLetter, setActiveLetter] = useState<string>('');
     const viewportRef = useRef<HTMLDivElement>(null);
     const contentWrapperRef = useRef<HTMLDivElement>(null); // New wrapper ref
