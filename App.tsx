@@ -1578,6 +1578,13 @@ const App: React.FC = () => {
         }
 
         try {
+            // Check in CURRENT turma
+            const isDuplicateInCurrent = employees.some(e => e.matricula === matricula || e.name === finalName);
+            if (isDuplicateInCurrent) {
+                showNotification(`Este usuário ou matrícula já está cadastrado nesta mesma turma!`, 'error');
+                return;
+            }
+
             // Cross-turma duplicate check
             const turmasToCheck = ALL_TURMAS.filter(t => t !== selectedTurma);
             for (const turma of turmasToCheck) {
