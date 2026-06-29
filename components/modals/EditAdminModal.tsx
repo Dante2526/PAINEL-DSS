@@ -106,7 +106,7 @@ export const EditAdminModal: React.FC<{
                     </div>
 
                     {errorMsg && (
-                        <div className="text-red-500 font-bold text-sm text-center">
+                        <div className="text-red-500 font-bold text-sm text-center mb-4 mt-2">
                             {errorMsg}
                         </div>
                     )}

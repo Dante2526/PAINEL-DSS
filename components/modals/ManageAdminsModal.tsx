@@ -50,13 +50,25 @@ export const ManageAdminsModal: React.FC<{
 
                         if (adminToDelete?.id === admin.id) {
                             return (
-                                <div key={admin.id} className="flex flex-col items-center justify-center p-4 rounded-lg border-2 border-red-500 bg-red-50 dark:bg-red-900/20 shadow-sm animate-pulse">
-                                    <p className="text-red-700 dark:text-red-300 font-bold text-center mb-3 text-sm">
-                                        Tem certeza que deseja excluir {admin.name}?
-                                    </p>
-                                    <div className="flex gap-3">
-                                        <button onClick={() => setAdminToDelete(null)} className="px-4 py-2 bg-gray-500 hover:bg-gray-600 transition-colors text-white rounded font-medium text-xs">CANCELAR</button>
-                                        <button onClick={async () => { await onDeleteAdmin(admin.id, admin.name, admin.matricula); setAdminToDelete(null); }} className="px-4 py-2 bg-red-600 hover:bg-red-700 transition-colors text-white rounded font-bold text-xs shadow-md">EXCLUIR</button>
+                                <div key={admin.id} className="flex items-center justify-between p-3 rounded-lg border-2 border-red-500 bg-red-50 dark:bg-red-900/20 shadow-sm transition-all">
+                                    <div className="flex flex-col overflow-hidden">
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-bold text-light-text dark:text-dark-text truncate uppercase text-sm">
+                                                {admin.name}
+                                            </span>
+                                            {isSuper && (
+                                                <span className="px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold rounded-full border border-indigo-200 dark:border-indigo-700/50">
+                                                    SUPER
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="flex flex-col gap-1 text-xs text-red-600 dark:text-red-400 mt-1 text-left font-medium">
+                                            <span>Tem certeza que deseja excluir?</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <button onClick={() => setAdminToDelete(null)} className="px-3 py-1.5 bg-gray-500 hover:bg-gray-600 transition-colors text-white rounded font-medium text-xs">CANCELAR</button>
+                                        <button onClick={async () => { await onDeleteAdmin(admin.id, admin.name, admin.matricula); setAdminToDelete(null); }} className="px-3 py-1.5 bg-red-600 hover:bg-red-700 transition-colors text-white rounded font-bold text-xs shadow-md">EXCLUIR</button>
                                     </div>
                                 </div>
                             );
