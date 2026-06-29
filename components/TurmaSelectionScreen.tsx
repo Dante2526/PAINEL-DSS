@@ -58,7 +58,7 @@ const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, i
                         </button>
                         <button
                             onClick={() => onSelect('ESTAGIO')}
-                            className="flex items-center justify-center whitespace-nowrap w-full px-4 py-4 md:py-5 font-extrabold text-lg md:text-xl text-white bg-gradient-to-br from-pink-500 to-rose-700 rounded-2xl md:rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-rose-300 dark:focus:ring-rose-800 sm:col-span-2 md:col-span-2"
+                            className="flex items-center justify-center whitespace-nowrap w-full sm:w-[calc(50%-0.375rem)] md:w-[calc(50%-0.5rem)] sm:justify-self-center sm:col-span-2 px-4 py-4 md:py-5 font-extrabold text-lg md:text-xl text-white bg-gradient-to-br from-pink-500 to-rose-700 rounded-2xl md:rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-rose-300 dark:focus:ring-rose-800"
                         >
                             ESTÁGIO
                         </button>
