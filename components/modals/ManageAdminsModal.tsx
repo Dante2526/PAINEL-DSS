@@ -53,12 +53,13 @@ export const ManageAdminsModal: React.FC<{
                                         <span className="font-bold text-gray-800 dark:text-white truncate">{admin.name}</span>
                                         {isSuper && <span className="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-1.5 py-0.5 rounded uppercase whitespace-nowrap">Super ADM</span>}
                                     </div>
-                                    <div className="flex flex-wrap gap-2 text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                                    <div className="flex flex-col gap-1 text-xs text-gray-500 dark:text-gray-400 mt-1 text-left">
                                         <span className="truncate">{admin.email}</span>
-                                        <span className="hidden sm:inline">•</span>
                                         <span>Mat: {admin.matricula}</span>
-                                        <span className="hidden sm:inline">•</span>
-                                        <span>Senha: <strong className="font-mono text-gray-700 dark:text-gray-300">{admin.senha || "N/A"}</strong></span>
+                                        <div className="flex flex-col">
+                                            <span>Senha:</span>
+                                            <strong className="font-mono text-gray-700 dark:text-gray-300 truncate">{admin.senha || "N/A"}</strong>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
