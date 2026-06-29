@@ -40,7 +40,7 @@ const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, i
                         </button>
                         <button
                             onClick={() => onSelect('A_CG')}
-                            className="flex items-center justify-center whitespace-nowrap w-full px-4 py-4 md:py-5 font-extrabold text-lg md:text-xl text-white bg-gradient-to-br from-emerald-500 to-green-700 rounded-2xl md:rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-emerald-300 dark:focus:ring-emerald-800"
+                            className="flex items-center justify-center whitespace-nowrap w-full px-4 py-4 md:py-5 font-extrabold text-lg md:text-xl text-white bg-gradient-to-br from-red-500 to-red-700 rounded-2xl md:rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-red-300 dark:focus:ring-red-800"
                         >
                             TURMA A CG
                         </button>
@@ -52,13 +52,13 @@ const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, i
                         </button>
                         <button
                             onClick={() => onSelect('D')}
-                            className="flex items-center justify-center whitespace-nowrap w-full px-4 py-4 md:py-5 font-extrabold text-lg md:text-xl text-white bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl md:rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-amber-300 dark:focus:ring-amber-800 sm:col-span-2 md:col-span-1"
+                            className="flex items-center justify-center whitespace-nowrap w-full px-4 py-4 md:py-5 font-extrabold text-lg md:text-xl text-white bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl md:rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-amber-300 dark:focus:ring-amber-800"
                         >
                             TURMA D
                         </button>
                         <button
                             onClick={() => onSelect('ESTAGIO')}
-                            className="flex items-center justify-center whitespace-nowrap w-full px-4 py-4 md:py-5 font-extrabold text-lg md:text-xl text-white bg-gradient-to-br from-pink-500 to-rose-700 rounded-2xl md:rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-rose-300 dark:focus:ring-rose-800 sm:col-span-2 md:col-span-1"
+                            className="flex items-center justify-center whitespace-nowrap w-full px-4 py-4 md:py-5 font-extrabold text-lg md:text-xl text-white bg-gradient-to-br from-pink-500 to-rose-700 rounded-2xl md:rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-rose-300 dark:focus:ring-rose-800 sm:col-span-2 md:col-span-2"
                         >
                             ESTÁGIO
                         </button>
