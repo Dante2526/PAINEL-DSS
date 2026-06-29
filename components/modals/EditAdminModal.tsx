@@ -14,6 +14,7 @@ export const EditAdminModal: React.FC<{
     const [email, setEmail] = useState('');
     const [matricula, setMatricula] = useState('');
     const [nivel, setNivel] = useState('1');
+    const [errorMsg, setErrorMsg] = useState('');
 
     useEffect(() => {
         if (admin && isOpen) {
@@ -21,6 +22,7 @@ export const EditAdminModal: React.FC<{
             setEmail(admin.email);
             setMatricula(admin.matricula);
             setNivel(admin.nivel || '1');
+            setErrorMsg('');
         }
     }, [admin, isOpen]);
 
@@ -28,9 +30,10 @@ export const EditAdminModal: React.FC<{
         e.preventDefault();
         if (!admin) return;
         if (!name.trim() || !email.trim() || !matricula.trim()) {
-            alert('Preencha todos os campos obrigatórios.');
+            setErrorMsg('Preencha todos os campos obrigatórios.');
             return;
         }
+        setErrorMsg('');
         await onEditAdmin(admin.id, name.trim().toUpperCase(), email.trim().toLowerCase(), matricula.trim(), nivel);
         if (onBack) onBack();
         else onClose();
@@ -100,11 +103,17 @@ export const EditAdminModal: React.FC<{
                             <span className="text-xs text-gray-500 dark:text-gray-400">Super ADM</span>
                         </button>
                     </div>
-                </div>
+                    </div>
 
-                <button type="submit" className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all transform hover:-translate-y-1 shadow-md hover:shadow-lg mt-2 text-lg">
-                    SALVAR ALTERAÇÕES
-                </button>
+                    {errorMsg && (
+                        <div className="text-red-500 font-bold text-sm text-center">
+                            {errorMsg}
+                        </div>
+                    )}
+
+                    <button type="submit" className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all transform hover:-translate-y-1 shadow-md hover:shadow-lg mt-2 text-lg">
+                        SALVAR ALTERAÇÕES
+                    </button>
             </form>
         </Modal>
     );

@@ -14,6 +14,7 @@ export const ManageAdminsModal: React.FC<{
     onDeleteAdmin: (id: string, name?: string, matricula?: string) => Promise<void>;
     scale: number;
 }> = ({ isOpen, onClose, onBack, administrators, currentAdminEmail, onOpenAddAdmin, onOpenEditAdmin, onDeleteAdmin, scale }) => {
+    const [adminToDelete, setAdminToDelete] = useState<Administrator | null>(null);
 
     if (!isOpen) return null;
 
@@ -43,9 +44,24 @@ export const ManageAdminsModal: React.FC<{
 
                 {/* Lista de Administradores */}
                 <div className="max-h-[50vh] overflow-y-auto pr-1 space-y-2 custom-scrollbar">
-                    {administrators.map(admin => {
-                        const isMe = admin.email === currentAdminEmail;
+                    {administrators.map((admin) => {
                         const isSuper = admin.nivel === '2';
+                        const isMe = admin.email === currentAdminEmail;
+
+                        if (adminToDelete?.id === admin.id) {
+                            return (
+                                <div key={admin.id} className="flex flex-col items-center justify-center p-4 rounded-lg border-2 border-red-500 bg-red-50 dark:bg-red-900/20 shadow-sm animate-pulse">
+                                    <p className="text-red-700 dark:text-red-300 font-bold text-center mb-3 text-sm">
+                                        Tem certeza que deseja excluir {admin.name}?
+                                    </p>
+                                    <div className="flex gap-3">
+                                        <button onClick={() => setAdminToDelete(null)} className="px-4 py-2 bg-gray-500 hover:bg-gray-600 transition-colors text-white rounded font-medium text-xs">CANCELAR</button>
+                                        <button onClick={async () => { await onDeleteAdmin(admin.id, admin.name, admin.matricula); setAdminToDelete(null); }} className="px-4 py-2 bg-red-600 hover:bg-red-700 transition-colors text-white rounded font-bold text-xs shadow-md">EXCLUIR</button>
+                                    </div>
+                                </div>
+                            );
+                        }
+
                         return (
                             <div key={admin.id} className={`flex items-center justify-between p-3 rounded-lg border ${isMe ? 'border-green-500 bg-green-50 dark:bg-green-900/20' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'} shadow-sm transition-all hover:shadow-md`}>
                                 <div className="flex flex-col overflow-hidden">
@@ -68,15 +84,7 @@ export const ManageAdminsModal: React.FC<{
                                         <EditIcon className="w-5 h-5" />
                                     </button>
                                     <button
-                                        onClick={() => {
-                                            if (isMe) {
-                                                alert("Você não pode excluir sua própria conta.");
-                                                return;
-                                            }
-                                            if (window.confirm(`Tem certeza que deseja excluir o administrador ${admin.name}?`)) {
-                                                onDeleteAdmin(admin.id, admin.name, admin.matricula);
-                                            }
-                                        }}
+                                        onClick={() => setAdminToDelete(admin)}
                                         disabled={isMe}
                                         className={`p-2 rounded-lg transition-all text-white shadow-sm hover:shadow transform ${isMe ? 'opacity-50 cursor-not-allowed bg-red-400' : 'bg-red-500 hover:bg-red-600 hover:-translate-y-0.5'}`}
                                         title={isMe ? "Você não pode excluir a si mesmo" : "Excluir Administrador"}

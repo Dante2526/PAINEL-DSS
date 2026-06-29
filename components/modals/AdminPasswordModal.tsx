@@ -10,24 +10,27 @@ export const AdminPasswordModal: React.FC<{
 }> = ({ isOpen, onClose, onBack, onConfirm, scale }) => {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [errorMsg, setErrorMsg] = useState('');
 
     useEffect(() => {
         if (!isOpen) {
             setNewPassword('');
             setConfirmPassword('');
+            setErrorMsg('');
         }
     }, [isOpen]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!newPassword.trim()) {
-            alert('A senha não pode ser vazia.');
+            setErrorMsg('A senha não pode ser vazia.');
             return;
         }
         if (newPassword !== confirmPassword) {
-            alert('As senhas não coincidem.');
+            setErrorMsg('As senhas não coincidem.');
             return;
         }
+        setErrorMsg('');
         onConfirm(newPassword);
     };
 
@@ -73,6 +76,12 @@ export const AdminPasswordModal: React.FC<{
                         className={inputClassName}
                     />
                 </div>
+
+                {errorMsg && (
+                    <div className="text-red-500 font-bold text-sm text-center">
+                        {errorMsg}
+                    </div>
+                )}
 
                 <button type="submit" className="w-full py-3 bg-gray-800 text-white font-bold rounded-lg hover:bg-gray-900 transition-all duration-300 transform hover:-translate-y-1 shadow-md hover:shadow-lg">
                     SALVAR SENHA

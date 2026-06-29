@@ -13,6 +13,7 @@ export const AddUserModal: React.FC<{
     const [matricula, setMatricula] = useState('');
     const [addAnother, setAddAnother] = useState(false);
     const [showWarningCard, setShowWarningCard] = useState(false);
+    const [errorMsg, setErrorMsg] = useState('');
     const nameInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -22,15 +23,17 @@ export const AddUserModal: React.FC<{
             setMatricula('');
             setAddAnother(false);
             setShowWarningCard(false);
+            setErrorMsg('');
         }
     }, [isOpen]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!name.trim()) {
-            alert('Por favor, preencha o nome do colaborador.');
+            setErrorMsg('Por favor, preencha o nome do colaborador.');
             return;
         }
+        setErrorMsg('');
 
         if (matricula.length !== 8) {
             setShowWarningCard(true);
@@ -76,6 +79,7 @@ export const AddUserModal: React.FC<{
                             Se você é da <strong className="text-light-text dark:text-white">Velha Guarda</strong>, adicione <strong className="text-light-text dark:text-white bg-yellow-200 dark:bg-yellow-800 px-1 rounded text-black dark:text-white">01</strong> na frente dos demais números para completar os 8 dígitos.
                         </p>
                     </div>
+
                     <div className="w-full mt-4">
                         <button
                             type="button"
@@ -148,6 +152,11 @@ export const AddUserModal: React.FC<{
                         <div className={`absolute left-1 top-1 bg-white w-6 h-6 rounded-full shadow-md transform transition-transform duration-200 ease-in-out ${addAnother ? 'translate-x-6' : 'translate-x-0'}`}></div>
                     </div>
                 </label>
+                {errorMsg && (
+                    <div className="text-red-500 font-bold text-sm text-center mb-4">
+                        {errorMsg}
+                    </div>
+                )}
                 <button type="submit" className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold rounded-lg transition shadow-lg shadow-green-600/20 active:scale-[0.98] transform uppercase">
                     ADICIONAR
                 </button>
