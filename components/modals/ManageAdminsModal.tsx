@@ -59,7 +59,7 @@ export const ManageAdminsModal: React.FC<{
                                         <div className="flex flex-col gap-1 text-xs text-red-700 dark:text-red-300 mt-1 text-left">
                                             <span className="truncate">{admin.email}</span>
                                             <span>Mat: {admin.matricula}</span>
-                                            <span className="truncate">Senha: <strong className="font-mono text-red-900 dark:text-red-100">{admin.senha || "N/A"}</strong></span>
+                                            <span className="font-bold text-red-600 dark:text-red-400 mt-1 uppercase">Tem certeza que deseja excluir?</span>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
