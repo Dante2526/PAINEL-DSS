@@ -26,6 +26,10 @@ export const AdminPasswordModal: React.FC<{
             setErrorMsg('A senha não pode ser vazia.');
             return;
         }
+        if (newPassword.trim().length < 8) {
+            setErrorMsg('A senha deve ter no mínimo 8 caracteres.');
+            return;
+        }
         if (newPassword !== confirmPassword) {
             setErrorMsg('As senhas não coincidem.');
             return;
