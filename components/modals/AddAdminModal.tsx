@@ -80,7 +80,7 @@ export const AddAdminModal: React.FC<{
                     </div>
                 </div>
             ) : (
-            <form onSubmit={handleAdd} className="flex flex-col gap-4">
+            <form noValidate onSubmit={handleAdd} className="flex flex-col gap-4">
                 <input
                     type="text"
                     placeholder="Nome Completo"

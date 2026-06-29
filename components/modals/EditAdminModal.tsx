@@ -52,7 +52,7 @@ export const EditAdminModal: React.FC<{
             scale={scale}
             size="md"
         >
-            <form onSubmit={handleEdit} className="flex flex-col gap-4">
+            <form noValidate onSubmit={handleEdit} className="flex flex-col gap-4">
                 <input
                     type="text"
                     placeholder="Nome Completo"

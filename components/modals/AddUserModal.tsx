@@ -91,7 +91,7 @@ export const AddUserModal: React.FC<{
                     </div>
                 </div>
             ) : (
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form noValidate onSubmit={handleSubmit} className="space-y-4">
                 <div className="flex justify-center mb-4 mt-2">
                     <div className="relative group">
                         {/* Efeito Glow / Sombra pulsante para design premium */}

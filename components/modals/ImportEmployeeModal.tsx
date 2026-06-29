@@ -142,7 +142,7 @@ export const ImportEmployeeModal: React.FC<{
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} onBack={onBack} title="" scale={scale}>
-            <form onSubmit={handleSubmit} className="space-y-5 text-left">
+            <form noValidate onSubmit={handleSubmit} className="space-y-5 text-left">
                 <div className="flex justify-center mb-4 mt-2">
                     <div className="relative group">
                         {/* Efeito Glow / Sombra pulsante para design premium */}

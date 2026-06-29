@@ -18,7 +18,7 @@ export const DemoPasswordModal: React.FC<{
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Senha de Demonstração" scale={scale}>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form noValidate onSubmit={handleSubmit} className="space-y-4">
                 <input
                     type="password"
                     placeholder="Digite a senha"
@@ -57,7 +57,7 @@ export const AutomationPasswordModal: React.FC<{
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Senha do Sistema" scale={scale}>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form noValidate onSubmit={handleSubmit} className="space-y-4">
                 <input
                     type="password"
                     placeholder="Digite a senha"

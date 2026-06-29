@@ -250,4 +250,4 @@ export const DocIcon: React.FC<{ className?: string }> = ({ className }) => (
     <line x1="8" y1="17" x2="16" y2="17"></line>
     <line x1="8" y1="9" x2="10" y2="9"></line>
   </svg>
-);
+);

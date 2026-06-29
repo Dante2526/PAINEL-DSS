@@ -50,7 +50,7 @@ export const AdminPasswordModal: React.FC<{
             title="Alterar Minha Senha" 
             scale={scale}
         >
-            <form onSubmit={handleSubmit} className="flex flex-col space-y-4">
+            <form noValidate onSubmit={handleSubmit} className="flex flex-col space-y-4">
                 <div className="flex justify-center mb-2">
                     <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-gray-700 to-gray-900 flex items-center justify-center shadow-lg">
                         <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
