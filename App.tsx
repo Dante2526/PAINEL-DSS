@@ -1579,7 +1579,7 @@ const App: React.FC = () => {
 
         try {
             // Check in CURRENT turma
-            const isDuplicateInCurrent = employees.some(e => e.matricula === matricula || e.name === finalName);
+            const isDuplicateInCurrent = employees.some(e => e.matricula === matricula);
             if (isDuplicateInCurrent) {
                 showNotification(`Este usuário ou matrícula já está cadastrado nesta mesma turma!`, 'error');
                 return;
@@ -1592,14 +1592,9 @@ const App: React.FC = () => {
                 const collRef = collection(db, collectionName);
 
                 const matriculaQuery = query(collRef, where("matricula", "==", matricula));
-                const nameQuery = query(collRef, where("name", "==", finalName));
+                const matriculaSnapshot = await getDocs(matriculaQuery);
 
-                const [matriculaSnapshot, nameSnapshot] = await Promise.all([
-                    getDocs(matriculaQuery),
-                    getDocs(nameQuery)
-                ]);
-
-                const foundDoc = matriculaSnapshot.docs[0] || nameSnapshot.docs[0];
+                const foundDoc = matriculaSnapshot.docs[0];
 
                 if (foundDoc) {
                     setExistingUserInfo({ name: foundDoc.data().name, turma: TURMA_DISPLAY_NAMES[turma] || turma });
