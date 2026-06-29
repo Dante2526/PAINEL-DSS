@@ -170,7 +170,7 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
                         onMatriculaChange={onMatriculaUpdate} // Pass the function
                         specialTurnBtnId="tutorial-return-turn-btn"
                         shiftLabel={mainShiftLabel}
-                        maskMatricula={turma === 'B_CG'}
+                        maskMatricula={turma === 'B_CG' || turma === 'A_CG'}
                     />
                 )}
             </div>
@@ -189,7 +189,7 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
                             onTimeChange={onTimeChange}
                             onMatriculaChange={onMatriculaUpdate} // Pass the function
                             shiftLabel={mainShiftLabel}
-                            maskMatricula={turma === 'B_CG'}
+                            maskMatricula={turma === 'B_CG' || turma === 'A_CG'}
                         />
                     ))}
                 </div>

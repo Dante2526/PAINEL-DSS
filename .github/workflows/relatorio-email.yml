@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       turma_manual:
-        description: 'Gerar relatório de qual turma? (A, B, C, D ou CCG)'
+        description: 'Gerar relatório de qual turma? (Ex: A, A_CG, B, B_CG, C, CCG, D)'
         required: true
         default: 'A'
 #  schedule:
@@ -71,7 +71,7 @@ jobs:
             
             if [[ $CYCLE_A -eq 0 || $CYCLE_A -eq 1 ]]; then
                echo "should_run=true" >> $GITHUB_OUTPUT
-               echo "target_team=A ESTAGIO" >> $GITHUB_OUTPUT
+               echo "target_team=A A_CG ESTAGIO" >> $GITHUB_OUTPUT
                exit 0
             fi
 

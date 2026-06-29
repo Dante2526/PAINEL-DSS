@@ -218,7 +218,7 @@ async function main() {
       if (typeof configData.active !== 'undefined') {
         is6HActive = configData.active;
       }
-    } else if (TARGET_TEAM === 'B_CG') {
+    } else if (TARGET_TEAM === 'B_CG' || TARGET_TEAM === 'A_CG') {
       is6HActive = false;
     }
 
