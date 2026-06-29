@@ -2224,7 +2224,7 @@ const App: React.FC = () => {
                                         )}
 
                                         {mainTeam.length === 0 && (
-                                            <div className="w-full text-center py-20 text-light-text-secondary dark:text-dark-text-secondary text-xl font-medium">
+                                            <div className="w-full min-h-[65vh] flex flex-col items-center justify-center text-center py-20 text-light-text-secondary dark:text-dark-text-secondary text-xl font-medium">
                                                 {loading ? (
                                                     <div className="flex flex-col items-center gap-4">
                                                         <div className="w-12 h-12 border-4 border-primary-light border-t-primary rounded-full animate-spin"></div>
