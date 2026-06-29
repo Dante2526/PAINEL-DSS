@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Modal from '../Modal';
-import { UserPlusIcon } from '../icons';
+import { UserPlusIcon, InfoIcon } from '../icons';
 
 export const AddUserModal: React.FC<{
     isOpen: boolean;
@@ -12,6 +12,7 @@ export const AddUserModal: React.FC<{
     const [name, setName] = useState('');
     const [matricula, setMatricula] = useState('');
     const [addAnother, setAddAnother] = useState(false);
+    const [showWarningCard, setShowWarningCard] = useState(false);
     const nameInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -20,6 +21,7 @@ export const AddUserModal: React.FC<{
             setName('');
             setMatricula('');
             setAddAnother(false);
+            setShowWarningCard(false);
         }
     }, [isOpen]);
 
@@ -27,7 +29,7 @@ export const AddUserModal: React.FC<{
         e.preventDefault();
         
         if (matricula.length !== 8) {
-            alert('A matrícula deve ter exatamente 8 dígitos!');
+            setShowWarningCard(true);
             return;
         }
 
@@ -55,7 +57,33 @@ export const AddUserModal: React.FC<{
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} onBack={onBack} title="" scale={scale}>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            {showWarningCard ? (
+                <div className="space-y-6 text-center p-2 flex flex-col items-center">
+                    <h2 className="text-xl font-bold uppercase text-light-text dark:text-dark-text mb-2">FORMATO DE MATRÍCULA</h2>
+                    <div className="mx-auto w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mb-2 text-primary">
+                        <InfoIcon className="w-8 h-8" />
+                    </div>
+                    <div className="text-lg text-light-text dark:text-dark-text font-medium flex flex-col items-center gap-2">
+                        <span>Toda matrícula tem <strong>8 dígitos</strong>.</span>
+                    </div>
+                    <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl w-full border border-gray-200 dark:border-gray-600">
+                        <p className="text-sm text-light-text-secondary dark:text-gray-300">
+                            <span className="block font-bold mb-2 text-primary dark:text-blue-400 uppercase text-xs tracking-wider">Aviso</span>
+                            Se você é da <strong className="text-light-text dark:text-white">Velha Guarda</strong>, adicione <strong className="text-light-text dark:text-white bg-yellow-200 dark:bg-yellow-800 px-1 rounded text-black dark:text-white">01</strong> na frente dos demais números para completar os 8 dígitos.
+                        </p>
+                    </div>
+                    <div className="w-full mt-4">
+                        <button
+                            type="button"
+                            onClick={() => setShowWarningCard(false)}
+                            className="w-full py-4 font-bold text-white bg-primary rounded-lg hover:bg-primary-dark shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
+                        >
+                            ENTENDI E VOU CORRIGIR
+                        </button>
+                    </div>
+                </div>
+            ) : (
+                <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="flex justify-center mb-4 mt-2">
                     <div className="relative group">
                         {/* Efeito Glow / Sombra pulsante para design premium */}
@@ -122,6 +150,7 @@ export const AddUserModal: React.FC<{
                     ADICIONAR
                 </button>
             </form>
+            )}
         </Modal>
     );
 };
