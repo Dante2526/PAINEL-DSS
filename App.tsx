@@ -1293,15 +1293,18 @@ const App: React.FC = () => {
             return;
         }
 
-        if (matricula.length !== 8) {
+        if (!isSignaturePasswordActive && matricula.length !== 8) {
             setActiveModal(ModalType.InvalidMatricula);
             return;
         }
 
         let resolvedName = '';
-        const currentEmp = employees.find(e => e.matricula === matricula);
+        let actualMatricula = matricula;
+        
+        const currentEmp = employees.find(e => (isSignaturePasswordActive && e.senha === matricula) || e.matricula === matricula);
         if (currentEmp) {
             resolvedName = currentEmp.name;
+            actualMatricula = currentEmp.matricula;
         } else {
             const adminQ = query(collection(db, 'administrators'), where('matricula', '==', matricula), limit(1));
             const adminSnap = await getDocs(adminQ);
@@ -1335,7 +1338,7 @@ const App: React.FC = () => {
         const docRef = doc(db, registrationCollectionName, docId);
 
         const registrationData = {
-            matricula,
+            matricula: actualMatricula,
             name: resolvedName,
             assunto: subject || 'Não preenchido',
             TURNO: turno, // Explicitly using the '7H' or '6H' parameter
