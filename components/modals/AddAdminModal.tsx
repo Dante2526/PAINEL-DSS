@@ -47,7 +47,7 @@ export const AddAdminModal: React.FC<{
                     placeholder="Nome Completo"
                     value={newName}
                     onChange={(e) => setNewName(e.target.value)}
-                    className={inputClassName}
+                    className={`${inputClassName} uppercase`}
                 />
                 <input
                     type="text"

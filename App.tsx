@@ -33,7 +33,9 @@ import {
     deleteDoc,
     setDoc,
     getDoc,
-    limit
+    limit,
+    disableNetwork,
+    enableNetwork
 } from 'firebase/firestore';
 import { signInAnonymously } from 'firebase/auth';
 import emailjs from '@emailjs/browser';
@@ -136,7 +138,26 @@ const App: React.FC = () => {
         scrollTop: 0,
         moved: false
     });
-    const modalScale = 1;
+    const [modalScale, setModalScale] = useState(1);
+    
+    // Pausar/Retomar Firebase com base na visibilidade da aba para economizar leituras e bateria
+    useEffect(() => {
+        if (!db) return;
+
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'hidden') {
+                disableNetwork(db).catch(error => console.error("Erro ao suspender rede:", error));
+            } else if (document.visibilityState === 'visible') {
+                enableNetwork(db).catch(error => console.error("Erro ao retomar rede:", error));
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, [db]);
 
     // Refs para estabilizar callbacks sem dependência de state mutável
     const employeesRef = useRef<Employee[]>([]);
@@ -496,9 +517,10 @@ const App: React.FC = () => {
         };
     }, [selectedTurma]);
 
-    // Carrega administradores SOMENTE quando um admin está logado
+    // Carrega administradores SOMENTE quando as telas que precisam da lista estão abertas
     useEffect(() => {
-        if (!isAdmin || !db) return;
+        const needsAdmins = activeModal === ModalType.ManageAdmins || activeModal === ModalType.EditAdmin;
+        if (!isAdmin || !db || !needsAdmins) return;
         
         const administratorsQuery = query(collection(db, 'administrators'));
         const unsubscribeAdministrators = onSnapshot(administratorsQuery, (querySnapshot) => {
@@ -507,7 +529,7 @@ const App: React.FC = () => {
         }, (error) => console.error("Error listening to admin updates:", error));
 
         return () => unsubscribeAdministrators();
-    }, [isAdmin]);
+    }, [isAdmin, db, activeModal]);
 
     const setScale = useCallback((newScale: number, scrollX?: number, scrollY?: number) => {
         const viewport = viewportRef.current;
@@ -1383,7 +1405,9 @@ const App: React.FC = () => {
             
             if (!snapshotSenha.empty) {
                 const adminDoc = snapshotSenha.docs[0];
-                await processLogin(adminDoc.data().email);
+                const adminData = adminDoc.data();
+                setAdminNivel(adminData.nivel || '1');
+                await processLogin(adminData.email);
                 return;
             }
 
@@ -1393,12 +1417,14 @@ const App: React.FC = () => {
             
             if (!snapshotEmail.empty) {
                 const adminDoc = snapshotEmail.docs[0];
+                const adminData = adminDoc.data();
                 
                 // Se o admin JÁ TIVER uma senha, ele não pode logar usando só o e-mail
-                if (adminDoc.data().senha) {
+                if (adminData.senha) {
                     showNotification('Credenciais inválidas.', 'error');
                 } else {
-                    await processLogin(adminDoc.data().email);
+                    setAdminNivel(adminData.nivel || '1');
+                    await processLogin(adminData.email);
                 }
             } else {
                 showNotification('Credenciais de administrador inválidas.', 'error');
@@ -1435,26 +1461,27 @@ const App: React.FC = () => {
     const handleAddAdministrator = async (name: string, email: string, matricula: string, nivel: string) => {
         if (!db || !adminEmail) return;
         try {
-            const q = query(collection(db, 'administrators'), where("email", "==", email));
-            const snapshot = await getDocs(q);
-            if (!snapshot.empty) {
+            const normalizedEmail = email.trim().toLowerCase();
+            const normalizedMatricula = matricula.trim();
+
+            const emailExists = administrators.some(a => a.email.trim().toLowerCase() === normalizedEmail);
+            if (emailExists) {
                 showNotification('Já existe um administrador com este e-mail.', 'error');
                 return;
             }
 
-            const qMat = query(collection(db, 'administrators'), where("matricula", "==", matricula));
-            const snapshotMat = await getDocs(qMat);
-            if (!snapshotMat.empty) {
+            const matriculaExists = administrators.some(a => a.matricula.trim() === normalizedMatricula);
+            if (matriculaExists) {
                 showNotification('Já existe um administrador com esta matrícula.', 'error');
                 return;
             }
 
             await addDoc(collection(db, 'administrators'), {
-                name,
-                email,
-                matricula,
+                name: name.trim(),
+                email: normalizedEmail,
+                matricula: normalizedMatricula,
                 nivel,
-                senha: email // Senha inicial é o próprio e-mail corporativo
+                senha: normalizedEmail // Senha inicial é o próprio e-mail corporativo
             });
             showNotification('Administrador adicionado com sucesso!', 'success');
             logAuditEvent(adminEmail, 'NOVO ADMINISTRADOR', `Novo administrador adicionado: ${name} (Nível ${nivel})`, selectedTurma);
@@ -1467,11 +1494,26 @@ const App: React.FC = () => {
     const handleEditAdministrator = async (id: string, name: string, email: string, matricula: string, nivel: string) => {
         if (!db || !adminEmail) return;
         try {
+            const normalizedEmail = email.trim().toLowerCase();
+            const normalizedMatricula = matricula.trim();
+
+            const emailExists = administrators.some(a => a.id !== id && a.email.trim().toLowerCase() === normalizedEmail);
+            if (emailExists) {
+                showNotification('Já existe outro administrador com este e-mail.', 'error');
+                return;
+            }
+
+            const matriculaExists = administrators.some(a => a.id !== id && a.matricula.trim() === normalizedMatricula);
+            if (matriculaExists) {
+                showNotification('Já existe outro administrador com esta matrícula.', 'error');
+                return;
+            }
+
             const adminDocRef = doc(db, 'administrators', id);
             await updateDoc(adminDocRef, {
-                name,
-                email,
-                matricula,
+                name: name.trim(),
+                email: normalizedEmail,
+                matricula: normalizedMatricula,
                 nivel
             });
             showNotification('Administrador atualizado com sucesso!', 'success');
@@ -2234,6 +2276,7 @@ const App: React.FC = () => {
                                     employeesForLookup={employees}
                                     administrators={administrators}
                                     turma={selectedTurma}
+                                    dbName={specialResponsible}
                                 />
                             )}
                         </div>
@@ -2284,7 +2327,7 @@ const App: React.FC = () => {
                         isSignaturePasswordActive={isSignaturePasswordActive}
                         scale={modalScale}
                         selectedTurma={selectedTurma}
-                        currentAdminNivel={administrators.find(a => a.email === adminEmail)?.nivel || '1'}
+                        currentAdminNivel={adminNivel}
                     />
                     <AuditLogModal
                         isOpen={activeModal === ModalType.AuditLog}

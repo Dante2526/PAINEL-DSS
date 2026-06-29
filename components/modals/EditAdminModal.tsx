@@ -55,7 +55,7 @@ export const EditAdminModal: React.FC<{
                     placeholder="Nome Completo"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className={inputClassName}
+                    className={`${inputClassName} uppercase`}
                 />
                 <input
                     type="text"

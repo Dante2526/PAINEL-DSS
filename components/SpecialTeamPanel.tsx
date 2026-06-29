@@ -20,6 +20,7 @@ interface SpecialTeamPanelProps {
     employeesForLookup: (Pick<Employee, 'name' | 'matricula'>)[];
     administrators: Administrator[]; // Access to admin list for lookup
     turma: string | null;
+    dbName?: string;
 }
 
 const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
@@ -36,7 +37,8 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
     onMatriculaUpdate, // Destructure prop
     employeesForLookup,
     administrators,
-    turma
+    turma,
+    dbName
 }) => {
     const [localSubject, setLocalSubject] = React.useState(subject);
     const [localMatricula, setLocalMatricula] = React.useState(matricula);
@@ -59,9 +61,14 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
         setLocalMatricula(e.target.value.replace(/[^0-9]/g, ''));
     }, []);
 
+    const isRegistered = subject && subject !== 'Não preenchido' && matricula && localSubject === subject && localMatricula === matricula;
+
     // Find name based on matricula from administrators list first, then all employees from all turmas
     const foundName = useMemo(() => {
         if (!localMatricula) return '';
+
+        if (isRegistered && dbName) return dbName;
+
         // Prioritize administrators collection for manual registry
         const admin = administrators.find(a => a.matricula === localMatricula);
         if (admin) return admin.name;
@@ -69,12 +76,11 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
         // Fallback to the global employee lookup list
         const employee = employeesForLookup.find(e => e.matricula === localMatricula);
         return employee ? employee.name : '';
-    }, [localMatricula, employeesForLookup, administrators]);
+    }, [localMatricula, employeesForLookup, administrators, isRegistered, dbName]);
 
     const firstEmployee = specialTeam[0];
     const remainingEmployees = specialTeam.slice(1);
 
-    const isRegistered = subject && subject !== 'Não preenchido' && matricula && localSubject === subject && localMatricula === matricula;
     const isSubjectEmpty = !localSubject || localSubject === 'Não preenchido';
     const isMatriculaEmpty = !localMatricula;
 
@@ -200,7 +206,10 @@ const arePropsEqual = (prevProps: SpecialTeamPanelProps, nextProps: SpecialTeamP
         prevProps.subject !== nextProps.subject ||
         prevProps.matricula !== nextProps.matricula ||
         prevProps.turma !== nextProps.turma ||
-        prevProps.onRegister !== nextProps.onRegister
+        prevProps.onRegister !== nextProps.onRegister ||
+        prevProps.dbName !== nextProps.dbName ||
+        prevProps.administrators.length !== nextProps.administrators.length ||
+        prevProps.employeesForLookup.length !== nextProps.employeesForLookup.length
     ) {
         return false;
     }
