@@ -123,7 +123,6 @@ export const AddUserModal: React.FC<{
                         className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
                         inputMode="numeric"
                         maxLength={8}
-                        minLength={8}
                         required
                     />
                     <p className="text-xs text-left text-light-text-secondary dark:text-dark-text-secondary px-1 mt-1.5 leading-relaxed">
