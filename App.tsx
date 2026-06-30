@@ -315,9 +315,9 @@ const App: React.FC = () => {
         setNotifications(prev => [...prev, newNotification]);
     }, []);
 
-    const dismissNotification = (id: number) => {
+    const dismissNotification = useCallback((id: number) => {
         setNotifications(prev => prev.filter(n => n.id !== id));
-    };
+    }, []);
 
     // Função para enviar alerta por e-mail
     const sendAlertEmail = async (name: string, matricula: string, turno: string) => {
