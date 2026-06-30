@@ -1965,8 +1965,8 @@ const App: React.FC = () => {
 
         if (step.targetId === 'tutorial-return-turn-btn' ||
             ['tutorial-stats', 'tutorial-dark-mode', 'tutorial-admin-btn', 'tutorial-change-turma-btn', 'tutorial-help-btn'].includes(step.targetId)) {
-            // Se for Turma CCG, não existe tutorial-special-demo-area, então focalizamos na área do header principal ou na primeira carta
-            targetIdForZoom = selectedTurma === 'CCG' ? 'app-header' : 'tutorial-special-demo-area';
+            // Se for Turma C_CG, não existe tutorial-special-demo-area, então focalizamos na área do header principal ou na primeira carta
+            targetIdForZoom = selectedTurma === 'C_CG' ? 'app-header' : 'tutorial-special-demo-area';
         }
 
         const element = document.getElementById(targetIdForZoom);
@@ -2182,7 +2182,7 @@ const App: React.FC = () => {
                                                             onTimeChange={handleTimeUpdate}
                                                             onMatriculaChange={handleMatriculaUpdate}
                                                             domId={index === 0 ? "tutorial-first-card" : undefined}
-                                                            hideShiftButton={selectedTurma === 'CCG' || selectedTurma === 'ESTAGIO' || !is6HActive}
+                                                            hideShiftButton={selectedTurma === 'C_CG' || selectedTurma === 'ESTAGIO' || !is6HActive}
                                                             shiftLabel={getShiftLabel(selectedTurma)}
                                                         />
                                                     </div>
@@ -2213,7 +2213,7 @@ const App: React.FC = () => {
                                                                     onTimeChange={handleTimeUpdate}
                                                                     onMatriculaChange={handleMatriculaUpdate}
                                                                     domId={index === 0 && group.letter === groupedMainTeam[0]?.letter ? "tutorial-first-card" : undefined}
-                                                                    hideShiftButton={selectedTurma === 'CCG' || selectedTurma === 'ESTAGIO' || !is6HActive}
+                                                                    hideShiftButton={selectedTurma === 'C_CG' || selectedTurma === 'ESTAGIO' || !is6HActive}
                                                                     shiftLabel={getShiftLabel(selectedTurma)}
                                                                 />
                                                             </div>
@@ -2264,7 +2264,7 @@ const App: React.FC = () => {
 
                                 </div>
                             </div>
-                            {selectedTurma !== 'CCG' && selectedTurma !== 'ESTAGIO' && is6HActive && (
+                            {selectedTurma !== 'C_CG' && selectedTurma !== 'ESTAGIO' && is6HActive && (
                                 <SpecialTeamPanel
                                     specialTeam={specialTeam}
                                     onStatusChange={handleStatusChange}

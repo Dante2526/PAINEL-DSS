@@ -6,7 +6,7 @@ const TURMAS = {
   B:   { employees: 'turma b',    registros: 'registrosDSS B' },
   C:   { employees: 'turma c',    registros: 'registrosDSS C' },
   D:   { employees: 'turma d',    registros: 'registrosDSS D' },
-  CCG: { employees: 'turma c cg', registros: 'registrosDSS C CG' },
+  C_CG: { employees: 'turma c cg', registros: 'registrosDSS C CG' },
   B_CG: { employees: 'turma b cg', registros: 'registrosDSS B CG' },
   A_CG: { employees: 'turma a cg', registros: 'registrosDSS A CG' },
   ESTAGIO: { employees: 'estagio', registros: 'registrosDSS Estágio' },
@@ -20,7 +20,7 @@ const ANCHOR_DATES = {
   B:   "2025-11-07",
   C:   "2026-01-16",
   D:   "2026-01-26",
-  CCG: "2026-01-16", // CCG compartilha a escala da Turma C
+  C_CG: "2026-01-16", // C_CG compartilha a escala da Turma C
   B_CG: "2025-11-07", // B_CG compartilha a escala da Turma B
   A_CG: "2026-01-08", // A_CG compartilha a escala da Turma A
 };
@@ -75,14 +75,14 @@ function parseServiceAccount(throwError = false) {
 
 /**
  * Verifica se a automação está pausada no painel administrativo.
- * Checa tanto a chave exata (ex: CCG) quanto a variação "C CG".
+ * Checa tanto a chave exata (ex: C_CG) quanto a variação "C CG".
  */
 async function isAutomacaoPausada(db, team) {
   const sysRef = await db.collection('configuracoes').doc('automacao').get();
   if (!sysRef.exists) return false;
 
   const data = sysRef.data();
-  return data[team] === true || (team === 'CCG' && data['C CG'] === true);
+  return data[team] === true || (team === 'C_CG' && data['C CG'] === true);
 }
 
 /**

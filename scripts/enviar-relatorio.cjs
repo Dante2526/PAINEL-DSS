@@ -130,7 +130,7 @@ async function gerarRelatorio(empSnapshot, dataExibicao, is6HActive = true) {
   htmlBody += `<br><h2>TEMA DSS (TURNO ${mainShiftLabel})</h2><hr>`;
   if (registros7H.length === 0) { htmlBody += `Nenhum registro de assunto encontrado para ${mainShiftLabel}.`; } else { htmlBody += `<ul ${ulStyle}>`; registros7H.forEach(reg => { const n = reg.name ? limparTexto(reg.name) : "Nome não informado"; htmlBody += `<li style="margin-bottom: 10px;"><strong>${n}</strong> (Matrícula: ${reg.matricula})<br><span style="font-style: italic; color: #000;">Assunto: ${limparTexto(reg.assunto)}</span></li>`; }); htmlBody += `</ul>`; }
 
-  if (is6HActive && TARGET_TEAM !== 'CCG') {
+  if (is6HActive && TARGET_TEAM !== 'C_CG') {
     htmlBody += `<br><h2>TEMA DSS (TURNO ${shiftLabel})</h2><hr>`;
     if (registrosSH.length === 0) { htmlBody += `Nenhum registro de assunto encontrado para ${shiftLabel}.`; } else { htmlBody += `<ul ${ulStyle}>`; registrosSH.forEach(reg => { const n = reg.name ? limparTexto(reg.name) : "Nome não informado"; htmlBody += `<li style="margin-bottom: 10px;"><strong>${n}</strong> (Matrícula: ${reg.matricula})<br><span style="font-style: italic; color: #000;">Assunto: ${limparTexto(reg.assunto)}</span></li>`; }); htmlBody += `</ul>`; }
   }
@@ -146,7 +146,7 @@ async function gerarRelatorio(empSnapshot, dataExibicao, is6HActive = true) {
   htmlBody += `<h3>AUSENTES</h3>`;
   if (cat_7H_Ausentes.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_7H_Ausentes.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }
 
-  if (is6HActive && TARGET_TEAM !== 'CCG') {
+  if (is6HActive && TARGET_TEAM !== 'C_CG') {
     htmlBody += `<br><h2>EQUIPE TURNO ${shiftLabel}</h2><hr>`;
     htmlBody += `<h3>STATUS: "ASS.DSS + ESTOU BEM"</h3>`;
     if (cat_SH_EstouBem.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_SH_EstouBem.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }

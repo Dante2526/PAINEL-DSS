@@ -2,7 +2,7 @@ import type { TutorialStep } from '../components/InteractiveTutorial';
 import { getShiftLabel, getMainShiftLabel } from './turmaUtils';
 
 export const getTutorialSteps = (turma: string | null): TutorialStep[] => {
-    const isCCG = turma === 'CCG';
+    const isCCG = turma === 'C_CG';
     const shiftLabel = getShiftLabel(turma);
     const mainShiftLabel = getMainShiftLabel(turma);
 

@@ -187,11 +187,11 @@ export const generatePdfBlob = async (data: PdfReportData): Promise<Blob> => {
     };
 
     drawRegistros(data.registros7H, mainLabel);
-    if (data.turma !== 'CCG') {
+    if (data.turma !== 'C_CG') {
         drawRegistros(data.registros6H, secLabel);
     }
     drawSection(team7H, mainLabel);
-    if (data.turma !== 'CCG' && team6H.length > 0) {
+    if (data.turma !== 'C_CG' && team6H.length > 0) {
         drawSection(team6H, secLabel);
     }
 
@@ -301,7 +301,7 @@ const createSheetForReport = (data: PdfReportData): XLSX.WorkSheet => {
     rows.push([]);
 
     // 4. Seção Turno Secundário (se existir)
-    if (data.turma !== 'CCG') {
+    if (data.turma !== 'C_CG') {
         const secTeam = (data.employees || []).filter(e => e.turno === '6H');
         if (secTeam.length > 0 || (data.registros6H && data.registros6H.length > 0)) {
             rows.push([`=== EQUIPE TURNO ${secLabel} ===`]);

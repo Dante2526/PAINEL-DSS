@@ -70,7 +70,7 @@ export const ReportModal: React.FC<{
         report += getStatusList(team7H);
         report += `\n\n`;
 
-        if (turma !== 'CCG' && team6H.length > 0) {
+        if (turma !== 'C_CG' && team6H.length > 0) {
             report += `EQUIPE TURNO ${shiftLabel}\n`;
             report += getStatusList(team6H);
             report += `\n\n`;
@@ -84,7 +84,7 @@ export const ReportModal: React.FC<{
             report += `\n`;
         }
 
-        if (turma !== 'CCG') {
+        if (turma !== 'C_CG') {
             report += `\nREGISTROS DSS (TURNO ${shiftLabel})\n`;
             report += `• Assunto: ${subject6H || 'NÃO PREENCHIDO'}`;
             if (responsible6H) {

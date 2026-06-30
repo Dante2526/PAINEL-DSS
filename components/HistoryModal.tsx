@@ -53,7 +53,7 @@ const HistoryModal: React.FC<{
     const luminaClassId = useMemo(() => {
         if (!turma) return null;
         const map: Record<string, string> = {
-            'A': 'Turma A', 'B': 'Turma B', 'C': 'Turma C', 'D': 'Turma D', 'CCG': 'Turma A', 'B_CG': 'Turma B', 'A_CG': 'Turma A', 'ESTAGIO': 'Estágio'
+            'A': 'Turma A', 'B': 'Turma B', 'C': 'Turma C', 'D': 'Turma D', 'C_CG': 'Turma A', 'B_CG': 'Turma B', 'A_CG': 'Turma A', 'ESTAGIO': 'Estágio'
         };
         return map[turma] || `Turma ${turma}`;
     }, [turma]);
@@ -383,7 +383,7 @@ const HistoryModal: React.FC<{
         };
 
         formatTeam(rTeam7H, mainShiftLabel);
-        if (turma !== 'CCG' && rTeam6H.length > 0) {
+        if (turma !== 'C_CG' && rTeam6H.length > 0) {
             formatTeam(rTeam6H, shiftLabel);
         }
 
@@ -399,7 +399,7 @@ const HistoryModal: React.FC<{
         }
         report += `\n`;
 
-        if (turma !== 'CCG' && record.registros6H && record.registros6H.length > 0) {
+        if (turma !== 'C_CG' && record.registros6H && record.registros6H.length > 0) {
             report += `REGISTROS DSS (TURNO ${shiftLabel})\n`;
             record.registros6H.forEach(reg => {
                 report += `• Assunto: ${reg.assunto || 'NÃO PREENCHIDO'}\n`;
@@ -925,8 +925,8 @@ const HistoryModal: React.FC<{
                                 </div>
                             </div>
 
-                            {/* 6H Card (somente se não for CCG) */}
-                            {turma !== 'CCG' && (
+                            {/* 6H Card (somente se não for C_CG) */}
+                            {turma !== 'C_CG' && (
                                 <div className="flex-1 bg-orange-50 dark:bg-orange-900/20 p-3 rounded-xl border border-orange-100 dark:border-orange-800 text-left relative overflow-hidden group">
                                     <div className="absolute right-0 top-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
                                         <ShiftIcon className="w-12 h-12 text-orange-600" />
@@ -970,7 +970,7 @@ const HistoryModal: React.FC<{
 
                         {/* Listas de funcionários */}
                         {renderEmployeeGroup(team7H, mainShiftLabel)}
-                        {turma !== 'CCG' && renderEmployeeGroup(team6H, shiftLabel)}
+                        {turma !== 'C_CG' && renderEmployeeGroup(team6H, shiftLabel)}
 
                         {/* Botões de exportação */}
                         <div className="grid grid-cols-2 gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
