@@ -15,9 +15,9 @@ const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, i
             {/* This container grows to push the footer down, and centers the main content within the available space. */}
             <div className="flex-grow flex flex-col justify-center w-full mt-2 md:mt-0 pb-2">
                 <main className="flex flex-col items-center text-center m-auto w-full px-2">
-                    <ShieldLogo className="h-10 w-10 md:h-14 md:w-14 mb-1 md:mb-2" />
-                    <h1 className="text-xl md:text-3xl font-extrabold text-light-text dark:text-dark-text tracking-tight mb-1 md:mb-1">Painel de Acompanhamento</h1>
-                    <p className="text-xs md:text-base font-medium text-light-text-secondary dark:text-dark-text-secondary mb-3 md:mb-6">Selecione a turma para continuar</p>
+                    <ShieldLogo className="h-16 w-16 md:h-20 md:w-20 mb-3 md:mb-4" />
+                    <h1 className="text-3xl md:text-4xl font-extrabold text-light-text dark:text-dark-text tracking-tight mb-2 md:mb-3">Painel de Acompanhamento</h1>
+                    <p className="text-base md:text-lg font-medium text-light-text-secondary dark:text-dark-text-secondary mb-8 md:mb-10">Selecione a turma para continuar</p>
 
                     <div className="grid grid-cols-2 gap-4 md:gap-5 w-full max-w-[340px] sm:max-w-[500px] md:max-w-[560px] mx-auto mb-6 md:mb-8">
                         <button
