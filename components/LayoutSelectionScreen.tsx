@@ -38,7 +38,7 @@ const LayoutSelectionScreen: React.FC<LayoutSelectionScreenProps> = ({ onSelect,
                             </div>
                             <h2 className="text-xl md:text-3xl font-extrabold text-light-text dark:text-dark-text mb-2 max-w-[95%] leading-tight text-center">Layout Padrão</h2>
                             <p className="text-light-text-secondary dark:text-dark-text-secondary text-sm md:text-lg px-2 md:px-4 leading-snug text-center mt-1 md:mt-2">
-                                Grid simples de 3 colunas, focado no conteúdo. Visualização tradicional em formato de lista.
+                                Interface tradicional em grade simples, focada na exibição direta do conteúdo.
                             </p>
                         </button>
 
