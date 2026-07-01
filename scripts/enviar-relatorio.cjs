@@ -106,6 +106,11 @@ async function gerarRelatorio(empSnapshot, dataExibicao, is6HActive = true) {
     const regSnapshot = await regRef.get();
     regSnapshot.forEach(doc => {
       const reg = doc.data();
+      const hasName = reg.name && String(reg.name).trim() !== '';
+      const hasAssunto = reg.assunto && String(reg.assunto).trim() !== '';
+      
+      if (!hasName && !hasAssunto) return;
+
       if (reg.TURNO === "6H") registrosSH.push(reg);
       else registros7H.push(reg);
     });
