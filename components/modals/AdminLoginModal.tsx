@@ -6,7 +6,7 @@ import { isMobileCellularWithBiometrics, hasRegisteredBiometrics, authenticateBi
 export const AdminLoginModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
-    onLogin: (email: string) => void;
+    onLogin: (email: string, isBiometric?: boolean) => void;
     showNotification: (msg: string, type: 'success' | 'error' | 'info') => void;
     scale: number;
 }> = ({ isOpen, onClose, onLogin, showNotification, scale }) => {
@@ -61,7 +61,7 @@ export const AdminLoginModal: React.FC<{
         try {
             const authenticatedEmail = await authenticateBiometricAdmin();
             if (authenticatedEmail) {
-                onLogin(authenticatedEmail);
+                onLogin(authenticatedEmail, true);
             }
         } catch (error) {
             console.error("Erro na autenticação biométrica:", error);

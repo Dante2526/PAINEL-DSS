@@ -1358,7 +1358,7 @@ const App: React.FC = () => {
         }
     }, [selectedTurma, isDemoMode, db, employees, showNotification]);
 
-    const handleAdminLogin = async (inputStr: string) => {
+    const handleAdminLogin = async (inputStr: string, isBiometric = false) => {
         const normalizedInput = inputStr.trim();
         const normalizedEmailInput = normalizedInput.toLowerCase();
 
@@ -1424,7 +1424,8 @@ const App: React.FC = () => {
                 const adminData = adminDoc.data();
                 
                 // Se o admin JÁ TIVER uma senha, ele não pode logar usando só o e-mail
-                if (adminData.senha) {
+                // a não ser que esteja usando autenticação biométrica
+                if (adminData.senha && !isBiometric) {
                     showNotification('Credenciais inválidas.', 'error');
                 } else {
                     setAdminNivel(adminData.nivel || '1');
@@ -1450,6 +1451,11 @@ const App: React.FC = () => {
             if (!snapshot.empty) {
                 const adminDoc = snapshot.docs[0];
                 await updateDoc(adminDoc.ref, { senha: newPassword });
+                
+                if (hasRegisteredBiometrics()) {
+                    clearBiometricData();
+                }
+
                 showNotification('Senha alterada com sucesso!', 'success');
                 setActiveModal(ModalType.AdminOptions);
                 logAuditEvent(adminEmail, 'ALTERAÇÃO DE SENHA', `Admin alterou a própria senha`, selectedTurma);
