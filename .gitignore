@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Superpowers e Agente IA
+docs/superpowers/
+.gemini/
