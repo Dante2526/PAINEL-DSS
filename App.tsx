@@ -986,7 +986,7 @@ const App: React.FC = () => {
 
         const isChecking = !(employee as any)[type];
 
-        if (isSignaturePasswordActive && type === 'bem' && isChecking) {
+        if (isSignaturePasswordActive && type === 'bem' && isChecking && !isAdminRef.current) {
             setPendingEmployeeId(id);
             setActiveModal(ModalType.SignaturePassword);
             return;

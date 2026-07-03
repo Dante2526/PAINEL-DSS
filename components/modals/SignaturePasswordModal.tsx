@@ -22,6 +22,7 @@ const SignaturePasswordModal: React.FC<SignaturePasswordModalProps> = ({
     
     // Confirm view state
     const [senha, setSenha] = useState('');
+    const [showMatriculaWarning, setShowMatriculaWarning] = useState(false);
     
     // Change view state
     const [currentPassword, setCurrentPassword] = useState('');
@@ -33,6 +34,7 @@ const SignaturePasswordModal: React.FC<SignaturePasswordModalProps> = ({
         if (isOpen) {
             setView('confirm');
             setSenha('');
+            setShowMatriculaWarning(false);
             setCurrentPassword('');
             setNewPassword('');
             setConfirmNewPassword('');
@@ -41,6 +43,11 @@ const SignaturePasswordModal: React.FC<SignaturePasswordModalProps> = ({
     }, [isOpen]);
 
     const handleConfirmSubmit = () => {
+        if (senha.length < 8) {
+            setShowMatriculaWarning(true);
+        } else {
+            setShowMatriculaWarning(false);
+        }
         onConfirm(senha);
     };
 
@@ -98,6 +105,14 @@ const SignaturePasswordModal: React.FC<SignaturePasswordModalProps> = ({
                         className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-success dark:text-white text-center tracking-widest text-lg"
                         autoFocus
                     />
+                    {showMatriculaWarning && (
+                        <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl w-full border border-gray-200 dark:border-gray-600 text-left">
+                            <p className="text-sm text-light-text-secondary dark:text-gray-300">
+                                <span className="block font-bold mb-2 text-primary dark:text-blue-400 uppercase text-xs tracking-wider">Aviso</span>
+                                Toda matrícula tem <strong>8 dígitos</strong>. Se você é da <strong className="text-light-text dark:text-white">Velha Guarda</strong>, adicione <strong className="text-light-text dark:text-white bg-yellow-200 dark:bg-yellow-800 px-1 rounded text-black dark:text-white">01</strong> na frente dos demais números para completar.
+                            </p>
+                        </div>
+                    )}
                     <button 
                         type="button" 
                         onClick={handleConfirmSubmit} 
