@@ -10,7 +10,7 @@ const PrivacyModal: React.FC<PrivacyModalProps> = ({ onClose }) => {
         <Modal 
             isOpen={true} 
             onClose={onClose} 
-            title="Política de Privacidade e Uso de Dados"
+            title="Privacidade"
             size="md"
             showScrollbar={true}
         >
