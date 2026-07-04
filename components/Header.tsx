@@ -33,11 +33,7 @@ const Header: React.FC<HeaderProps> = React.memo(({ stats, loading, onAdminClick
     return (
         <header id="app-header" className="bg-light-card dark:bg-dark-card rounded-3xl p-6 md:p-10 mb-8 shadow-lg flex justify-between items-center w-full transition-colors">
             <div className="flex items-center gap-6">
-                {loading ? (
-                    <div className="w-14 h-14 border-4 border-primary-light border-t-primary rounded-full animate-spin"></div>
-                ) : (
-                    <ShieldLogo className="h-20 w-20 md:h-24 md:w-24" />
-                )}
+                <ShieldLogo className="h-20 w-20 md:h-24 md:w-24" />
                 <div className="flex flex-col gap-1">
                     <h1 className="text-4xl md:text-5xl font-extrabold text-light-text dark:text-dark-text tracking-tight whitespace-nowrap">
                         Painel DSS - {turma === 'ESTAGIO' ? 'ESTÁGIO' : `TURMA ${TURMA_DISPLAY_NAMES[turma]}`}

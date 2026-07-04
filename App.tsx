@@ -37,7 +37,7 @@ import {
     disableNetwork,
     enableNetwork
 } from 'firebase/firestore';
-import { signInAnonymously } from 'firebase/auth';
+import { signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import emailjs from '@emailjs/browser';
 import './styles.css';
 import { formatTimestamp } from './services/employeeService';
@@ -119,6 +119,7 @@ const App: React.FC = () => {
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [administrators, setAdministrators] = useState<Administrator[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isAuthReady, setIsAuthReady] = useState(false);
     const [activeModal, setActiveModal] = useState<ModalType>(ModalType.None);
     const [notifications, setNotifications] = useState<NotificationData[]>([]);
     const [editingAdminId, setEditingAdminId] = useState<string | null>(null);
@@ -147,9 +148,9 @@ const App: React.FC = () => {
 
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'hidden') {
-                disableNetwork(db).catch(error => console.error("Erro ao suspender rede:", error));
+                disableNetwork(db!).catch(error => console.error("Erro ao suspender rede:", error));
             } else if (document.visibilityState === 'visible') {
-                enableNetwork(db).catch(error => console.error("Erro ao retomar rede:", error));
+                enableNetwork(db!).catch(error => console.error("Erro ao retomar rede:", error));
             }
         };
 
@@ -248,7 +249,7 @@ const App: React.FC = () => {
     useEffect(() => {
         // Wait for loading to finish so DOM elements are present
         let timeoutId: NodeJS.Timeout;
-        if (!loading && selectedTurma) {
+        if (!loading && selectedTurma && selectedLayout) {
             const hasSeenTutorial = localStorage.getItem('hasSeenTutorial');
             if (!hasSeenTutorial) {
                 // Short delay to ensure rendering frames are complete
@@ -261,7 +262,7 @@ const App: React.FC = () => {
         return () => {
             if (timeoutId) clearTimeout(timeoutId);
         };
-    }, [loading, selectedTurma]);
+    }, [loading, selectedTurma, selectedLayout]);
 
     const handleToggleDarkMode = useCallback((e?: any) => {
         if (!('startViewTransition' in document)) {
@@ -353,16 +354,25 @@ const App: React.FC = () => {
 
     // Efetua login anônimo para acesso ao Firestore
     useEffect(() => {
-        const initAuth = async () => {
-            try {
-                if (auth) {
-                    await signInAnonymously(auth);
+        if (!auth) {
+            setIsAuthReady(true);
+            return;
+        }
+
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                setIsAuthReady(true);
+            } else {
+                try {
+                    await signInAnonymously(auth!);
+                } catch (error) {
+                    console.error("Anonymous sign-in failed:", error);
+                    setIsAuthReady(true); // Continua mesmo se falhar para não travar
                 }
-            } catch (error) {
-                console.error("Anonymous sign-in failed:", error);
             }
-        };
-        initAuth();
+        });
+
+        return () => unsubscribe();
     }, []);
 
     // Effect for fetching data specific to the selected Turma
@@ -377,6 +387,8 @@ const App: React.FC = () => {
             setLoading(false);
             return;
         }
+        
+        if (!isAuthReady) return;
 
         initialLoadDoneRef.current = false; // Reset notification flag when turma changes
 
@@ -385,7 +397,10 @@ const App: React.FC = () => {
         let unsubscribeAutomacao = () => { };
 
         const setupListeners = async () => {
-            if (!db) return;
+            if (!db) {
+                setLoading(false);
+                return;
+            }
             try {
                 // Listeners for the specific turma
                 const collectionName = getTurmaCollectionName(selectedTurma);
@@ -516,7 +531,7 @@ const App: React.FC = () => {
             unsubscribeRegistrations();
             unsubscribeAutomacao();
         };
-    }, [selectedTurma]);
+    }, [selectedTurma, isAuthReady]);
 
     // Carrega administradores SOMENTE quando as telas que precisam da lista estão abertas
     useEffect(() => {
@@ -569,10 +584,10 @@ const App: React.FC = () => {
 
         if (isMobileView) {
             const oneColumnScale = viewport.clientWidth / 920;
-            const finalScale = Math.min(Math.max(oneColumnScale, 0.3), 1.0);
+            const finalScale = Math.min(Math.max(oneColumnScale, 0.3), 1.0) * 0.9;
             setScale(finalScale, 0, 0);
         } else {
-            setScale(1.0, 0, 0);
+            setScale(0.9, 0, 0);
         }
     }, [setScale]);
 
@@ -1284,7 +1299,7 @@ const App: React.FC = () => {
     }, [isSignaturePasswordActive, selectedTurma, isDemoMode, db, showNotification]);
 
     const handleManualRegister = useCallback(async (turno: '7H' | '6H', matricula: string, rawSubject: string) => {
-        if (!selectedTurma) return;
+        if (!selectedTurma || !db) return;
 
         const subject = rawSubject ? rawSubject.toUpperCase() : '';
 
@@ -2134,9 +2149,9 @@ const App: React.FC = () => {
 
     return (
         <div className="bg-light-bg-secondary dark:bg-dark-bg min-h-screen text-light-text dark:text-dark-text transition-colors relative overflow-hidden">
-
-
-
+            {loading && (
+                <div className="fixed inset-0 z-[100] bg-light-bg-secondary/40 dark:bg-dark-bg/40 backdrop-blur-md transition-opacity duration-300 pointer-events-none" />
+            )}
             <div ref={viewportRef} className={`viewport fixed inset-0 bg-light-bg-secondary dark:bg-dark-bg`}>
                 <div ref={contentWrapperRef} className="origin-top-left">
                     <div ref={scalableContainerRef} className="scalable-container w-fit origin-top-left p-8 bg-light-bg-secondary dark:bg-dark-bg pt-[calc(2rem+env(safe-area-inset-top))] pb-[calc(2rem+env(safe-area-inset-bottom))]">
@@ -2231,12 +2246,7 @@ const App: React.FC = () => {
 
                                         {mainTeam.length === 0 && (
                                             <div className="w-full min-h-[65vh] flex flex-col items-center justify-center text-center py-20 text-light-text-secondary dark:text-dark-text-secondary text-xl font-medium">
-                                                {loading ? (
-                                                    <div className="flex flex-col items-center gap-4">
-                                                        <div className="w-12 h-12 border-4 border-primary-light border-t-primary rounded-full animate-spin"></div>
-                                                        <span>Carregando colaboradores...</span>
-                                                    </div>
-                                                ) : (
+                                                {!loading && (
                                                     <>Nenhum colaborador encontrado na Turma {selectedTurma}.</>
                                                 )}
                                             </div>
