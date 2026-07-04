@@ -584,10 +584,10 @@ const App: React.FC = () => {
 
         if (isMobileView) {
             const oneColumnScale = viewport.clientWidth / 920;
-            const finalScale = Math.min(Math.max(oneColumnScale, 0.3), 1.0) * 0.9;
+            const finalScale = Math.min(Math.max(oneColumnScale, 0.3), 1.0) * 0.8;
             setScale(finalScale, 0, 0);
         } else {
-            setScale(0.9, 0, 0);
+            setScale(0.8, 0, 0);
         }
     }, [setScale]);
 
@@ -2149,12 +2149,12 @@ const App: React.FC = () => {
 
     return (
         <div className="bg-light-bg-secondary dark:bg-dark-bg min-h-screen text-light-text dark:text-dark-text transition-colors relative overflow-hidden">
-            {loading && (
-                <div className="fixed inset-0 z-[100] bg-light-bg-secondary/40 dark:bg-dark-bg/40 backdrop-blur-md transition-opacity duration-300 pointer-events-none" />
-            )}
             <div ref={viewportRef} className={`viewport fixed inset-0 bg-light-bg-secondary dark:bg-dark-bg`}>
                 <div ref={contentWrapperRef} className="origin-top-left">
-                    <div ref={scalableContainerRef} className="scalable-container w-fit origin-top-left p-8 bg-light-bg-secondary dark:bg-dark-bg pt-[calc(2rem+env(safe-area-inset-top))] pb-[calc(2rem+env(safe-area-inset-bottom))]">
+                    <div ref={scalableContainerRef} className="scalable-container relative w-fit origin-top-left p-8 bg-light-bg-secondary dark:bg-dark-bg pt-[calc(2rem+env(safe-area-inset-top))] pb-[calc(2rem+env(safe-area-inset-bottom))]">
+                        {loading && (
+                            <div className="absolute inset-0 z-[100] bg-light-bg-secondary/40 dark:bg-dark-bg/40 backdrop-blur-md transition-opacity duration-300 pointer-events-none" />
+                        )}
                         <Header
                             stats={stats}
                             loading={loading}

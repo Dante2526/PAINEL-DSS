@@ -31,7 +31,7 @@ const StatCard: React.FC<{ label: string; value: number; colorClass: string }> =
 
 const Header: React.FC<HeaderProps> = React.memo(({ stats, loading, onAdminClick, onHelpClick, isDarkMode, onToggleDarkMode, turma, onReturnToSelection }) => {
     return (
-        <header id="app-header" className="bg-light-card dark:bg-dark-card rounded-3xl p-6 md:p-10 mb-8 shadow-lg flex justify-between items-center w-full transition-colors">
+        <header id="app-header" className="relative z-[110] bg-light-card dark:bg-dark-card rounded-3xl p-6 md:p-10 mb-8 shadow-lg flex justify-between items-center w-full transition-colors">
             <div className="flex items-center gap-6">
                 <ShieldLogo className="h-20 w-20 md:h-24 md:w-24" />
                 <div className="flex flex-col gap-1">
