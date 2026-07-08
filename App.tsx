@@ -1001,10 +1001,17 @@ const App: React.FC = () => {
 
         const isChecking = !(employee as any)[type];
 
-        if (isSignaturePasswordActive && type === 'bem' && isChecking && !isAdminRef.current) {
-            setPendingEmployeeId(id);
-            setActiveModal(ModalType.SignaturePassword);
-            return;
+        if (isSignaturePasswordActive && !isAdminRef.current) {
+            if (type === 'assDss' && isChecking) {
+                setPendingEmployeeId(id);
+                setActiveModal(ModalType.SignaturePassword);
+                return;
+            }
+
+            if (type === 'bem' && isChecking && !employee.assDss) {
+                showNotification('Clique em assinar DSS primeiro', 'error');
+                return;
+            }
         }
 
         if (type === 'mal' && isChecking) {
@@ -1047,10 +1054,10 @@ const App: React.FC = () => {
         const correctPassword = employee.senha || employee.matricula;
         
         if (password === correctPassword) {
-            processStatusUpdate(pendingEmployeeId, 'bem');
+            processStatusUpdate(pendingEmployeeId, 'assDss');
             setPendingEmployeeId(null);
             setActiveModal(ModalType.None);
-            showNotification('Assinatura confirmada com sucesso!', 'success');
+            showNotification('Assinatura DSS confirmada com sucesso!', 'success');
         } else {
             showNotification('Senha incorreta. Tente novamente.', 'error');
         }
@@ -1308,7 +1315,7 @@ const App: React.FC = () => {
             return;
         }
 
-        if (!isSignaturePasswordActive && matricula.length !== 8) {
+        if (matricula.length !== 8) {
             setActiveModal(ModalType.InvalidMatricula);
             return;
         }
