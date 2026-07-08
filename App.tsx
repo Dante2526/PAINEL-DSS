@@ -2385,6 +2385,7 @@ const App: React.FC = () => {
                         matricula6H={specialMatricula}
                         adminEmail={adminEmail}
                         turma={selectedTurma}
+                        is6HActive={is6HActive}
                     />
                     <HistoryModal
                         isOpen={activeModal === ModalType.HistoryView}
@@ -2396,6 +2397,7 @@ const App: React.FC = () => {
                         currentLiveHistory={currentLiveHistory}
                         adminEmail={adminEmail}
                         administrators={administrators}
+                        is6HActive={is6HActive}
                     />
                     <ImportEmployeeModal
                         isOpen={activeModal === ModalType.ImportEmployee}

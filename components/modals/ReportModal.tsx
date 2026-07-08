@@ -22,7 +22,8 @@ export const ReportModal: React.FC<{
     matricula6H: string;
     adminEmail: string;
     turma: string | null;
-}> = ({ isOpen, onClose, onBack, employees, showNotification, scale, subject7H, responsible7H, matricula7H, subject6H, responsible6H, matricula6H, adminEmail, turma }) => {
+    is6HActive?: boolean;
+}> = ({ isOpen, onClose, onBack, employees, showNotification, scale, subject7H, responsible7H, matricula7H, subject6H, responsible6H, matricula6H, adminEmail, turma, is6HActive = true }) => {
     // Generate text for Clipboard/File functions
     const generateReport = () => {
         const team7H = employees.filter(e => e.turno !== '6H');
@@ -70,7 +71,7 @@ export const ReportModal: React.FC<{
         report += getStatusList(team7H);
         report += `\n\n`;
 
-        if (turma !== 'C_CG' && team6H.length > 0) {
+        if (is6HActive && turma !== 'C_CG' && turma !== 'ESTAGIO' && team6H.length > 0) {
             report += `EQUIPE TURNO ${shiftLabel}\n`;
             report += getStatusList(team6H);
             report += `\n\n`;
@@ -84,7 +85,7 @@ export const ReportModal: React.FC<{
             report += `\n`;
         }
 
-        if (turma !== 'C_CG') {
+        if (is6HActive && turma !== 'C_CG' && turma !== 'ESTAGIO') {
             report += `\nREGISTROS DSS (TURNO ${shiftLabel})\n`;
             report += `• Assunto: ${subject6H || 'NÃO PREENCHIDO'}`;
             if (responsible6H) {
@@ -251,20 +252,22 @@ export const ReportModal: React.FC<{
                     </div>
 
                     {/* 6H Card */}
-                    <div className="flex-1 bg-orange-50 dark:bg-orange-900/20 p-3 rounded-xl border border-orange-100 dark:border-orange-800 text-left relative overflow-hidden group">
-                        <div className="absolute right-0 top-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
-                            <ShiftIcon className="w-12 h-12 text-orange-600" />
+                    {is6HActive && turma !== 'C_CG' && turma !== 'ESTAGIO' && (
+                        <div className="flex-1 bg-orange-50 dark:bg-orange-900/20 p-3 rounded-xl border border-orange-100 dark:border-orange-800 text-left relative overflow-hidden group">
+                            <div className="absolute right-0 top-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
+                                <ShiftIcon className="w-12 h-12 text-orange-600" />
+                            </div>
+                            <div className="text-[10px] font-bold text-white bg-orange-500 px-2 py-0.5 rounded-full w-fit mb-2">TURNO {getShiftLabel(turma)}</div>
+                            <div className="mb-2 relative z-10">
+                                <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Tema DSS</span>
+                                <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight">{subject6H || 'NÃO PREENCHIDO'}</span>
+                            </div>
+                            <div className="relative z-10">
+                                <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Responsável</span>
+                                <span className="text-xs text-gray-700 dark:text-gray-300 truncate block">{responsible6H || '---'}</span>
+                            </div>
                         </div>
-                        <div className="text-[10px] font-bold text-white bg-orange-500 px-2 py-0.5 rounded-full w-fit mb-2">TURNO {getShiftLabel(turma)}</div>
-                        <div className="mb-2 relative z-10">
-                            <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Tema DSS</span>
-                            <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight">{subject6H || 'NÃO PREENCHIDO'}</span>
-                        </div>
-                        <div className="relative z-10">
-                            <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Responsável</span>
-                            <span className="text-xs text-gray-700 dark:text-gray-300 truncate block">{responsible6H || '---'}</span>
-                        </div>
-                    </div>
+                    )}
                 </div>
 
                 {/* Stats Row */}

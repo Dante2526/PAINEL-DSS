@@ -128,4 +128,5 @@ export interface PdfReportData {
   }[];
   mainShiftLabel: string;
   shiftLabel: string;
+  is6HActive?: boolean;
 }

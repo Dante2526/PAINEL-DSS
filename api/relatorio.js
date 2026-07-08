@@ -125,7 +125,7 @@ async function gerarRelatorio(db, team, empSnapshot, dataExibicao, colRegistrosN
     htmlBody += `</ul>`; 
   }
 
-  if (is6HActive && team !== 'C_CG') {
+  if (is6HActive && team !== 'C_CG' && team !== 'ESTAGIO') {
     htmlBody += `<br><h2>TEMA DSS (TURNO ${shiftLabel})</h2><hr>`;
     if (registrosSH.length === 0) { 
       htmlBody += `Nenhum registro de assunto encontrado para ${shiftLabel}.`; 
@@ -154,7 +154,7 @@ async function gerarRelatorio(db, team, empSnapshot, dataExibicao, colRegistrosN
   if (cat_7H_Ausentes.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_7H_Ausentes.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }
 
   // EQUIPE TURNO SECUNDÁRIO
-  if (is6HActive && team !== 'C_CG') {
+  if (is6HActive && team !== 'C_CG' && team !== 'ESTAGIO') {
     htmlBody += `<br><h2>EQUIPE TURNO ${shiftLabel}</h2><hr>`;
     htmlBody += `<h3>STATUS: "ASS.DSS + ESTOU BEM"</h3>`;
     if (cat_SH_EstouBem.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_SH_EstouBem.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }

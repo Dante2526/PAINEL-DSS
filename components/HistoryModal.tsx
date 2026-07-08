@@ -35,8 +35,10 @@ const HistoryModal: React.FC<{
     showNotification: (msg: string, type: 'success' | 'error') => void;
     currentLiveHistory?: HistoryRecord | null;
     adminEmail?: string;
+    adminEmail?: string;
     administrators?: Administrator[];
-}> = ({ isOpen, onClose, onBack, scale, turma, showNotification, currentLiveHistory, adminEmail, administrators }) => {
+    is6HActive?: boolean;
+}> = ({ isOpen, onClose, onBack, scale, turma, showNotification, currentLiveHistory, adminEmail, administrators, is6HActive = true }) => {
     const [selectedDate, setSelectedDate] = useState('');
     const [historyData, setHistoryData] = useState<HistoryRecord | null>(null);
     const [loading, setLoading] = useState(false);
@@ -383,7 +385,7 @@ const HistoryModal: React.FC<{
         };
 
         formatTeam(rTeam7H, mainShiftLabel);
-        if (turma !== 'C_CG' && rTeam6H.length > 0) {
+        if (is6HActive && turma !== 'C_CG' && turma !== 'ESTAGIO' && rTeam6H.length > 0) {
             formatTeam(rTeam6H, shiftLabel);
         }
 
@@ -399,7 +401,7 @@ const HistoryModal: React.FC<{
         }
         report += `\n`;
 
-        if (turma !== 'C_CG' && record.registros6H && record.registros6H.length > 0) {
+        if (is6HActive && turma !== 'C_CG' && turma !== 'ESTAGIO' && record.registros6H && record.registros6H.length > 0) {
             report += `REGISTROS DSS (TURNO ${shiftLabel})\n`;
             record.registros6H.forEach(reg => {
                 report += `• Assunto: ${reg.assunto || 'NÃO PREENCHIDO'}\n`;
@@ -441,6 +443,7 @@ const HistoryModal: React.FC<{
                     totalPendentes: rec.totalPendentes,
                     mainShiftLabel: (rec.turma === 'C' || rec.turma === 'D') ? '19H' : '7H',
                     shiftLabel: (rec.turma === 'C' || rec.turma === 'D') ? '18H' : '6H',
+                    is6HActive,
                 }));
                 const blob = generateExcelBlob(pdfDataList);
                 const safeSearchTerm = searchTerm.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 20);
@@ -481,6 +484,7 @@ const HistoryModal: React.FC<{
                         totalPendentes: rec.totalPendentes,
                         mainShiftLabel: (rec.turma === 'C' || rec.turma === 'D') ? '19H' : '7H',
                         shiftLabel: (rec.turma === 'C' || rec.turma === 'D') ? '18H' : '6H',
+                        is6HActive,
                     };
                     
                     if (format === 'PDF') {
@@ -555,6 +559,7 @@ const HistoryModal: React.FC<{
             totalPendentes: historyData.totalPendentes,
             mainShiftLabel,
             shiftLabel,
+            is6HActive,
         };
         exportToExcel(pdfData, baseFileName);
         showNotification('Histórico baixado em Excel!', 'success');
@@ -580,6 +585,7 @@ const HistoryModal: React.FC<{
             totalPendentes: historyData.totalPendentes,
             mainShiftLabel,
             shiftLabel,
+            is6HActive,
         };
         await exportToPdf(pdfData, baseFileName);
         showNotification('Histórico salvo em PDF!', 'success');
@@ -828,7 +834,7 @@ const HistoryModal: React.FC<{
                                                 {match7H && (
                                                     <span className="text-[9px] bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">{mainShiftLabel}</span>
                                                 )}
-                                                {match6H && (
+                                                {match6H && is6HActive && (
                                                     <span className="text-[9px] bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">{shiftLabel}</span>
                                                 )}
                                                 <span className="text-[10px] font-medium text-gray-400">{rec.turma}</span>
@@ -925,8 +931,8 @@ const HistoryModal: React.FC<{
                                 </div>
                             </div>
 
-                            {/* 6H Card (somente se não for C_CG) */}
-                            {turma !== 'C_CG' && (
+                            {/* 6H Card (somente se não for C_CG e estiver ativo) */}
+                            {is6HActive && turma !== 'C_CG' && turma !== 'ESTAGIO' && (
                                 <div className="flex-1 bg-orange-50 dark:bg-orange-900/20 p-3 rounded-xl border border-orange-100 dark:border-orange-800 text-left relative overflow-hidden group">
                                     <div className="absolute right-0 top-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
                                         <ShiftIcon className="w-12 h-12 text-orange-600" />
@@ -970,7 +976,7 @@ const HistoryModal: React.FC<{
 
                         {/* Listas de funcionários */}
                         {renderEmployeeGroup(team7H, mainShiftLabel)}
-                        {turma !== 'C_CG' && renderEmployeeGroup(team6H, shiftLabel)}
+                        {is6HActive && turma !== 'C_CG' && turma !== 'ESTAGIO' && renderEmployeeGroup(team6H, shiftLabel)}
 
                         {/* Botões de exportação */}
                         <div className="grid grid-cols-2 gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
