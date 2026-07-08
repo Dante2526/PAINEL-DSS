@@ -1009,7 +1009,7 @@ const App: React.FC = () => {
             }
 
             if (type === 'bem' && isChecking && !employee.assDss) {
-                showNotification('Clique em assinar DSS primeiro', 'error');
+                showNotification('Clique em ASS. DSS primeiro', 'error');
                 return;
             }
         }
