@@ -905,27 +905,27 @@ const HistoryModal: React.FC<{
                 {historyData && !loading && (
                     <div id="history-capture-area" className="space-y-4 bg-light-card dark:bg-dark-card pt-1 px-4">
                         {/* Data formatada */}
-                        <div className="text-sm font-semibold text-gray-500 dark:text-gray-400 capitalize border-b border-gray-200 dark:border-gray-700 pb-2">
+                        <div className="text-sm font-semibold text-gray-500 dark:text-gray-400 capitalize border-b border-gray-200 dark:border-gray-700 pb-2 text-center">
                             {formattedDate}
                         </div>
 
                         {/* Registro DSS Cards */}
                         <div className="flex gap-3">
                             {/* 7H Card */}
-                            <div className="flex-1 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-xl border border-blue-100 dark:border-blue-800 text-left relative overflow-hidden group">
+                            <div className="flex-1 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-xl border border-blue-100 dark:border-blue-800 text-center relative overflow-hidden group">
                                 <div className="absolute right-0 top-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
                                     <SubjectIcon className="w-12 h-12 text-blue-600" />
                                 </div>
-                                <div className="text-[10px] font-bold text-white bg-blue-500 px-2 py-0.5 rounded-full w-fit mb-2">TURNO {mainShiftLabel}</div>
+                                <div className="text-[10px] font-bold text-white bg-blue-500 px-2 py-0.5 rounded-full w-fit mb-2 mx-auto">TURNO {mainShiftLabel}</div>
                                 <div className="mb-2 relative z-10">
-                                    <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Tema DSS</span>
-                                    <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight">
+                                    <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold text-center">Tema DSS</span>
+                                    <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight text-center">
                                         {historyData.registros7H.length > 0 ? historyData.registros7H[0].assunto || 'NÃO PREENCHIDO' : 'NÃO PREENCHIDO'}
                                     </span>
                                 </div>
                                 <div className="relative z-10">
-                                    <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Responsável</span>
-                                    <span className="text-xs text-gray-700 dark:text-gray-300 truncate block">
+                                    <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold text-center">Responsável</span>
+                                    <span className="text-xs text-gray-700 dark:text-gray-300 truncate block text-center">
                                         {historyData.registros7H.length > 0 && historyData.registros7H[0].name ? historyData.registros7H[0].name : '---'}
                                     </span>
                                 </div>
@@ -933,20 +933,20 @@ const HistoryModal: React.FC<{
 
                             {/* 6H Card (somente se não for C_CG e estiver ativo) */}
                             {is6HActive && turma !== 'C_CG' && turma !== 'ESTAGIO' && (
-                                <div className="flex-1 bg-orange-50 dark:bg-orange-900/20 p-3 rounded-xl border border-orange-100 dark:border-orange-800 text-left relative overflow-hidden group">
+                                <div className="flex-1 bg-orange-50 dark:bg-orange-900/20 p-3 rounded-xl border border-orange-100 dark:border-orange-800 text-center relative overflow-hidden group">
                                     <div className="absolute right-0 top-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
                                         <ShiftIcon className="w-12 h-12 text-orange-600" />
                                     </div>
-                                    <div className="text-[10px] font-bold text-white bg-orange-500 px-2 py-0.5 rounded-full w-fit mb-2">TURNO {shiftLabel}</div>
+                                    <div className="text-[10px] font-bold text-white bg-orange-500 px-2 py-0.5 rounded-full w-fit mb-2 mx-auto">TURNO {shiftLabel}</div>
                                     <div className="mb-2 relative z-10">
-                                        <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Tema DSS</span>
-                                        <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight">
+                                        <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold text-center">Tema DSS</span>
+                                        <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight text-center">
                                             {historyData.registros6H.length > 0 ? historyData.registros6H[0].assunto || 'NÃO PREENCHIDO' : 'NÃO PREENCHIDO'}
                                         </span>
                                     </div>
                                     <div className="relative z-10">
-                                        <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Responsável</span>
-                                        <span className="text-xs text-gray-700 dark:text-gray-300 truncate block">
+                                        <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold text-center">Responsável</span>
+                                        <span className="text-xs text-gray-700 dark:text-gray-300 truncate block text-center">
                                             {historyData.registros6H.length > 0 && historyData.registros6H[0].name ? historyData.registros6H[0].name : '---'}
                                         </span>
                                     </div>

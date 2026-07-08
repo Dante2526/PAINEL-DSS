@@ -229,42 +229,42 @@ export const ReportModal: React.FC<{
         <Modal isOpen={isOpen} onClose={onClose} onBack={onBack} title="Relatório Diário" scale={scale}>
             {/* Visual Report Container */}
             <div id="report-capture-area" className="w-full mb-6 bg-light-card dark:bg-dark-card pt-1 px-4">
-                <div className="text-sm font-semibold text-gray-500 mb-4 capitalize border-b border-gray-200 dark:border-gray-700 pb-2">
+                <div className="text-sm font-semibold text-gray-500 mb-4 capitalize border-b border-gray-200 dark:border-gray-700 pb-2 text-center">
                     {new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                 </div>
 
                 {/* Shift Info Cards Side-by-Side */}
                 <div className="flex gap-3 mb-6">
                     {/* 7H Card */}
-                    <div className="flex-1 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-xl border border-blue-100 dark:border-blue-800 text-left relative overflow-hidden group">
+                    <div className="flex-1 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-xl border border-blue-100 dark:border-blue-800 text-center relative overflow-hidden group">
                         <div className="absolute right-0 top-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
                             <SubjectIcon className="w-12 h-12 text-blue-600" />
                         </div>
-                        <div className="text-[10px] font-bold text-white bg-blue-500 px-2 py-0.5 rounded-full w-fit mb-2">TURNO {getMainShiftLabel(turma)}</div>
+                        <div className="text-[10px] font-bold text-white bg-blue-500 px-2 py-0.5 rounded-full w-fit mb-2 mx-auto">TURNO {getMainShiftLabel(turma)}</div>
                         <div className="mb-2 relative z-10">
-                            <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Tema DSS</span>
-                            <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight">{subject7H || 'NÃO PREENCHIDO'}</span>
+                            <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold text-center">Tema DSS</span>
+                            <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight text-center">{subject7H || 'NÃO PREENCHIDO'}</span>
                         </div>
                         <div className="relative z-10">
-                            <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Responsável</span>
-                            <span className="text-xs text-gray-700 dark:text-gray-300 truncate block">{responsible7H || '---'}</span>
+                            <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold text-center">Responsável</span>
+                            <span className="text-xs text-gray-700 dark:text-gray-300 truncate block text-center">{responsible7H || '---'}</span>
                         </div>
                     </div>
 
                     {/* 6H Card */}
                     {is6HActive && turma !== 'C_CG' && turma !== 'ESTAGIO' && (
-                        <div className="flex-1 bg-orange-50 dark:bg-orange-900/20 p-3 rounded-xl border border-orange-100 dark:border-orange-800 text-left relative overflow-hidden group">
+                        <div className="flex-1 bg-orange-50 dark:bg-orange-900/20 p-3 rounded-xl border border-orange-100 dark:border-orange-800 text-center relative overflow-hidden group">
                             <div className="absolute right-0 top-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
                                 <ShiftIcon className="w-12 h-12 text-orange-600" />
                             </div>
-                            <div className="text-[10px] font-bold text-white bg-orange-500 px-2 py-0.5 rounded-full w-fit mb-2">TURNO {getShiftLabel(turma)}</div>
+                            <div className="text-[10px] font-bold text-white bg-orange-500 px-2 py-0.5 rounded-full w-fit mb-2 mx-auto">TURNO {getShiftLabel(turma)}</div>
                             <div className="mb-2 relative z-10">
-                                <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Tema DSS</span>
-                                <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight">{subject6H || 'NÃO PREENCHIDO'}</span>
+                                <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold text-center">Tema DSS</span>
+                                <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight text-center">{subject6H || 'NÃO PREENCHIDO'}</span>
                             </div>
                             <div className="relative z-10">
-                                <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold">Responsável</span>
-                                <span className="text-xs text-gray-700 dark:text-gray-300 truncate block">{responsible6H || '---'}</span>
+                                <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold text-center">Responsável</span>
+                                <span className="text-xs text-gray-700 dark:text-gray-300 truncate block text-center">{responsible6H || '---'}</span>
                             </div>
                         </div>
                     )}
