@@ -12,6 +12,8 @@ service cloud.firestore {
          collectionId == 'turma d' ||
          collectionId == 'turma c cg' ||
          collectionId == 'turma b cg' ||
+         collectionId == 'turma a cg' ||
+         collectionId == 'turma d cg' ||
          collectionId == 'estagio' ||
          collectionId == 'registrosDSS A' || 
          collectionId == 'registrosDSS B' ||
@@ -19,6 +21,8 @@ service cloud.firestore {
          collectionId == 'registrosDSS D' ||
          collectionId == 'registrosDSS C CG' ||
          collectionId == 'registrosDSS B CG' ||
+         collectionId == 'registrosDSS A CG' ||
+         collectionId == 'registrosDSS D CG' ||
          collectionId == 'registrosDSS Estágio');
     }
 
