@@ -9,6 +9,7 @@ const TURMAS = {
   C_CG: { employees: 'turma c cg', registros: 'registrosDSS C CG' },
   B_CG: { employees: 'turma b cg', registros: 'registrosDSS B CG' },
   A_CG: { employees: 'turma a cg', registros: 'registrosDSS A CG' },
+  D_CG: { employees: 'turma d cg', registros: 'registrosDSS D CG' },
   ESTAGIO: { employees: 'estagio', registros: 'registrosDSS Estágio' },
 };
 
@@ -23,6 +24,7 @@ const ANCHOR_DATES = {
   C_CG: "2026-01-16", // C_CG compartilha a escala da Turma C
   B_CG: "2025-11-07", // B_CG compartilha a escala da Turma B
   A_CG: "2026-01-08", // A_CG compartilha a escala da Turma A
+  D_CG: "2026-01-26", // D_CG compartilha a escala da Turma D
 };
 
 /**
