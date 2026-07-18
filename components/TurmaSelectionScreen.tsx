@@ -4,7 +4,7 @@ import DarkModeToggle from './DarkModeToggle';
 import Footer from './Footer';
 
 interface TurmaSelectionScreenProps {
-    onSelect: (turma: 'A' | 'B' | 'C' | 'D' | 'C_CG' | 'B_CG' | 'A_CG' | 'ESTAGIO') => void;
+    onSelect: (turma: 'A' | 'B' | 'C' | 'D' | 'C_CG' | 'B_CG' | 'A_CG' | 'D_CG' | 'ESTAGIO') => void;
     isDarkMode: boolean;
     onToggleDarkMode: (e?: any) => void;
 }
@@ -20,6 +20,7 @@ const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, i
                     <p className="text-base md:text-lg font-medium text-light-text-secondary dark:text-dark-text-secondary mb-8 md:mb-10">Selecione a turma para continuar</p>
 
                     <div className="grid grid-cols-2 gap-4 md:gap-5 w-full max-w-[340px] sm:max-w-[500px] md:max-w-[560px] mx-auto mb-6 md:mb-8">
+                        {/* Turma A | A CG */}
                         <button
                             onClick={() => onSelect('A')}
                             className="flex items-center justify-center whitespace-nowrap w-full px-2 py-5 md:py-6 font-extrabold text-base sm:text-lg md:text-xl text-white bg-gradient-to-br from-green-500 to-teal-600 rounded-xl md:rounded-2xl shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-green-300 dark:focus:ring-green-800"
@@ -32,6 +33,8 @@ const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, i
                         >
                             TURMA A CG
                         </button>
+
+                        {/* Turma B | B CG */}
                         <button
                             onClick={() => onSelect('B')}
                             className="flex items-center justify-center whitespace-nowrap w-full px-2 py-5 md:py-6 font-extrabold text-base sm:text-lg md:text-xl text-white bg-gradient-to-br from-cyan-400 to-blue-600 rounded-xl md:rounded-2xl shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-cyan-300 dark:focus:ring-cyan-800"
@@ -44,6 +47,8 @@ const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, i
                         >
                             TURMA B CG
                         </button>
+
+                        {/* Turma C | C CG */}
                         <button
                             onClick={() => onSelect('C')}
                             className="flex items-center justify-center whitespace-nowrap w-full px-2 py-5 md:py-6 font-extrabold text-base sm:text-lg md:text-xl text-white bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl md:rounded-2xl shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-purple-300 dark:focus:ring-purple-800"
@@ -51,11 +56,27 @@ const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, i
                             TURMA C
                         </button>
                         <button
+                            onClick={() => onSelect('C_CG')}
+                            className="flex items-center justify-center whitespace-nowrap w-full px-2 py-5 md:py-6 font-extrabold text-base sm:text-lg md:text-xl text-white bg-gradient-to-br from-fuchsia-500 to-pink-700 rounded-xl md:rounded-2xl shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-fuchsia-300 dark:focus:ring-fuchsia-800"
+                        >
+                            TURMA C CG
+                        </button>
+
+                        {/* Turma D | D CG */}
+                        <button
                             onClick={() => onSelect('D')}
                             className="flex items-center justify-center whitespace-nowrap w-full px-2 py-5 md:py-6 font-extrabold text-base sm:text-lg md:text-xl text-white bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl md:rounded-2xl shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-amber-300 dark:focus:ring-amber-800"
                         >
                             TURMA D
                         </button>
+                        <button
+                            onClick={() => onSelect('D_CG')}
+                            className="flex items-center justify-center whitespace-nowrap w-full px-2 py-5 md:py-6 font-extrabold text-base sm:text-lg md:text-xl text-white bg-gradient-to-br from-rose-600 to-red-800 rounded-xl md:rounded-2xl shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-rose-300 dark:focus:ring-rose-800"
+                        >
+                            TURMA D CG
+                        </button>
+
+                        {/* Estágio (linha inteira) */}
                         <button
                             onClick={() => onSelect('ESTAGIO')}
                             className="flex items-center justify-center whitespace-nowrap w-full col-span-2 px-2 py-5 md:py-6 font-extrabold text-base sm:text-lg md:text-xl text-white bg-gradient-to-br from-pink-500 to-rose-700 rounded-xl md:rounded-2xl shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-rose-300 dark:focus:ring-rose-800"
@@ -63,17 +84,6 @@ const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, i
                             ESTÁGIO
                         </button>
                     </div>
-
-                    {/* 
-                    <div className="flex justify-center w-full max-w-[280px] md:max-w-[360px] mx-auto mb-4 md:mb-6">
-                        <button
-                            onClick={() => onSelect('C_CG')}
-                            className="flex items-center justify-center whitespace-nowrap w-[calc(50%-0.375rem)] md:w-[calc(50%-0.5rem)] px-4 py-8 md:py-6 font-extrabold text-xl md:text-xl text-white bg-gradient-to-br from-pink-500 to-rose-700 rounded-2xl md:rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-rose-300 dark:focus:ring-rose-800"
-                        >
-                            TURMA C CG
-                        </button>
-                    </div>
-                    */}
 
                 </main>
 

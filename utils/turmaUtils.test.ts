@@ -16,6 +16,10 @@ describe('turmaUtils', () => {
         it('deve retornar "turma c cg" para a Turma C_CG', () => {
             expect(getTurmaCollectionName('C_CG')).toBe('turma c cg');
         });
+
+        it('deve retornar "turma d cg" para a Turma D_CG', () => {
+            expect(getTurmaCollectionName('D_CG')).toBe('turma d cg');
+        });
     });
 
     describe('getTurmaRegistrationName', () => {
@@ -26,12 +30,17 @@ describe('turmaUtils', () => {
         it('deve retornar "registrosDSS C CG" para a Turma C_CG', () => {
             expect(getTurmaRegistrationName('C_CG')).toBe('registrosDSS C CG');
         });
+
+        it('deve retornar "registrosDSS D CG" para a Turma D_CG', () => {
+            expect(getTurmaRegistrationName('D_CG')).toBe('registrosDSS D CG');
+        });
     });
 
     describe('isValidTurma', () => {
         it('deve retornar true para turmas válidas', () => {
             expect(isValidTurma('A')).toBe(true);
             expect(isValidTurma('C_CG')).toBe(true);
+            expect(isValidTurma('D_CG')).toBe(true);
         });
 
         it('deve retornar false para turmas inválidas', () => {
@@ -42,27 +51,29 @@ describe('turmaUtils', () => {
     });
 
     describe('Lógica de Turnos Especiais', () => {
-        it('getShiftLabel deve retornar "18H" para turmas noturnas (C e D)', () => {
+        it('getShiftLabel deve retornar "18H" para turmas noturnas (C, D, D_CG e C_CG)', () => {
             expect(getShiftLabel('C')).toBe('18H');
             expect(getShiftLabel('D')).toBe('18H');
+            expect(getShiftLabel('D_CG')).toBe('18H');
+            expect(getShiftLabel('C_CG')).toBe('18H');
         });
 
-        it('getShiftLabel deve retornar "6H" para turmas diurnas (A, B, C_CG)', () => {
+        it('getShiftLabel deve retornar "6H" para turmas diurnas (A, B)', () => {
             expect(getShiftLabel('A')).toBe('6H');
             expect(getShiftLabel('B')).toBe('6H');
-            expect(getShiftLabel('C_CG')).toBe('6H');
             expect(getShiftLabel(null)).toBe('6H');
         });
 
-        it('getMainShiftLabel deve retornar "19H" para turmas noturnas (C e D)', () => {
+        it('getMainShiftLabel deve retornar "19H" para turmas noturnas (C, D, D_CG e C_CG)', () => {
             expect(getMainShiftLabel('C')).toBe('19H');
             expect(getMainShiftLabel('D')).toBe('19H');
+            expect(getMainShiftLabel('D_CG')).toBe('19H');
+            expect(getMainShiftLabel('C_CG')).toBe('19H');
         });
 
-        it('getMainShiftLabel deve retornar "7H" para turmas diurnas (A, B, C_CG)', () => {
+        it('getMainShiftLabel deve retornar "7H" para turmas diurnas (A, B)', () => {
             expect(getMainShiftLabel('A')).toBe('7H');
             expect(getMainShiftLabel('B')).toBe('7H');
-            expect(getMainShiftLabel('C_CG')).toBe('7H');
             expect(getMainShiftLabel(null)).toBe('7H');
         });
     });

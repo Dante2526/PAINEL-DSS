@@ -10,6 +10,7 @@ import { exportToPng, exportToPdf, exportToDoc, exportToExcel, exportToTxt, expo
 import { SearchIcon } from './icons';
 import { jsPDF } from 'jspdf';
 import ExportDropdown from './ExportDropdown';
+import { getShiftLabel, getMainShiftLabel } from '../utils/turmaUtils';
 
 // Cores do status compacto
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
@@ -55,7 +56,7 @@ const HistoryModal: React.FC<{
     const luminaClassId = useMemo(() => {
         if (!turma) return null;
         const map: Record<string, string> = {
-            'A': 'Turma A', 'B': 'Turma B', 'C': 'Turma C', 'D': 'Turma D', 'C_CG': 'Turma A', 'B_CG': 'Turma B', 'A_CG': 'Turma A', 'ESTAGIO': 'Estágio'
+            'A': 'Turma A', 'B': 'Turma B', 'C': 'Turma C', 'D': 'Turma D', 'C_CG': 'Turma A', 'B_CG': 'Turma B', 'A_CG': 'Turma A', 'D_CG': 'Turma D', 'ESTAGIO': 'Estágio'
         };
         return map[turma] || `Turma ${turma}`;
     }, [turma]);
@@ -151,11 +152,11 @@ const HistoryModal: React.FC<{
 
 
     const shiftLabel = useMemo(() => {
-        return (turma === 'C' || turma === 'D') ? '18H' : '6H';
+        return getShiftLabel(turma);
     }, [turma]);
 
     const mainShiftLabel = useMemo(() => {
-        return (turma === 'C' || turma === 'D') ? '19H' : '7H';
+        return getMainShiftLabel(turma);
     }, [turma]);
 
     // Estados para Busca por Tema
@@ -678,7 +679,7 @@ const HistoryModal: React.FC<{
                     {searchTerm && (
                         <div className="flex flex-wrap justify-center gap-2 mt-1 px-1 animate-in fade-in slide-in-from-top-1 duration-300">
                             <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 w-full text-center mb-1 uppercase tracking-wider">Buscar também nas turmas:</span>
-                            {['A', 'B', 'C', 'D', 'B_CG', 'A_CG'].map(t => {
+                            {['A', 'B', 'C', 'D', 'B_CG', 'A_CG', 'C_CG', 'D_CG'].map(t => {
                                 const isSelected = selectedSearchTurmas.includes(t);
                                 return (
                                     <button
@@ -702,7 +703,7 @@ const HistoryModal: React.FC<{
                                                 : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700'
                                         }`}
                                     >
-                                        TURMA {t === 'B_CG' ? 'B CG' : t === 'A_CG' ? 'A CG' : t}
+                                        TURMA {t === 'B_CG' ? 'B CG' : t === 'A_CG' ? 'A CG' : t === 'D_CG' ? 'D CG' : t === 'C_CG' ? 'C CG' : t}
                                     </button>
                                 );
                             })}

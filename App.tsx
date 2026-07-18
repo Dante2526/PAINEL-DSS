@@ -467,16 +467,16 @@ const App: React.FC = () => {
                     
                     const config6H = querySnapshot.docs.find(d => d.id === 'config_6H');
                     if (config6H) {
-                        setIs6HActive(config6H.data().active ?? (selectedTurma === 'B_CG' || selectedTurma === 'A_CG' ? false : true));
+                        setIs6HActive(config6H.data().active ?? (selectedTurma === 'B_CG' || selectedTurma === 'A_CG' || selectedTurma === 'D_CG' || selectedTurma === 'C_CG' ? false : true));
                     } else {
-                        setIs6HActive(selectedTurma === 'B_CG' || selectedTurma === 'A_CG' ? false : true);
+                        setIs6HActive(selectedTurma === 'B_CG' || selectedTurma === 'A_CG' || selectedTurma === 'D_CG' || selectedTurma === 'C_CG' ? false : true);
                     }
                     
                     const configSignaturePassword = querySnapshot.docs.find(d => d.id === 'config_signature_password');
                     if (configSignaturePassword) {
-                        setIsSignaturePasswordActive(configSignaturePassword.data().active ?? (selectedTurma === 'B_CG' || selectedTurma === 'A_CG'));
+                        setIsSignaturePasswordActive(configSignaturePassword.data().active ?? (selectedTurma === 'B_CG' || selectedTurma === 'A_CG' || selectedTurma === 'D_CG' || selectedTurma === 'C_CG'));
                     } else {
-                        setIsSignaturePasswordActive(selectedTurma === 'B_CG' || selectedTurma === 'A_CG');
+                        setIsSignaturePasswordActive(selectedTurma === 'B_CG' || selectedTurma === 'A_CG' || selectedTurma === 'D_CG' || selectedTurma === 'C_CG');
                     }
                     
                     const newDbMainSubject = mainReg?.assunto || '';

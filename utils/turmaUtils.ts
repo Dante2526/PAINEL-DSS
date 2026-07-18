@@ -5,8 +5,8 @@ export const EMAILJS_PUBLIC_KEY = "Ef-7IoF9U9NQ_iV8X";
 // ----------------------------
 
 // --- TIPO E HELPERS DE TURMA ---
-export type TurmaType = 'A' | 'B' | 'C' | 'D' | 'C_CG' | 'B_CG' | 'A_CG' | 'ESTAGIO';
-export const ALL_TURMAS: TurmaType[] = ['A', 'B', 'C', 'D', 'C_CG', 'B_CG', 'A_CG', 'ESTAGIO'];
+export type TurmaType = 'A' | 'B' | 'C' | 'D' | 'C_CG' | 'B_CG' | 'A_CG' | 'D_CG' | 'ESTAGIO';
+export const ALL_TURMAS: TurmaType[] = ['A', 'B', 'C', 'D', 'C_CG', 'B_CG', 'A_CG', 'D_CG', 'ESTAGIO'];
 
 export const TURMA_DISPLAY_NAMES: Record<TurmaType, string> = {
     A: 'A',
@@ -16,6 +16,7 @@ export const TURMA_DISPLAY_NAMES: Record<TurmaType, string> = {
     C_CG: 'C CG',
     B_CG: 'B CG',
     A_CG: 'A CG',
+    D_CG: 'D CG',
     ESTAGIO: 'Estágio',
 };
 
@@ -36,10 +37,10 @@ export function isValidTurma(value: string): value is TurmaType {
 }
 
 export function getShiftLabel(turma: string | null): string {
-    return (turma === 'C' || turma === 'D') ? '18H' : '6H';
+    return (turma === 'C' || turma === 'D' || turma === 'D_CG' || turma === 'C_CG') ? '18H' : '6H';
 }
 
 export function getMainShiftLabel(turma: string | null): string {
-    return (turma === 'C' || turma === 'D') ? '19H' : '7H';
+    return (turma === 'C' || turma === 'D' || turma === 'D_CG' || turma === 'C_CG') ? '19H' : '7H';
 }
 // --------------------------------
