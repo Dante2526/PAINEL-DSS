@@ -10,18 +10,18 @@ interface ThemeSelectionScreenProps {
 
 const ThemeSelectionScreen: React.FC<ThemeSelectionScreenProps> = ({ isDarkMode, onToggleDarkMode, onContinue }) => {
     return (
-        <div className="bg-light-bg-secondary dark:bg-dark-bg h-[100dvh] w-full text-light-text dark:text-dark-text transition-colors flex flex-col items-center justify-center p-2 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)] overflow-hidden relative">
+        <div className="bg-light-bg-secondary dark:bg-dark-bg h-[100dvh] w-full text-light-text dark:text-dark-text transition-colors flex flex-col items-center justify-center p-2 pt-[calc(env(safe-area-inset-top)+0.5rem)] pb-[calc(env(safe-area-inset-bottom)+0.5rem)] overflow-hidden relative">
             <div className="flex flex-col items-center text-center max-w-md w-full px-4 z-10 flex-grow justify-center">
-                <ShieldLogo className="h-12 w-12 md:h-16 md:w-16 mb-2" />
-                <h1 className="text-2xl md:text-4xl font-extrabold tracking-tight mb-1">
+                <ShieldLogo className="h-10 w-10 md:h-14 md:w-14 mb-2" />
+                <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight mb-1">
                     Bem-vindo ao Painel DSS
                 </h1>
-                <p className="text-sm md:text-lg text-light-text-secondary dark:text-dark-text-secondary mb-4 md:mb-8">
+                <p className="text-sm md:text-base text-light-text-secondary dark:text-dark-text-secondary mb-4 md:mb-6">
                     Antes de começar, defina o tema.
                 </p>
 
                 {/* Container do BB8 com instruções */}
-                <div className="bg-light-card dark:bg-dark-card border-2 border-primary/20 p-4 md:p-5 rounded-2xl md:rounded-3xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col items-center gap-2 w-fit px-8 md:px-12 mx-auto mb-6">
+                <div className="bg-light-card dark:bg-dark-card border-2 border-primary/20 p-3 md:p-4 rounded-2xl md:rounded-3xl shadow-md hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 flex flex-col items-center gap-2 w-fit px-8 md:px-12 mx-auto mb-4">
                     <p className="font-bold text-base md:text-xl text-light-text-secondary dark:text-dark-text-secondary">
                         {isDarkMode ? '🌙 MODO ESCURO' : '☀️ MODO CLARO'}
                     </p>
@@ -37,7 +37,7 @@ const ThemeSelectionScreen: React.FC<ThemeSelectionScreenProps> = ({ isDarkMode,
 
                 <button
                     onClick={onContinue}
-                    className="w-full max-w-[280px] py-3 md:py-4 rounded-xl font-bold text-lg md:text-xl text-white bg-gradient-to-r from-primary to-blue-600 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+                    className="w-full max-w-[280px] bg-primary text-white font-extrabold py-3 md:py-4 px-6 rounded-xl md:rounded-2xl shadow-md hover:shadow-lg hover:bg-primary/90 transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-primary/30"
                 >
                     Continuar
                 </button>
