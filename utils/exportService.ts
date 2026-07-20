@@ -70,7 +70,7 @@ export const generatePdfBlob = async (data: PdfReportData): Promise<Blob> => {
             pdf.setFont('helvetica', 'normal');
             pdf.setFontSize(10);
             pdf.setTextColor(30, 41, 59);
-            pdf.text(`• ${text}`, margin + 2, y);
+            pdf.text(`• ${text}`, margin, y);
             y += 5.5;
         });
         y += 4;
@@ -108,14 +108,14 @@ export const generatePdfBlob = async (data: PdfReportData): Promise<Blob> => {
                     pdf.setFont('helvetica', 'italic');
                     pdf.setFontSize(8.5);
                     pdf.setTextColor(120, 130, 145);
-                    pdf.text('Nenhum', margin + 4, y);
+                    pdf.text('Nenhum', margin, y);
                     y += 4;
                 } else {
                     group.emps.forEach(emp => {
                         pdf.setFont('helvetica', 'normal');
                         pdf.setFontSize(9);
                         pdf.setTextColor(30, 41, 59);
-                        pdf.text(`• ${emp.n} (Matrícula: ${emp.m})`, margin + 4, y);
+                        pdf.text(`• ${emp.n} (Matrícula: ${emp.m})`, margin, y);
                         y += 4.5;
                     });
                 }
@@ -140,7 +140,7 @@ export const generatePdfBlob = async (data: PdfReportData): Promise<Blob> => {
                 pdf.setFont('helvetica', 'italic');
                 pdf.setFontSize(9);
                 pdf.setTextColor(120, 130, 145);
-                pdf.text(`Nenhum registro de assunto encontrado para ${turnoLabel}.`, margin + 2, y);
+                pdf.text(`Nenhum registro de assunto encontrado para ${turnoLabel}.`, margin, y);
                 y += 6;
             } else {
                 registros.forEach(reg => {
@@ -148,13 +148,13 @@ export const generatePdfBlob = async (data: PdfReportData): Promise<Blob> => {
                     pdf.setFont('helvetica', 'bold');
                     pdf.setFontSize(9);
                     pdf.setTextColor(30, 41, 59);
-                    pdf.text(`• ${nameText}`, margin + 2, y);
+                    pdf.text(`• ${nameText}`, margin, y);
                     y += 4.5;
                     pdf.setFont('helvetica', 'italic');
                     pdf.setFontSize(9);
                     pdf.setTextColor(60, 80, 100);
-                    const assuntoLines = pdf.splitTextToSize(`Assunto: ${reg.assunto || 'NÃO PREENCHIDO'}`, contentWidth - 8);
-                    pdf.text(assuntoLines, margin + 6, y);
+                    const assuntoLines = pdf.splitTextToSize(`Assunto: ${reg.assunto || 'NÃO PREENCHIDO'}`, contentWidth - 4);
+                    pdf.text(assuntoLines, margin + 4, y);
                     y += assuntoLines.length * 4.5 + 2;
                 });
             }
