@@ -39,158 +39,155 @@ export const exportToPng = async (elementId: string, filename: string) => {
 };
 
 export const generatePdfBlob = async (data: PdfReportData): Promise<Blob> => {
-    const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    const margin = 15;
-    const contentWidth = pageWidth - margin * 2;
-    let y = margin;
+    const drawContent = (pdf: jsPDF) => {
+        const pageWidth = 210;
+        const margin = 15;
+        const contentWidth = pageWidth - margin * 2;
+        let y = margin;
 
-    const checkPageBreak = (needed: number) => {
-        if (y + needed > pageHeight - margin) {
-            pdf.addPage();
-            y = margin;
-        }
-    };
+        const mainLabel = data.mainShiftLabel || '7H';
+        const secLabel = data.shiftLabel || '6H';
 
-    const mainLabel = data.mainShiftLabel || '7H';
-    const secLabel = data.shiftLabel || '6H';
-
-    pdf.setFillColor(30, 41, 59);
-    pdf.rect(0, 0, pageWidth, 28, 'F');
-    pdf.setFont('helvetica', 'bold');
-    pdf.setFontSize(14);
-    pdf.setTextColor(255, 255, 255);
-    pdf.text(`RESUMO GERAL - TURMA ${data.turma} - ${data.dataFormatada}`, pageWidth / 2, 18, { align: 'center' });
-    y = 36;
-
-    pdf.setDrawColor(200, 210, 220);
-    pdf.line(margin, y, pageWidth - margin, y);
-    y += 6;
-
-    const bullets = [
-        `Total de Funcionários: ${data.totalFuncionarios}`,
-        `Presentes (DSS + Bem/Mal): ${data.totalPresentes}`,
-        `Pendentes: ${data.totalPendentes}`,
-        `Ausentes: ${data.totalAusentes}`,
-    ];
-    bullets.forEach(text => {
-        checkPageBreak(6);
-        pdf.setFont('helvetica', 'normal');
-        pdf.setFontSize(10);
-        pdf.setTextColor(30, 41, 59);
-        pdf.text(`• ${text}`, margin + 2, y);
-        y += 5.5;
-    });
-    y += 4;
-
-    const team7H = data.employees.filter(e => e.turno !== '6H');
-    const team6H = data.employees.filter(e => e.turno === '6H');
-
-    const drawSection = (emps: { n: string; m: string; s: string }[], turnoLabel: string) => {
-        if (emps.length === 0) return;
-        checkPageBreak(14);
-        pdf.setDrawColor(200, 210, 220);
-        pdf.line(margin, y, pageWidth - margin, y);
-        y += 6.5;
+        pdf.setFillColor(30, 41, 59);
+        pdf.rect(0, 0, pageWidth, 28, 'F');
         pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(13);
-        pdf.setTextColor(30, 41, 59);
-        pdf.text(`EQUIPE TURNO ${turnoLabel}`, margin, y);
-        y += 3.5;
+        pdf.setFontSize(14);
+        pdf.setTextColor(255, 255, 255);
+        pdf.text(`RESUMO GERAL - TURMA ${data.turma} - ${data.dataFormatada}`, pageWidth / 2, 18, { align: 'center' });
+        y = 36;
+
         pdf.setDrawColor(200, 210, 220);
         pdf.line(margin, y, pageWidth - margin, y);
         y += 6;
 
-        const statusGroups: { key: string; label: string; emps: { n: string; m: string; s: string }[] }[] = [
-            { key: 'BEM', label: 'STATUS: "ASS.DSS + ESTOU BEM"', emps: emps.filter(e => e.s === 'BEM') },
-            { key: 'MAL', label: 'STATUS "ESTOU MAL"',            emps: emps.filter(e => e.s === 'MAL') },
-            { key: 'PEN', label: 'PENDENTES',                      emps: emps.filter(e => e.s === 'PEN') },
-            { key: 'AUS', label: 'AUSENTES',                       emps: emps.filter(e => e.s === 'AUS') },
+        const bullets = [
+            `Total de Funcionários: ${data.totalFuncionarios}`,
+            `Presentes (DSS + Bem/Mal): ${data.totalPresentes}`,
+            `Pendentes: ${data.totalPendentes}`,
+            `Ausentes: ${data.totalAusentes}`,
         ];
-        statusGroups.forEach(group => {
-            checkPageBreak(10);
-            pdf.setFont('helvetica', 'bold');
+        bullets.forEach(text => {
+            pdf.setFont('helvetica', 'normal');
             pdf.setFontSize(10);
             pdf.setTextColor(30, 41, 59);
-            pdf.text(group.label, margin, y);
+            pdf.text(`• ${text}`, margin + 2, y);
+            y += 5.5;
+        });
+        y += 4;
+
+        const team7H = data.employees.filter(e => e.turno !== '6H');
+        const team6H = data.employees.filter(e => e.turno === '6H');
+
+        const drawSection = (emps: { n: string; m: string; s: string }[], turnoLabel: string) => {
+            if (emps.length === 0) return;
+            pdf.setDrawColor(200, 210, 220);
+            pdf.line(margin, y, pageWidth - margin, y);
+            y += 6.5;
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(13);
+            pdf.setTextColor(30, 41, 59);
+            pdf.text(`EQUIPE TURNO ${turnoLabel}`, margin, y);
+            y += 3.5;
+            pdf.setDrawColor(200, 210, 220);
+            pdf.line(margin, y, pageWidth - margin, y);
+            y += 6;
+
+            const statusGroups: { key: string; label: string; emps: { n: string; m: string; s: string }[] }[] = [
+                { key: 'BEM', label: 'STATUS: "ASS.DSS + ESTOU BEM"', emps: emps.filter(e => e.s === 'BEM') },
+                { key: 'MAL', label: 'STATUS "ESTOU MAL"',            emps: emps.filter(e => e.s === 'MAL') },
+                { key: 'PEN', label: 'PENDENTES',                      emps: emps.filter(e => e.s === 'PEN') },
+                { key: 'AUS', label: 'AUSENTES',                       emps: emps.filter(e => e.s === 'AUS') },
+            ];
+            statusGroups.forEach(group => {
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(10);
+                pdf.setTextColor(30, 41, 59);
+                pdf.text(group.label, margin, y);
+                y += 5;
+                if (group.emps.length === 0) {
+                    pdf.setFont('helvetica', 'italic');
+                    pdf.setFontSize(8.5);
+                    pdf.setTextColor(120, 130, 145);
+                    pdf.text('Nenhum', margin + 4, y);
+                    y += 4;
+                } else {
+                    group.emps.forEach(emp => {
+                        pdf.setFont('helvetica', 'normal');
+                        pdf.setFontSize(9);
+                        pdf.setTextColor(30, 41, 59);
+                        pdf.text(`• ${emp.n} (Matrícula: ${emp.m})`, margin + 4, y);
+                        y += 4.5;
+                    });
+                }
+                y += 2;
+            });
+        };
+
+        const drawRegistros = (registros: { assunto: string; name: string; matricula: string }[], turnoLabel: string) => {
+            pdf.setDrawColor(200, 210, 220);
+            pdf.line(margin, y, pageWidth - margin, y);
+            y += 6.5;
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(13);
+            pdf.setTextColor(30, 41, 59);
+            pdf.text(`REGISTROS DSS (TURNO ${turnoLabel})`, margin, y);
+            y += 3.5;
+            pdf.setDrawColor(200, 210, 220);
+            pdf.line(margin, y, pageWidth - margin, y);
             y += 5;
-            if (group.emps.length === 0) {
+
+            if (registros.length === 0) {
                 pdf.setFont('helvetica', 'italic');
                 pdf.setFontSize(9);
                 pdf.setTextColor(120, 130, 145);
-                pdf.text('Nenhum', margin + 4, y);
-                y += 5;
+                pdf.text(`Nenhum registro de assunto encontrado para ${turnoLabel}.`, margin + 2, y);
+                y += 6;
             } else {
-                group.emps.forEach(emp => {
-                    checkPageBreak(5);
-                    pdf.setFont('helvetica', 'normal');
+                registros.forEach(reg => {
+                    const nameText = reg.name ? `${reg.name} (Matrícula: ${reg.matricula || '---'})` : 'Nome não informado';
+                    pdf.setFont('helvetica', 'bold');
                     pdf.setFontSize(9);
                     pdf.setTextColor(30, 41, 59);
-                    pdf.text(`• ${emp.n} (Matrícula: ${emp.m})`, margin + 4, y);
+                    pdf.text(`• ${nameText}`, margin + 2, y);
                     y += 4.5;
+                    pdf.setFont('helvetica', 'italic');
+                    pdf.setFontSize(9);
+                    pdf.setTextColor(60, 80, 100);
+                    const assuntoLines = pdf.splitTextToSize(`Assunto: ${reg.assunto || 'NÃO PREENCHIDO'}`, contentWidth - 8);
+                    pdf.text(assuntoLines, margin + 6, y);
+                    y += assuntoLines.length * 4.5 + 2;
                 });
             }
-            y += 3;
-        });
-    };
+            y += 4;
+        };
 
-    const drawRegistros = (registros: { assunto: string; name: string; matricula: string }[], turnoLabel: string) => {
-        checkPageBreak(14);
-        pdf.setDrawColor(200, 210, 220);
-        pdf.line(margin, y, pageWidth - margin, y);
-        y += 6.5;
-        pdf.setFont('helvetica', 'bold');
-        pdf.setFontSize(13);
-        pdf.setTextColor(30, 41, 59);
-        pdf.text(`REGISTROS DSS (TURNO ${turnoLabel})`, margin, y);
-        y += 3.5;
-        pdf.setDrawColor(200, 210, 220);
-        pdf.line(margin, y, pageWidth - margin, y);
-        y += 5;
-
-        if (registros.length === 0) {
-            pdf.setFont('helvetica', 'italic');
-            pdf.setFontSize(9);
-            pdf.setTextColor(120, 130, 145);
-            pdf.text(`Nenhum registro de assunto encontrado para ${turnoLabel}.`, margin + 2, y);
-            y += 6;
-        } else {
-            registros.forEach(reg => {
-                checkPageBreak(14);
-                const nameText = reg.name ? `${reg.name} (Matrícula: ${reg.matricula || '---'})` : 'Nome não informado';
-                pdf.setFont('helvetica', 'bold');
-                pdf.setFontSize(9);
-                pdf.setTextColor(30, 41, 59);
-                pdf.text(`• ${nameText}`, margin + 2, y);
-                y += 4.5;
-                pdf.setFont('helvetica', 'italic');
-                pdf.setFontSize(9);
-                pdf.setTextColor(60, 80, 100);
-                const assuntoLines = pdf.splitTextToSize(`Assunto: ${reg.assunto || 'NÃO PREENCHIDO'}`, contentWidth - 8);
-                pdf.text(assuntoLines, margin + 6, y);
-                y += assuntoLines.length * 4.5 + 2;
-            });
+        drawRegistros(data.registros7H, mainLabel);
+        if (data.is6HActive !== false && data.turma !== 'C_CG' && data.turma !== 'ESTAGIO') {
+            drawRegistros(data.registros6H, secLabel);
         }
-        y += 4;
+        drawSection(team7H, mainLabel);
+        if (data.is6HActive !== false && data.turma !== 'C_CG' && data.turma !== 'ESTAGIO' && team6H.length > 0) {
+            drawSection(team6H, secLabel);
+        }
+
+        const footerY = y + 4;
+        pdf.setFont('helvetica', 'italic');
+        pdf.setFontSize(7);
+        pdf.setTextColor(156, 163, 175);
+        pdf.text(`Gerado em ${new Date().toLocaleString('pt-BR')} — Painel DSS`, pageWidth / 2, footerY, { align: 'center' });
+        
+        return footerY + 8;
     };
 
-    drawRegistros(data.registros7H, mainLabel);
-    if (data.is6HActive !== false && data.turma !== 'C_CG' && data.turma !== 'ESTAGIO') {
-        drawRegistros(data.registros6H, secLabel);
-    }
-    drawSection(team7H, mainLabel);
-    if (data.is6HActive !== false && data.turma !== 'C_CG' && data.turma !== 'ESTAGIO' && team6H.length > 0) {
-        drawSection(team6H, secLabel);
-    }
+    // 1. Calcular altura total
+    const dummyPdf = new jsPDF({ orientation: 'p', unit: 'mm', format: [210, 5000] });
+    const finalHeight = drawContent(dummyPdf);
 
-    const footerY = pageHeight - 8;
-    pdf.setFont('helvetica', 'italic');
-    pdf.setFontSize(7);
-    pdf.setTextColor(156, 163, 175);
-    pdf.text(`Gerado em ${new Date().toLocaleString('pt-BR')} — Painel DSS`, pageWidth / 2, footerY, { align: 'center' });
+    // 2. Gerar PDF com a altura exata
+    const realPdf = new jsPDF({ orientation: 'p', unit: 'mm', format: [210, finalHeight] });
+    drawContent(realPdf);
 
-    return pdf.output('blob');
+    return realPdf.output('blob');
 };
 
 export const exportToPdf = async (_elementIdOrData: string | PdfReportData, filename: string, reportData?: PdfReportData) => {

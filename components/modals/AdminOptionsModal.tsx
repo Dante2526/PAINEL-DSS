@@ -40,7 +40,7 @@ export const AdminOptionsModal: React.FC<{
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="PAINEL ADM" scale={scale} size="md">
-            <div className="flex flex-col gap-2 md:gap-3 max-h-[70vh] overflow-y-auto custom-scrollbar pr-2 pb-2">
+            <div className="flex flex-col gap-2 md:gap-3 max-h-[70vh] overflow-y-auto custom-scrollbar p-2">
                 <div className="grid grid-cols-2 gap-2 md:gap-3">
                     <AdminButton
                         id="admin-clear-btn"
