@@ -31,9 +31,6 @@
   "exclude": [
     "node_modules",
     "dist",
-    "old_utf8.tsx",
-    "old_app_before_refactor.tsx",
-    "old_app_before_refactor.tsx",
     "*.txt",
     "*.Rules"
   ]

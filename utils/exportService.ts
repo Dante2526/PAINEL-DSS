@@ -2,20 +2,9 @@ import * as htmlToImage from 'html-to-image';
 import { jsPDF } from 'jspdf';
 import * as XLSX from 'xlsx';
 
-export interface PdfReportData {
-    turma: string;
-    dataFormatada: string;
-    registros7H: { assunto: string; name: string; matricula: string }[];
-    registros6H: { assunto: string; name: string; matricula: string }[];
-    employees: { n: string; m: string; s: string; turno: string }[];
-    totalFuncionarios: number;
-    totalPresentes: number;
-    totalAusentes: number;
-    totalMal: number;
-    totalPendentes: number;
-    mainShiftLabel?: string;
-    shiftLabel?: string;
-}
+import { PdfReportData } from '../types';
+export type { PdfReportData };
+
 export const exportToPng = async (elementId: string, filename: string) => {
     try {
         const element = document.getElementById(elementId);

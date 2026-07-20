@@ -206,8 +206,8 @@ const arePropsEqual = (prevProps: SpecialTeamPanelProps, nextProps: SpecialTeamP
         prevProps.turma !== nextProps.turma ||
         prevProps.onRegister !== nextProps.onRegister ||
         prevProps.dbName !== nextProps.dbName ||
-        prevProps.administrators.length !== nextProps.administrators.length ||
-        prevProps.employeesForLookup.length !== nextProps.employeesForLookup.length
+        prevProps.administrators !== nextProps.administrators ||
+        prevProps.employeesForLookup !== nextProps.employeesForLookup
     ) {
         return false;
     }

@@ -321,7 +321,7 @@ const App: React.FC = () => {
     }, []);
 
     // Função para enviar alerta por e-mail
-    const sendAlertEmail = async (name: string, matricula: string, turno: string) => {
+    const sendAlertEmail = useCallback(async (name: string, matricula: string, turno: string) => {
         if (isDemoMode) {
             console.log(`[DEMO] Email alert triggered for ${name}`);
             return;
@@ -350,7 +350,7 @@ const App: React.FC = () => {
         } catch (error) {
             console.error("Erro ao enviar e-mail via EmailJS:", error);
         }
-    };
+    }, [isDemoMode, selectedTurma, showNotification]);
 
     // Efetua login anônimo para acesso ao Firestore
     useEffect(() => {
@@ -917,7 +917,7 @@ const App: React.FC = () => {
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
             showNotification(`Falha ao atualizar status: ${message}`, 'error');
         }
-    }, [selectedTurma, showNotification, isDemoMode]);
+    }, [selectedTurma, showNotification, isDemoMode, sendAlertEmail]);
 
     const handleTimeUpdate = useCallback(async (id: string, newDate: Date | null) => {
         if (!isAdminRef.current) {
@@ -1210,20 +1210,6 @@ const App: React.FC = () => {
         }
     }, [pendingEmployeeId, processDeleteUser]);
 
-    const handleToggle6H = useCallback(() => {
-        if (!isAdminRef.current || !selectedTurma) {
-            showNotification('Apenas administradores podem alterar as opções do turno.', 'error');
-            return;
-        }
-        
-        if (is6HActive) {
-            setActiveModal(ModalType.ConfirmDeactivate6H);
-        } else {
-            // Reativar direto
-            processToggle6HState(true);
-        }
-    }, [is6HActive, selectedTurma, showNotification]);
-
     const processToggle6HState = useCallback(async (active: boolean) => {
         if (!selectedTurma) return;
 
@@ -1269,6 +1255,20 @@ const App: React.FC = () => {
             showNotification(`Falha ao alterar estado do turno: ${message}`, 'error');
         }
     }, [selectedTurma, isDemoMode, db, showNotification]);
+
+    const handleToggle6H = useCallback(() => {
+        if (!isAdminRef.current || !selectedTurma) {
+            showNotification('Apenas administradores podem alterar as opções do turno.', 'error');
+            return;
+        }
+        
+        if (is6HActive) {
+            setActiveModal(ModalType.ConfirmDeactivate6H);
+        } else {
+            // Reativar direto
+            processToggle6HState(true);
+        }
+    }, [is6HActive, selectedTurma, showNotification, processToggle6HState]);
 
     const handleConfirmDeactivate6H = useCallback(() => {
         processToggle6HState(false);
@@ -1323,7 +1323,7 @@ const App: React.FC = () => {
         let resolvedName = '';
         let actualMatricula = matricula;
         
-        const currentEmp = employees.find(e => (isSignaturePasswordActive && e.senha === matricula) || e.matricula === matricula);
+        const currentEmp = employeesRef.current.find(e => (isSignaturePasswordActive && e.senha === matricula) || e.matricula === matricula);
         if (currentEmp) {
             resolvedName = currentEmp.name;
             actualMatricula = currentEmp.matricula;
@@ -1372,13 +1372,13 @@ const App: React.FC = () => {
             await setDoc(docRef, registrationData);
 
             showNotification(`Registro para turno ${turno} salvo com sucesso.`, 'success');
-            logAuditEvent(adminEmail, 'REGISTRO MANUAL', `Registro manual salvo | Turno: ${turno} | Matrícula: ${matricula} | Assunto: ${subject || 'Não preenchido'}`, selectedTurma);
+            logAuditEvent(adminEmailRef.current, 'REGISTRO MANUAL', `Registro manual salvo | Turno: ${turno} | Matrícula: ${matricula} | Assunto: ${subject || 'Não preenchido'}`, selectedTurma);
         } catch (error) {
             console.error("Error saving manual registration:", error);
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
             showNotification(`Falha ao salvar registro: ${message}`, 'error');
         }
-    }, [selectedTurma, isDemoMode, db, employees, showNotification]);
+    }, [selectedTurma, isDemoMode, db, isSignaturePasswordActive, showNotification]);
 
     const handleAdminLogin = async (inputStr: string, isBiometric = false) => {
         const normalizedInput = inputStr.trim();
@@ -1828,13 +1828,19 @@ const App: React.FC = () => {
         setActiveModal(ModalType.TutorialChoice);
     }, []);
 
-    const stats = useMemo(() => ({
-        bem: employees.filter(e => e.bem).length,
-        mal: employees.filter(e => e.mal).length,
-        ausente: employees.filter(e => e.ausente).length,
-        pendente: employees.filter(e => !e.bem && !e.assDss && !e.mal && !e.ausente).length,
-        total: employees.length,
-    }), [employees]);
+    const stats = useMemo(() => {
+        return employees.reduce(
+            (acc, e) => {
+                acc.total++;
+                if (e.bem) acc.bem++;
+                if (e.mal) acc.mal++;
+                if (e.ausente) acc.ausente++;
+                if (!e.bem && !e.assDss && !e.mal && !e.ausente) acc.pendente++;
+                return acc;
+            },
+            { bem: 0, mal: 0, ausente: 0, pendente: 0, total: 0 }
+        );
+    }, [employees]);
 
     const mainTeam = useMemo(() => employees.filter(e => e.turno !== '6H').sort((a, b) => a.name.localeCompare(b.name)), [employees]);
     const specialTeam = useMemo(() => employees.filter(e => e.turno === '6H').sort((a, b) => a.name.localeCompare(b.name)), [employees]);

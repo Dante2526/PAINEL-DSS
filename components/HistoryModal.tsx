@@ -1,12 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import Modal from './Modal';
 import CustomDatePicker from './CustomDatePicker';
 import { FileTextIcon, SubjectIcon, ShiftIcon, PdfIcon, ExcelIcon, DocIcon } from './icons';
-import type { HistoryRecord, HistoryEmployee, Administrator } from '../types';
+import type { HistoryRecord, HistoryEmployee, Administrator, PdfReportData } from '../types';
 import { db } from '../firebase';
 import { luminaDb } from '../luminaFirebase';
 import { doc, getDoc, collection, query, where, orderBy, limit, getDocs, startAfter, startAt, endAt, QueryDocumentSnapshot, DocumentData, documentId, addDoc } from 'firebase/firestore';
-import { exportToPng, exportToPdf, exportToDoc, exportToExcel, exportToTxt, exportToZip, generateDocBlob, generateExcelBlob, generatePdfBlob, PdfReportData } from '../utils/exportService';
+import { exportToPng, exportToPdf, exportToDoc, exportToExcel, exportToTxt, exportToZip, generateDocBlob, generateExcelBlob, generatePdfBlob } from '../utils/exportService';
 import { SearchIcon } from './icons';
 import { jsPDF } from 'jspdf';
 import ExportDropdown from './ExportDropdown';
@@ -35,7 +35,6 @@ const HistoryModal: React.FC<{
     turma: string | null;
     showNotification: (msg: string, type: 'success' | 'error') => void;
     currentLiveHistory?: HistoryRecord | null;
-    adminEmail?: string;
     adminEmail?: string;
     administrators?: Administrator[];
     is6HActive?: boolean;
@@ -173,37 +172,52 @@ const HistoryModal: React.FC<{
     const [hasMore, setHasMore] = useState(true);
     const [autoFetchCount, setAutoFetchCount] = useState(0);
 
-    // Função disparada ao clicar em buscar ou dar Enter
-    const handleSearchSubmit = () => {
-        if (debouncedSearch !== searchTerm) {
-            setDebouncedSearch(searchTerm);
-            setAllRecords([]);
-            setHasMore(true);
-            setLastVisible(null);
-            setSelectedRecordsToExport([]);
-            if (!searchTerm.trim()) {
-                loadHistoryBatch();
-            }
-        }
-    };
+    const fetchingMoreRef = React.useRef(fetchingMore);
+    const lastVisibleRef = React.useRef(lastVisible);
 
-    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const val = e.target.value;
-        setSearchTerm(val);
-        if (val.trim() === '') {
-            setDebouncedSearch('');
-            setAllRecords([]);
-            setHasMore(true);
-            setLastVisible(null);
-            setSelectedRecordsToExport([]);
-            loadHistoryBatch();
+    React.useEffect(() => { fetchingMoreRef.current = fetchingMore; }, [fetchingMore]);
+    React.useEffect(() => { lastVisibleRef.current = lastVisible; }, [lastVisible]);
+
+    const handleDateChange = useCallback(async (dateValue: string) => {
+        setSelectedDate(dateValue);
+        setHistoryData(null);
+        setNotFound(false);
+
+        if (!dateValue || !turma || !db) return;
+
+        setLoading(true);
+        try {
+            const docId = `${turma}_${dateValue}`;
+            const docRef = doc(db, 'historico_dss', docId);
+            const docSnap = await getDoc(docRef);
+
+            if (docSnap.exists()) {
+                setHistoryData(docSnap.data() as HistoryRecord);
+                setNotFound(false);
+            } else {
+                const today = new Date();
+                const todayISO = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+                
+                if (dateValue === todayISO && currentLiveHistory) {
+                    setHistoryData(currentLiveHistory);
+                    setNotFound(false);
+                } else {
+                    setHistoryData(null);
+                    setNotFound(true);
+                }
+            }
+        } catch (error) {
+            console.error('Erro ao buscar histórico:', error);
+            showNotification('Erro ao buscar histórico.', 'error');
+        } finally {
+            setLoading(false);
         }
-    };
+    }, [turma, db, currentLiveHistory, showNotification]);
 
     // Função para carregar lote de histórico
-    const loadHistoryBatch = async (isManualLoadMore = false, turmasParaBusca?: string[]) => {
+    const loadHistoryBatch = useCallback(async (isManualLoadMore = false, turmasParaBusca?: string[]) => {
         const turmaFilter = turmasParaBusca ?? (turma ? [turma] : []);
-        if (turmaFilter.length === 0 || !db || (fetchingMore && isManualLoadMore)) return;
+        if (turmaFilter.length === 0 || !db || (fetchingMoreRef.current && isManualLoadMore)) return;
         
         setIsSearching(true);
         if (isManualLoadMore) setFetchingMore(true);
@@ -213,8 +227,8 @@ const HistoryModal: React.FC<{
             const historicoRef = collection(db, 'historico_dss');
             let q = query(historicoRef, orderBy('dataISO', 'desc'), limit(fetchLimit));
             
-            if (isManualLoadMore && lastVisible) {
-                q = query(historicoRef, orderBy('dataISO', 'desc'), startAfter(lastVisible), limit(fetchLimit));
+            if (isManualLoadMore && lastVisibleRef.current) {
+                q = query(historicoRef, orderBy('dataISO', 'desc'), startAfter(lastVisibleRef.current), limit(fetchLimit));
             } else if (!isManualLoadMore) {
                 // Reset states for fresh search
                 setAllRecords([]);
@@ -252,7 +266,35 @@ const HistoryModal: React.FC<{
             setIsSearching(false);
             setFetchingMore(false);
         }
-    };
+    }, [turma, db, handleDateChange]);
+
+    // Função disparada ao clicar em buscar ou dar Enter
+    const handleSearchSubmit = useCallback(() => {
+        if (debouncedSearch !== searchTerm) {
+            setDebouncedSearch(searchTerm);
+            setAllRecords([]);
+            setHasMore(true);
+            setLastVisible(null);
+            setSelectedRecordsToExport([]);
+            if (!searchTerm.trim()) {
+                // Para chamar aqui, dependemos do loadHistoryBatch
+                loadHistoryBatch();
+            }
+        }
+    }, [debouncedSearch, searchTerm, loadHistoryBatch]);
+
+    const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        setSearchTerm(val);
+        if (val.trim() === '') {
+            setDebouncedSearch('');
+            setAllRecords([]);
+            setHasMore(true);
+            setLastVisible(null);
+            setSelectedRecordsToExport([]);
+            loadHistoryBatch();
+        }
+    }, [loadHistoryBatch]);
 
     // Carregar primeiro lote ao abrir ou mudar turma
     React.useEffect(() => {
@@ -269,7 +311,7 @@ const HistoryModal: React.FC<{
             setSelectedSearchTurmas([turma]);
             loadHistoryBatch();
         }
-    }, [isOpen, turma]);
+    }, [isOpen, turma, loadHistoryBatch]);
 
     // Resultados filtrados pelo tema
     const filteredResults = useMemo(() => {
@@ -308,43 +350,7 @@ const HistoryModal: React.FC<{
             // Se tem busca ativa, não para até hasMore ser false (varre todo o banco)
             loadHistoryBatch(true, selectedSearchTurmas);
         }
-    }, [debouncedSearch, hasMore, fetchingMore, selectedSearchTurmas]);
-
-    const handleDateChange = async (dateValue: string) => {
-        setSelectedDate(dateValue);
-        setHistoryData(null);
-        setNotFound(false);
-
-        if (!dateValue || !turma || !db) return;
-
-        setLoading(true);
-        try {
-            const docId = `${turma}_${dateValue}`;
-            const docRef = doc(db, 'historico_dss', docId);
-            const docSnap = await getDoc(docRef);
-
-            if (docSnap.exists()) {
-                setHistoryData(docSnap.data() as HistoryRecord);
-                setNotFound(false);
-            } else {
-                const today = new Date();
-                const todayISO = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
-                
-                if (dateValue === todayISO && currentLiveHistory) {
-                    setHistoryData(currentLiveHistory);
-                    setNotFound(false);
-                } else {
-                    setHistoryData(null);
-                    setNotFound(true);
-                }
-            }
-        } catch (error) {
-            console.error('Erro ao buscar histórico:', error);
-            showNotification('Erro ao buscar histórico.', 'error');
-        } finally {
-            setLoading(false);
-        }
-    };
+    }, [debouncedSearch, hasMore, fetchingMore, selectedSearchTurmas, loadHistoryBatch]);
 
     // Separar funcionários por turno
     const { team7H, team6H } = useMemo(() => {

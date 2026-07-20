@@ -115,8 +115,8 @@ export const ManualRegisterSection: React.FC<{
     prev.matricula === next.matricula &&
     prev.turma === next.turma &&
     prev.onRegister === next.onRegister &&
-    prev.employeesForLookup.length === next.employeesForLookup.length &&
-    prev.administrators.length === next.administrators.length &&
+    prev.employeesForLookup === next.employeesForLookup &&
+    prev.administrators === next.administrators &&
     prev.dbName === next.dbName
 );
 

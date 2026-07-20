@@ -26,3 +26,8 @@ dist-ssr
 # Superpowers e Agente IA
 docs/superpowers/
 .gemini/
+
+# Arquivos obsoletos (lixo)
+*.txt
+old_*.tsx
+/*.cjs

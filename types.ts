@@ -126,7 +126,7 @@ export interface PdfReportData {
       name: string;
       matricula: string;
   }[];
-  mainShiftLabel: string;
-  shiftLabel: string;
+  mainShiftLabel?: string;
+  shiftLabel?: string;
   is6HActive?: boolean;
 }

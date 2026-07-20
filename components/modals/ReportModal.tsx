@@ -167,6 +167,7 @@ export const ReportModal: React.FC<{
             }],
             mainShiftLabel: getMainShiftLabel(turma),
             shiftLabel: getShiftLabel(turma),
+            is6HActive,
         };
 
         exportToExcel(excelData, baseFileName);
@@ -215,6 +216,7 @@ export const ReportModal: React.FC<{
             }],
             mainShiftLabel: getMainShiftLabel(turma),
             shiftLabel: getShiftLabel(turma),
+            is6HActive,
         };
 
         await exportToPdf(pdfData, baseFileName);
