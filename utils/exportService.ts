@@ -75,8 +75,8 @@ export const generatePdfBlob = async (data: PdfReportData): Promise<Blob> => {
         });
         y += 4;
 
-        const team7H = data.employees.filter(e => e.turno !== '6H');
-        const team6H = data.employees.filter(e => e.turno === '6H');
+        const team7H = (data.employees || []).filter(e => e.turno !== '6H');
+        const team6H = (data.employees || []).filter(e => e.turno === '6H');
 
         const drawSection = (emps: { n: string; m: string; s: string }[], turnoLabel: string) => {
             if (emps.length === 0) return;
@@ -190,21 +190,8 @@ export const generatePdfBlob = async (data: PdfReportData): Promise<Blob> => {
     return realPdf.output('blob');
 };
 
-export const exportToPdf = async (_elementIdOrData: string | PdfReportData, filename: string, reportData?: PdfReportData) => {
+export const exportToPdf = async (data: PdfReportData, filename: string) => {
     try {
-        const data = typeof _elementIdOrData === 'object' ? _elementIdOrData : reportData;
-
-        if (!data) {
-            const element = document.getElementById(_elementIdOrData as string);
-            if (!element) throw new Error('Element not found');
-            const dataUrl = await htmlToImage.toPng(element, { quality: 1, pixelRatio: 2, backgroundColor: '#f8fafc' });
-            const imgProps = { width: element.offsetWidth, height: element.offsetHeight };
-            const pdf = new jsPDF({ orientation: imgProps.width > imgProps.height ? 'l' : 'p', unit: 'px', format: [imgProps.width, imgProps.height] });
-            pdf.addImage(dataUrl, 'PNG', 0, 0, imgProps.width, imgProps.height);
-            pdf.save(`${filename}.pdf`);
-            return;
-        }
-
         const blob = await generatePdfBlob(data);
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');

@@ -3,6 +3,7 @@ import React, { useMemo } from 'react';
 import { Employee, Administrator, StatusType } from '../types';
 import EmployeeCard from './EmployeeCard';
 import { SubjectIcon, UserIcon } from './icons';
+import { getShiftLabel, getMainShiftLabel } from '../utils/turmaUtils';
 
 interface SpecialTeamPanelProps {
     specialTeam: Employee[];
@@ -51,11 +52,11 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
         setLocalMatricula(matricula);
     }, [matricula]);
     const shiftLabel = React.useMemo(() => {
-        return (turma === 'C' || turma === 'D') ? '18H' : '6H';
+        return getShiftLabel(turma);
     }, [turma]);
 
     const mainShiftLabel = React.useMemo(() => {
-        return (turma === 'C' || turma === 'D') ? '19H' : '7H';
+        return getMainShiftLabel(turma);
     }, [turma]);
     const handleMatriculaChangeLocal = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setLocalMatricula(e.target.value.replace(/[^0-9]/g, ''));

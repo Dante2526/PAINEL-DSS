@@ -448,8 +448,8 @@ const HistoryModal: React.FC<{
                     totalAusentes: rec.totalAusentes,
                     totalMal: rec.totalMal,
                     totalPendentes: rec.totalPendentes,
-                    mainShiftLabel: (rec.turma === 'C' || rec.turma === 'D') ? '19H' : '7H',
-                    shiftLabel: (rec.turma === 'C' || rec.turma === 'D') ? '18H' : '6H',
+                    mainShiftLabel: getMainShiftLabel(rec.turma),
+                    shiftLabel: getShiftLabel(rec.turma),
                     is6HActive,
                 }));
                 const blob = generateExcelBlob(pdfDataList);
@@ -489,8 +489,8 @@ const HistoryModal: React.FC<{
                         totalAusentes: rec.totalAusentes,
                         totalMal: rec.totalMal,
                         totalPendentes: rec.totalPendentes,
-                        mainShiftLabel: (rec.turma === 'C' || rec.turma === 'D') ? '19H' : '7H',
-                        shiftLabel: (rec.turma === 'C' || rec.turma === 'D') ? '18H' : '6H',
+                        mainShiftLabel: getMainShiftLabel(rec.turma),
+                        shiftLabel: getShiftLabel(rec.turma),
                         is6HActive,
                     };
                     
