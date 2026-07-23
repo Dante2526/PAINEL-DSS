@@ -2226,17 +2226,18 @@ const App: React.FC = () => {
                         <div className="flex gap-8 flex-nowrap relative">
                             <div className="flex flex-col gap-8 shrink-0 relative w-fit">
                                 {selectedTurma !== 'ESTAGIO' && (
-                                    <ManualRegisterSection
-                                        subject={mainSubject}
-                                        matricula={mainMatricula}
-                                        onRegister={handleRegister7H}
-                                        employeesForLookup={employees}
-                                        administrators={administrators}
-                                        turma={selectedTurma}
-                                        dbName={mainResponsible}
-                                        isAdminOnlyTheme={isAdminOnlyTheme}
-                                        isAdmin={isAdminRef.current}
-                                    />
+                                <ManualRegisterSection
+                                    subject={mainSubject}
+                                    matricula={mainMatricula}
+                                    onRegister={handleRegister7H}
+                                    employeesForLookup={employees}
+                                    administrators={administrators}
+                                    turma={selectedTurma}
+                                    dbName={mainResponsible}
+                                    isAdminOnlyTheme={isAdminOnlyTheme}
+                                    isAdmin={isAdminRef.current}
+                                    onLockedClick={() => showNotification('Faça login como Adm para preencher', 'error')}
+                                />
                                 )}
 
                                 <div className="flex gap-6 pr-12 relative w-fit">

@@ -13,7 +13,8 @@ export const ManualRegisterSection: React.FC<{
     dbName?: string;
     isAdminOnlyTheme?: boolean;
     isAdmin?: boolean;
-}> = React.memo(({ subject, matricula, onRegister, employeesForLookup, administrators, turma, dbName, isAdminOnlyTheme, isAdmin }) => {
+    onLockedClick?: () => void;
+}> = React.memo(({ subject, matricula, onRegister, employeesForLookup, administrators, turma, dbName, isAdminOnlyTheme, isAdmin, onLockedClick }) => {
     const [localSubject, setLocalSubject] = useState(subject);
     const [localMatricula, setLocalMatricula] = useState(matricula);
 
@@ -57,6 +58,14 @@ export const ManualRegisterSection: React.FC<{
 
     const isLocked = isAdminOnlyTheme && !isAdmin;
 
+    const handleLockedClick = (e: React.MouseEvent) => {
+        if (isLocked) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (onLockedClick) onLockedClick();
+        }
+    };
+
     return (
         <div className="w-full bg-light-card dark:bg-dark-card rounded-3xl p-6 shadow-lg mb-8 shrink-0">
             {/* Status indicator card */}
@@ -72,7 +81,7 @@ export const ManualRegisterSection: React.FC<{
                 </div>
             )}
 
-            <div id="tutorial-manual-register-bar" className="flex gap-4 items-center w-fit">
+            <div id="tutorial-manual-register-bar" className="flex gap-4 items-center w-fit" onClickCapture={handleLockedClick}>
                 <div className="relative w-[600px]">
                     <SubjectIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
@@ -126,7 +135,8 @@ export const ManualRegisterSection: React.FC<{
     prev.administrators === next.administrators &&
     prev.dbName === next.dbName &&
     prev.isAdminOnlyTheme === next.isAdminOnlyTheme &&
-    prev.isAdmin === next.isAdmin
+    prev.isAdmin === next.isAdmin &&
+    prev.onLockedClick === next.onLockedClick
 );
 
 export default ManualRegisterSection;
