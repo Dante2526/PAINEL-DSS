@@ -316,8 +316,8 @@ export default async function handler(req, res) {
       if (typeof configData.active !== 'undefined') {
         is6HActive = configData.active;
       }
-    } else if (validatedTeam === 'B_CG' || validatedTeam === 'A_CG') {
-      is6HActive = false; // B_CG and A_CG default is false
+    } else if (validatedTeam === 'B_CG' || validatedTeam === 'A_CG' || validatedTeam === 'D_CG' || validatedTeam === 'C_CG') {
+      is6HActive = false;
     }
 
     // 11. Gerar HTML Integrado

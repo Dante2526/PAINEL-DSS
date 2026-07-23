@@ -185,6 +185,7 @@ const App: React.FC = () => {
 
     const [is6HActive, setIs6HActive] = useState(true);
     const [isSignaturePasswordActive, setIsSignaturePasswordActive] = useState(false);
+    const [isAdminOnlyTheme, setIsAdminOnlyTheme] = useState(false);
     const [isAutomationPaused, setIsAutomationPaused] = useState(false);
 
     const [isAdminTutorialOpen, setIsAdminTutorialOpen] = useState(false);
@@ -477,6 +478,13 @@ const App: React.FC = () => {
                         setIsSignaturePasswordActive(configSignaturePassword.data().active ?? (selectedTurma === 'B_CG' || selectedTurma === 'A_CG' || selectedTurma === 'D_CG' || selectedTurma === 'C_CG'));
                     } else {
                         setIsSignaturePasswordActive(selectedTurma === 'B_CG' || selectedTurma === 'A_CG' || selectedTurma === 'D_CG' || selectedTurma === 'C_CG');
+                    }
+
+                    const configAdminTheme = querySnapshot.docs.find(d => d.id === 'config_admin_theme');
+                    if (configAdminTheme) {
+                        setIsAdminOnlyTheme(configAdminTheme.data().active || false);
+                    } else {
+                        setIsAdminOnlyTheme(false);
                     }
                     
                     const newDbMainSubject = mainReg?.assunto || '';
@@ -1304,6 +1312,36 @@ const App: React.FC = () => {
             showNotification('Falha ao alterar configuração de senha.', 'error');
         }
     }, [isSignaturePasswordActive, selectedTurma, isDemoMode, db, showNotification]);
+
+    const handleToggleAdminOnlyTheme = useCallback(async () => {
+        if (!isAdminRef.current || !selectedTurma) {
+            showNotification('Apenas administradores podem alterar esta configuração.', 'error');
+            return;
+        }
+
+        const newActive = !isAdminOnlyTheme;
+
+        if (isDemoMode) {
+            setIsAdminOnlyTheme(newActive);
+            showNotification(newActive ? 'Tema DSS bloqueado para administradores (DEMO).' : 'Tema DSS liberado para todos (DEMO).', 'success');
+            return;
+        }
+
+        if (!db) {
+            showNotification("A conexão com o banco de dados não está disponível.", "error");
+            return;
+        }
+
+        try {
+            const docRef = doc(db, getTurmaRegistrationName(selectedTurma), 'config_admin_theme');
+            await setDoc(docRef, { active: newActive }, { merge: true });
+            showNotification(newActive ? 'Tema DSS BLOQUEADO (Somente Administradores).' : 'Tema DSS LIBERADO (Todos podem preencher).', 'success');
+            logAuditEvent(adminEmailRef.current, 'ALTERAÇÃO BLOQUEIO TEMA DSS', `Bloqueio de Tema DSS: ${newActive ? 'Ativado' : 'Desativado'}`, selectedTurma);
+        } catch (error) {
+            console.error("Error toggling admin only theme:", error);
+            showNotification('Falha ao alterar configuração do Tema DSS.', 'error');
+        }
+    }, [isAdminOnlyTheme, selectedTurma, isDemoMode, db, showNotification]);
 
     const handleManualRegister = useCallback(async (turno: '7H' | '6H', matricula: string, rawSubject: string) => {
         if (!selectedTurma || !db) return;
@@ -2196,6 +2234,8 @@ const App: React.FC = () => {
                                         administrators={administrators}
                                         turma={selectedTurma}
                                         dbName={mainResponsible}
+                                        isAdminOnlyTheme={isAdminOnlyTheme}
+                                        isAdmin={isAdminRef.current}
                                     />
                                 )}
 
@@ -2310,6 +2350,7 @@ const App: React.FC = () => {
                                     administrators={administrators}
                                     turma={selectedTurma}
                                     dbName={specialResponsible}
+                                    isAdminOnlyTheme={isAdminOnlyTheme}
                                 />
                             )}
                         </div>
@@ -2361,6 +2402,8 @@ const App: React.FC = () => {
                         scale={modalScale}
                         selectedTurma={selectedTurma}
                         currentAdminNivel={adminNivel}
+                        isAdminOnlyTheme={isAdminOnlyTheme}
+                        onToggleAdminOnlyTheme={handleToggleAdminOnlyTheme}
                     />
                     <AuditLogModal
                         isOpen={activeModal === ModalType.AuditLog}

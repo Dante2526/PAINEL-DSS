@@ -32,10 +32,12 @@ export const AdminOptionsModal: React.FC<{
     is6HActive: boolean;
     isAutomationPaused: boolean;
     isSignaturePasswordActive: boolean;
+    isAdminOnlyTheme: boolean;
+    onToggleAdminOnlyTheme: () => void;
     scale: number;
     selectedTurma: string | null;
     currentAdminNivel: string;
-}> = ({ isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onImportUser, onEnterDemo, onStartAdminTutorial, onToggle6H, onToggleAutomation, onToggleSignaturePassword, onChangeAdminPassword, onHistory, onClearBiometrics, onManageAdmins, onAuditLog, hasBiometrics, is6HActive, isAutomationPaused, isSignaturePasswordActive, scale, selectedTurma, currentAdminNivel }) => {
+}> = ({ isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onImportUser, onEnterDemo, onStartAdminTutorial, onToggle6H, onToggleAutomation, onToggleSignaturePassword, onChangeAdminPassword, onHistory, onClearBiometrics, onManageAdmins, onAuditLog, hasBiometrics, is6HActive, isAutomationPaused, isSignaturePasswordActive, isAdminOnlyTheme, onToggleAdminOnlyTheme, scale, selectedTurma, currentAdminNivel }) => {
     if (!isOpen) return null;
 
     return (
@@ -109,14 +111,25 @@ export const AdminOptionsModal: React.FC<{
                         </button>
                     )}
                 </div>
-                <div className="col-span-2 grid grid-cols-1 gap-2 md:gap-3">
+                <div className="col-span-2 grid grid-cols-2 gap-2 md:gap-3">
                     <button
                         onClick={onToggleSignaturePassword}
                         className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 shadow-md h-[86px] md:h-[82px] hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] transform ${isSignaturePasswordActive ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`}
                     >
                         <div className="scale-[0.85] md:scale-90 origin-bottom"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg></div>
                         <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">
-                            {isSignaturePasswordActive ? "DESATIVAR ASSINATURA COM SENHA" : "ATIVAR ASSINATURA COM SENHA"}
+                            {isSignaturePasswordActive ? "DESATIVAR ASSINATURA" : "ATIVAR ASSINATURA"}
+                        </span>
+                    </button>
+                    <button
+                        onClick={onToggleAdminOnlyTheme}
+                        className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 shadow-md h-[86px] md:h-[82px] hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] transform ${isAdminOnlyTheme ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`}
+                    >
+                        <div className="scale-[0.85] md:scale-90 origin-bottom">
+                            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                        </div>
+                        <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">
+                            {isAdminOnlyTheme ? "DESBLOQUEAR TEMA DSS" : "BLOQUEAR TEMA SÓ ADM"}
                         </span>
                     </button>
                 </div>

@@ -22,8 +22,8 @@ interface HeaderProps {
     onReturnToSelection: () => void;
 }
 
-const StatCard: React.FC<{ label: string; value: number; colorClass: string; borderColorClass: string }> = ({ label, value, colorClass, borderColorClass }) => (
-    <div className={`text-center p-4 bg-light-bg dark:bg-dark-bg-secondary rounded-xl min-w-[100px] transition-colors border-2 ${borderColorClass}`}>
+const StatCard: React.FC<{ label: string; value: number; colorClass: string }> = ({ label, value, colorClass }) => (
+    <div className="text-center p-4 bg-light-bg dark:bg-dark-bg-secondary rounded-xl min-w-[100px] transition-colors">
         <div className={`text-4xl font-bold mb-1 transition-colors ${colorClass}`}>{value}</div>
         <div className="text-xs text-light-text-secondary dark:text-dark-text-secondary uppercase font-semibold">{label}</div>
     </div>
@@ -81,11 +81,11 @@ const Header: React.FC<HeaderProps> = React.memo(({ stats, loading, onAdminClick
                     </button>
                 </div>
                 <div id="tutorial-stats" className="flex gap-6">
-                    <StatCard label="Estou Bem" value={stats.bem} colorClass="text-success" borderColorClass="border-success/30 dark:border-success/50" />
-                    <StatCard label="Estou Mal" value={stats.mal} colorClass="text-danger" borderColorClass="border-danger/30 dark:border-danger/50" />
-                    <StatCard label="Ausente" value={stats.ausente} colorClass="text-warning" borderColorClass="border-warning/30 dark:border-warning/50" />
-                    <StatCard label="Pendente" value={stats.pendente} colorClass="text-gray-500 dark:text-gray-400" borderColorClass="border-gray-400/30 dark:border-gray-500/50" />
-                    <StatCard label="Total" value={stats.total} colorClass="text-neutral" borderColorClass="border-neutral/30 dark:border-neutral/50" />
+                    <StatCard label="Estou Bem" value={stats.bem} colorClass="text-success" />
+                    <StatCard label="Estou Mal" value={stats.mal} colorClass="text-danger" />
+                    <StatCard label="Ausente" value={stats.ausente} colorClass="text-warning" />
+                    <StatCard label="Pendente" value={stats.pendente} colorClass="text-gray-500 dark:text-gray-400" />
+                    <StatCard label="Total" value={stats.total} colorClass="text-neutral" />
                 </div>
             </div>
         </header>

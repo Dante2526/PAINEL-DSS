@@ -11,7 +11,9 @@ export const ManualRegisterSection: React.FC<{
     administrators: Administrator[];
     turma: string | null;
     dbName?: string;
-}> = React.memo(({ subject, matricula, onRegister, employeesForLookup, administrators, turma, dbName }) => {
+    isAdminOnlyTheme?: boolean;
+    isAdmin?: boolean;
+}> = React.memo(({ subject, matricula, onRegister, employeesForLookup, administrators, turma, dbName, isAdminOnlyTheme, isAdmin }) => {
     const [localSubject, setLocalSubject] = useState(subject);
     const [localMatricula, setLocalMatricula] = useState(matricula);
 
@@ -53,6 +55,8 @@ export const ManualRegisterSection: React.FC<{
         ? "border-red-500/70 dark:border-red-500/50 shadow-[0_0_8px_rgba(239,68,68,0.15)] focus:ring-red-400 focus:border-red-400"
         : "border-gray-200 dark:border-gray-600 focus:ring-primary focus:border-primary";
 
+    const isLocked = isAdminOnlyTheme && !isAdmin;
+
     return (
         <div className="w-full bg-light-card dark:bg-dark-card rounded-3xl p-6 shadow-lg mb-8 shrink-0">
             {/* Status indicator card */}
@@ -76,7 +80,8 @@ export const ManualRegisterSection: React.FC<{
                         value={localSubject}
                         onChange={(e) => setLocalSubject(e.target.value)}
                         placeholder={`TEMA DSS - TURNO ${getMainShiftLabel(turma)}`}
-                        className={`w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 rounded-xl focus:ring-2 outline-none transition uppercase ${subjectBorderClass}`}
+                        disabled={isLocked}
+                        className={`w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 rounded-xl outline-none transition uppercase ${isLocked ? 'opacity-60 cursor-not-allowed bg-gray-200 dark:bg-gray-800' : `${subjectBorderClass} focus:ring-2`}`}
                         autoCapitalize="characters"
                     />
                 </div>
@@ -87,7 +92,8 @@ export const ManualRegisterSection: React.FC<{
                         value={localMatricula}
                         onChange={handleMatriculaChange}
                         placeholder="Matrícula"
-                        className={`w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 rounded-xl focus:ring-2 outline-none transition ${matriculaBorderClass}`}
+                        disabled={isLocked}
+                        className={`w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 rounded-xl outline-none transition ${isLocked ? 'opacity-60 cursor-not-allowed bg-gray-200 dark:bg-gray-800' : `${matriculaBorderClass} focus:ring-2`}`}
                         inputMode="numeric"
                         pattern="[0-9]*"
                     />
@@ -102,10 +108,11 @@ export const ManualRegisterSection: React.FC<{
                     />
                 </div>
                 <button
-                    onClick={() => onRegister(localSubject, localMatricula)}
-                    className="w-[180px] py-4 font-bold text-white bg-gradient-to-r from-primary to-primary-dark rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+                    onClick={() => !isLocked && onRegister(localSubject, localMatricula)}
+                    disabled={isLocked}
+                    className={`w-[180px] py-4 font-bold text-white rounded-xl shadow-md transition-all duration-300 ${isLocked ? 'bg-gray-400 cursor-not-allowed opacity-50' : 'bg-gradient-to-r from-primary to-primary-dark hover:shadow-lg hover:-translate-y-0.5'}`}
                 >
-                    REGISTRAR
+                    {isLocked ? 'BLOQUEADO' : 'REGISTRAR'}
                 </button>
             </div>
         </div>
@@ -117,7 +124,9 @@ export const ManualRegisterSection: React.FC<{
     prev.onRegister === next.onRegister &&
     prev.employeesForLookup === next.employeesForLookup &&
     prev.administrators === next.administrators &&
-    prev.dbName === next.dbName
+    prev.dbName === next.dbName &&
+    prev.isAdminOnlyTheme === next.isAdminOnlyTheme &&
+    prev.isAdmin === next.isAdmin
 );
 
 export default ManualRegisterSection;

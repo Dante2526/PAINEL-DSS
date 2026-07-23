@@ -22,6 +22,7 @@ interface SpecialTeamPanelProps {
     administrators: Administrator[]; // Access to admin list for lookup
     turma: string | null;
     dbName?: string;
+    isAdminOnlyTheme?: boolean;
 }
 
 const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
@@ -39,7 +40,8 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
     employeesForLookup,
     administrators,
     turma,
-    dbName
+    dbName,
+    isAdminOnlyTheme
 }) => {
     const [localSubject, setLocalSubject] = React.useState(subject);
     const [localMatricula, setLocalMatricula] = React.useState(matricula);
@@ -93,6 +95,8 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
         ? "border-red-500/70 dark:border-red-500/50 shadow-[0_0_8px_rgba(239,68,68,0.15)] focus:ring-red-400 focus:border-red-400"
         : "border-gray-200 dark:border-gray-600 focus:ring-primary focus:border-primary";
 
+    const isLocked = isAdminOnlyTheme && !isAdmin;
+
     return (
         <div id="tutorial-special-panel" className="w-[870px] flex-shrink-0 bg-light-card dark:bg-dark-card rounded-3xl p-8 shadow-lg h-fit">
             <div id="tutorial-special-demo-area">
@@ -120,7 +124,8 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
                                 value={localSubject}
                                 onChange={(e) => setLocalSubject(e.target.value)}
                                 placeholder={`TEMA DSS - TURNO ${shiftLabel}`}
-                                className={`w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 rounded-lg outline-none transition uppercase ${subjectBorderClass} focus:ring-2`}
+                                disabled={isLocked}
+                                className={`w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 rounded-lg outline-none transition uppercase ${isLocked ? 'opacity-60 cursor-not-allowed bg-gray-200 dark:bg-gray-800' : `${subjectBorderClass} focus:ring-2`}`}
                                 autoCapitalize="characters"
                             />
                         </div>
@@ -133,7 +138,8 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
                                     value={localMatricula}
                                     onChange={handleMatriculaChangeLocal}
                                     placeholder="Matrícula"
-                                    className={`w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 rounded-l-lg outline-none transition ${matriculaBorderClass} ${!isMatriculaEmpty ? 'border-r border-r-gray-300 dark:border-r-gray-600' : ''} focus:ring-2`}
+                                    disabled={isLocked}
+                                    className={`w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 rounded-l-lg outline-none transition ${isLocked ? 'opacity-60 cursor-not-allowed bg-gray-200 dark:bg-gray-800' : `${matriculaBorderClass} ${!isMatriculaEmpty ? 'border-r border-r-gray-300 dark:border-r-gray-600' : ''} focus:ring-2`}`}
                                     inputMode="numeric"
                                     pattern="[0-9]*"
                                 />
@@ -151,10 +157,11 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
                     </div>
 
                     <button
-                        onClick={() => onRegister(localSubject, localMatricula)}
-                        className="w-[50%] mx-auto block py-4 text-center font-bold text-white bg-gradient-to-r from-primary to-primary-dark rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 mb-8"
+                        onClick={() => !isLocked && onRegister(localSubject, localMatricula)}
+                        disabled={isLocked}
+                        className={`w-[50%] mx-auto block py-4 text-center font-bold text-white rounded-xl shadow-md transition-all duration-300 mb-8 ${isLocked ? 'bg-gray-400 cursor-not-allowed opacity-50' : 'bg-gradient-to-r from-primary to-primary-dark hover:shadow-lg hover:-translate-y-0.5'}`}
                     >
-                        REGISTRAR
+                        {isLocked ? 'BLOQUEADO' : 'REGISTRAR'}
                     </button>
                 </div>
 
@@ -208,7 +215,8 @@ const arePropsEqual = (prevProps: SpecialTeamPanelProps, nextProps: SpecialTeamP
         prevProps.onRegister !== nextProps.onRegister ||
         prevProps.dbName !== nextProps.dbName ||
         prevProps.administrators !== nextProps.administrators ||
-        prevProps.employeesForLookup !== nextProps.employeesForLookup
+        prevProps.employeesForLookup !== nextProps.employeesForLookup ||
+        prevProps.isAdminOnlyTheme !== nextProps.isAdminOnlyTheme
     ) {
         return false;
     }
