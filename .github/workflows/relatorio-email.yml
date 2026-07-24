@@ -107,7 +107,7 @@ jobs:
 
              if [[ $CYCLE_C -eq 0 || $CYCLE_C -eq 1 ]]; then
                 echo "should_run=true" >> $GITHUB_OUTPUT
-                echo "target_team=C CCG" >> $GITHUB_OUTPUT
+                echo "target_team=C C_CG" >> $GITHUB_OUTPUT
                 exit 0
              fi
 

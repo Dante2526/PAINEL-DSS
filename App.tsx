@@ -2170,6 +2170,9 @@ const App: React.FC = () => {
         showNotification('Faça login como Adm para preencher', 'error');
     }, [showNotification]);
 
+    const memoizedTutorialSteps = useMemo(() => getTutorialSteps(selectedTurma), [selectedTurma]);
+    const handleCloseAdminTutorial = useCallback(() => setIsAdminTutorialOpen(false), []);
+
     if (!hasSelectedTheme) {
         return (
             <ThemeSelectionScreen 
@@ -2356,6 +2359,7 @@ const App: React.FC = () => {
                                     turma={selectedTurma}
                                     dbName={specialResponsible}
                                     isAdminOnlyTheme={isAdminOnlyTheme}
+                                    onLockedClick={handleLockedClick}
                                 />
                             )}
                         </div>
@@ -2472,13 +2476,13 @@ const App: React.FC = () => {
                     <InteractiveTutorial
                         isOpen={activeModal === ModalType.Tutorial}
                         onClose={handleCloseModal}
-                        steps={getTutorialSteps(selectedTurma)}
+                        steps={memoizedTutorialSteps}
                         scale={modalScale}
                         onStepChange={handleTutorialStepChange}
                     />
                     <InteractiveTutorial
                         isOpen={isAdminTutorialOpen}
-                        onClose={() => setIsAdminTutorialOpen(false)}
+                        onClose={handleCloseAdminTutorial}
                         steps={adminTutorialSteps}
                         scale={modalScale}
                         onStepChange={handleTutorialStepChange}

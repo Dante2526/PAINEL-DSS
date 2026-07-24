@@ -297,8 +297,8 @@ export default async function handler(req, res) {
     }
 
     // 9. Configurar Rótulos Dinâmicos de Turnos
-    const shiftLabel = (validatedTeam === 'C' || validatedTeam === 'D') ? '18H' : '6H';
-    const mainShiftLabel = (validatedTeam === 'C' || validatedTeam === 'D') ? '19H' : '7H';
+    const shiftLabel = (validatedTeam === 'C' || validatedTeam === 'D' || validatedTeam === 'C_CG' || validatedTeam === 'D_CG') ? '18H' : '6H';
+    const mainShiftLabel = (validatedTeam === 'C' || validatedTeam === 'D' || validatedTeam === 'C_CG' || validatedTeam === 'D_CG') ? '19H' : '7H';
 
     // 10. Buscar Turma de ESTAGIO se aplicável para anexar
     let estagioSnapshot = null;

@@ -23,6 +23,7 @@ interface SpecialTeamPanelProps {
     turma: string | null;
     dbName?: string;
     isAdminOnlyTheme?: boolean;
+    onLockedClick?: () => void;
 }
 
 const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
@@ -41,7 +42,8 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
     administrators,
     turma,
     dbName,
-    isAdminOnlyTheme
+    isAdminOnlyTheme,
+    onLockedClick
 }) => {
     const [localSubject, setLocalSubject] = React.useState(subject);
     const [localMatricula, setLocalMatricula] = React.useState(matricula);
@@ -116,53 +118,56 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
                         </div>
                     )}
 
-                    <div className="space-y-4 mb-6 pb-6 border-b-2 border-gray-200 dark:border-gray-700">
-                        <div className="relative">
-                            <SubjectIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                            <input
-                                type="text"
-                                value={localSubject}
-                                onChange={(e) => setLocalSubject(e.target.value)}
-                                placeholder={`TEMA DSS - TURNO ${shiftLabel}`}
-                                disabled={isLocked}
-                                className={`w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 rounded-lg outline-none transition uppercase ${isLocked ? 'opacity-60 cursor-not-allowed bg-gray-200 dark:bg-gray-800' : `${subjectBorderClass} focus:ring-2`}`}
-                                autoCapitalize="characters"
-                            />
-                        </div>
-                        {/* Modified Matricula Field with Split View - Width Reduced to 50% and Centered */}
-                        <div className="relative flex items-stretch w-[50%] mx-auto">
-                            <div className="relative w-[40%] focus-within:z-10">
-                                <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <div className="relative w-full" onClickCapture={onLockedClick}>
+                        {isLocked && <div className="absolute inset-0 z-20 cursor-not-allowed" title="Faça login como Adm para preencher" />}
+                        <div className="space-y-4 mb-6 pb-6 border-b-2 border-gray-200 dark:border-gray-700">
+                            <div className="relative">
+                                <SubjectIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 <input
                                     type="text"
-                                    value={localMatricula}
-                                    onChange={handleMatriculaChangeLocal}
-                                    placeholder="Matrícula"
+                                    value={localSubject}
+                                    onChange={(e) => setLocalSubject(e.target.value)}
+                                    placeholder={`TEMA DSS - TURNO ${shiftLabel}`}
                                     disabled={isLocked}
-                                    className={`w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 rounded-l-lg outline-none transition ${isLocked ? 'opacity-60 cursor-not-allowed bg-gray-200 dark:bg-gray-800' : `${matriculaBorderClass} ${!isMatriculaEmpty ? 'border-r border-r-gray-300 dark:border-r-gray-600' : ''} focus:ring-2`}`}
-                                    inputMode="numeric"
-                                    pattern="[0-9]*"
+                                    className={`w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 rounded-lg outline-none transition uppercase ${isLocked ? 'opacity-60 cursor-not-allowed bg-gray-200 dark:bg-gray-800' : `${subjectBorderClass} focus:ring-2`}`}
+                                    autoCapitalize="characters"
                                 />
                             </div>
-                            <div className="relative w-[60%]">
-                                <input
-                                    type="text"
-                                    value={foundName}
-                                    readOnly
-                                    placeholder={localMatricula ? "Não encontrado" : "Nome do Responsável"}
-                                    className="w-full px-4 py-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-medium border-2 border-l-0 border-gray-200 dark:border-gray-600 rounded-r-lg outline-none pointer-events-none truncate text-center"
-                                />
+                            {/* Modified Matricula Field with Split View - Width Reduced to 50% and Centered */}
+                            <div className="relative flex items-stretch w-[50%] mx-auto">
+                                <div className="relative w-[40%] focus-within:z-10">
+                                    <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        value={localMatricula}
+                                        onChange={handleMatriculaChangeLocal}
+                                        placeholder="Matrícula"
+                                        disabled={isLocked}
+                                        className={`w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 rounded-l-lg outline-none transition ${isLocked ? 'opacity-60 cursor-not-allowed bg-gray-200 dark:bg-gray-800' : `${matriculaBorderClass} ${!isMatriculaEmpty ? 'border-r border-r-gray-300 dark:border-r-gray-600' : ''} focus:ring-2`}`}
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
+                                    />
+                                </div>
+                                <div className="relative w-[60%]">
+                                    <input
+                                        type="text"
+                                        value={foundName}
+                                        readOnly
+                                        placeholder={localMatricula ? "Não encontrado" : "Nome do Responsável"}
+                                        className="w-full px-4 py-4 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 font-medium border-2 border-l-0 border-gray-200 dark:border-gray-600 rounded-r-lg outline-none pointer-events-none truncate text-center"
+                                    />
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <button
-                        onClick={() => !isLocked && onRegister(localSubject, localMatricula)}
-                        disabled={isLocked}
-                        className={`w-[50%] mx-auto block py-4 text-center font-bold text-white rounded-xl shadow-md transition-all duration-300 mb-8 ${isLocked ? 'bg-gray-400 cursor-not-allowed opacity-50' : 'bg-gradient-to-r from-primary to-primary-dark hover:shadow-lg hover:-translate-y-0.5'}`}
-                    >
-                        {isLocked ? 'BLOQUEADO' : 'REGISTRAR'}
-                    </button>
+                        <button
+                            onClick={() => !isLocked && onRegister(localSubject, localMatricula)}
+                            disabled={isLocked}
+                            className={`w-[50%] mx-auto block py-4 text-center font-bold text-white rounded-xl shadow-md transition-all duration-300 mb-8 ${isLocked ? 'bg-gray-400 cursor-not-allowed opacity-50' : 'bg-gradient-to-r from-primary to-primary-dark hover:shadow-lg hover:-translate-y-0.5'}`}
+                        >
+                            {isLocked ? 'BLOQUEADO' : 'REGISTRAR'}
+                        </button>
+                    </div>
                 </div>
 
                 {firstEmployee && (

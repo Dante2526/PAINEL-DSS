@@ -35,8 +35,8 @@ const transporter = nodemailer.createTransport({
   auth: { user: EMAIL_USER, pass: EMAIL_PASS },
 });
 
-const shiftLabel = (TARGET_TEAM === 'C' || TARGET_TEAM === 'D') ? '18H' : '6H';
-const mainShiftLabel = (TARGET_TEAM === 'C' || TARGET_TEAM === 'D') ? '19H' : '7H';
+const shiftLabel = (TARGET_TEAM === 'C' || TARGET_TEAM === 'D' || TARGET_TEAM === 'C_CG' || TARGET_TEAM === 'D_CG') ? '18H' : '6H';
+const mainShiftLabel = (TARGET_TEAM === 'C' || TARGET_TEAM === 'D' || TARGET_TEAM === 'C_CG' || TARGET_TEAM === 'D_CG') ? '19H' : '7H';
 
 function limparTexto(texto) {
   if (!texto) return '';
