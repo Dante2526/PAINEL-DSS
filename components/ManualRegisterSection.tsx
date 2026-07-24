@@ -81,7 +81,8 @@ export const ManualRegisterSection: React.FC<{
                 </div>
             )}
 
-            <div id="tutorial-manual-register-bar" className="flex gap-4 items-center w-fit" onClickCapture={handleLockedClick}>
+            <div id="tutorial-manual-register-bar" className="flex gap-4 items-center w-fit relative" onClickCapture={handleLockedClick}>
+                {isLocked && <div className="absolute inset-0 z-20 cursor-not-allowed" title="Faça login como Adm para preencher" />}
                 <div className="relative w-[600px]">
                     <SubjectIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input

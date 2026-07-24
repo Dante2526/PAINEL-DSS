@@ -2166,6 +2166,10 @@ const App: React.FC = () => {
         setHasSelectedTheme(true);
     }, []);
 
+    const handleLockedClick = useCallback(() => {
+        showNotification('Faça login como Adm para preencher', 'error');
+    }, [showNotification]);
+
     if (!hasSelectedTheme) {
         return (
             <ThemeSelectionScreen 
@@ -2235,8 +2239,8 @@ const App: React.FC = () => {
                                     turma={selectedTurma}
                                     dbName={mainResponsible}
                                     isAdminOnlyTheme={isAdminOnlyTheme}
-                                    isAdmin={isAdminRef.current}
-                                    onLockedClick={() => showNotification('Faça login como Adm para preencher', 'error')}
+                                    isAdmin={isAdmin}
+                                    onLockedClick={handleLockedClick}
                                 />
                                 )}
 
