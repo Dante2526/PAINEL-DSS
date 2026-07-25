@@ -159,7 +159,7 @@ const App: React.FC = () => {
         return () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
-    }, [db]);
+    }, []);
 
     // Refs para estabilizar callbacks sem dependência de state mutável
     const employeesRef = useRef<Employee[]>([]);
@@ -553,7 +553,7 @@ const App: React.FC = () => {
         }, (error) => console.error("Error listening to admin updates:", error));
 
         return () => unsubscribeAdministrators();
-    }, [isAdmin, db, activeModal]);
+    }, [isAdmin, activeModal]);
 
     const setScale = useCallback((newScale: number, scrollX?: number, scrollY?: number) => {
         const viewport = viewportRef.current;
@@ -959,7 +959,7 @@ const App: React.FC = () => {
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
             showNotification(`Falha ao atualizar horário: ${message}`, 'error');
         }
-    }, [isAdminRef, isDemoMode, db, selectedTurma, showNotification]);
+    }, [isAdminRef, isDemoMode, selectedTurma, showNotification]);
 
     const handleMatriculaUpdate = useCallback(async (id: string, newMatricula: string) => {
         if (!isAdminRef.current) {
@@ -1001,7 +1001,7 @@ const App: React.FC = () => {
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
             showNotification(`Falha ao atualizar matrícula: ${message}`, 'error');
         }
-    }, [isAdminRef, isDemoMode, db, selectedTurma, showNotification]);
+    }, [isAdminRef, isDemoMode, selectedTurma, showNotification]);
 
     const handleStatusChange = useCallback((id: string, type: StatusType) => {
         const employee = employeesRef.current.find(e => e.id === id);
@@ -1111,7 +1111,7 @@ const App: React.FC = () => {
             showNotification('Erro ao alterar a senha.', 'error');
             return false;
         }
-    }, [pendingEmployeeId, db, isDemoMode, selectedTurma, showNotification]);
+    }, [pendingEmployeeId, isDemoMode, selectedTurma, showNotification]);
 
     const processToggleSpecialTeam = useCallback(async (id: string) => {
         if (!selectedTurma) return;
@@ -1153,7 +1153,7 @@ const App: React.FC = () => {
         } finally {
             setTogglingSpecialTeamId(null);
         }
-    }, [selectedTurma, isDemoMode, db, showNotification]);
+    }, [selectedTurma, isDemoMode, showNotification]);
 
     const handleToggleSpecialTeam = useCallback((id: string) => {
         setPendingEmployeeId(id);
@@ -1193,7 +1193,7 @@ const App: React.FC = () => {
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
             showNotification(`Falha ao deletar: ${message}`, 'error');
         }
-    }, [selectedTurma, isDemoMode, db, showNotification]);
+    }, [selectedTurma, isDemoMode, showNotification]);
 
     const handleDeleteUser = useCallback((employeeId: string) => {
         if (!isAdminRef.current) {
@@ -1262,7 +1262,7 @@ const App: React.FC = () => {
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
             showNotification(`Falha ao alterar estado do turno: ${message}`, 'error');
         }
-    }, [selectedTurma, isDemoMode, db, showNotification]);
+    }, [selectedTurma, isDemoMode, showNotification]);
 
     const handleToggle6H = useCallback(() => {
         if (!isAdminRef.current || !selectedTurma) {
@@ -1311,7 +1311,7 @@ const App: React.FC = () => {
             console.error("Error toggling signature password:", error);
             showNotification('Falha ao alterar configuração de senha.', 'error');
         }
-    }, [isSignaturePasswordActive, selectedTurma, isDemoMode, db, showNotification]);
+    }, [isSignaturePasswordActive, selectedTurma, isDemoMode, showNotification]);
 
     const handleToggleAdminOnlyTheme = useCallback(async () => {
         if (!isAdminRef.current || !selectedTurma) {
@@ -1341,7 +1341,7 @@ const App: React.FC = () => {
             console.error("Error toggling admin only theme:", error);
             showNotification('Falha ao alterar configuração do Tema DSS.', 'error');
         }
-    }, [isAdminOnlyTheme, selectedTurma, isDemoMode, db, showNotification]);
+    }, [isAdminOnlyTheme, selectedTurma, isDemoMode, showNotification]);
 
     const handleManualRegister = useCallback(async (turno: '7H' | '6H', matricula: string, rawSubject: string) => {
         if (!selectedTurma || !db) return;
@@ -1416,7 +1416,7 @@ const App: React.FC = () => {
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
             showNotification(`Falha ao salvar registro: ${message}`, 'error');
         }
-    }, [selectedTurma, isDemoMode, db, isSignaturePasswordActive, showNotification]);
+    }, [selectedTurma, isDemoMode, isSignaturePasswordActive, showNotification]);
 
     const handleAdminLogin = async (inputStr: string, isBiometric = false) => {
         const normalizedInput = inputStr.trim();
@@ -2103,7 +2103,7 @@ const App: React.FC = () => {
             console.error(e);
             showNotification('Erro ao pausar as ações. Verifique permissões.', 'error');
         }
-    }, [selectedTurma, isAutomationPaused, showNotification, db]);
+    }, [selectedTurma, isAutomationPaused, showNotification]);
 
     const handleOpenAuditLog = useCallback(async () => {
         if (!db) return;
@@ -2141,7 +2141,7 @@ const App: React.FC = () => {
             console.error("Erro ao buscar registros de auditoria:", error);
             showNotification('Falha ao carregar registros de auditoria.', 'error');
         }
-    }, [db, showNotification]);
+    }, [showNotification]);
 
 
 

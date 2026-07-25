@@ -212,7 +212,7 @@ const HistoryModal: React.FC<{
         } finally {
             setLoading(false);
         }
-    }, [turma, db, currentLiveHistory, showNotification]);
+    }, [turma, currentLiveHistory, showNotification]);
 
     // Função para carregar lote de histórico
     const loadHistoryBatch = useCallback(async (isManualLoadMore = false, turmasParaBusca?: string[]) => {
@@ -266,7 +266,7 @@ const HistoryModal: React.FC<{
             setIsSearching(false);
             setFetchingMore(false);
         }
-    }, [turma, db, handleDateChange]);
+    }, [turma, handleDateChange]);
 
     // Função disparada ao clicar em buscar ou dar Enter
     const handleSearchSubmit = useCallback(() => {
