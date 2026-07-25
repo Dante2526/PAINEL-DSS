@@ -2108,13 +2108,34 @@ const App: React.FC = () => {
     const handleOpenAuditLog = useCallback(async () => {
         if (!db) return;
         try {
-            const auditCollection = collection(db, 'registros_auditoria');
-            const auditSnapshot = await getDocs(auditCollection);
-            const records: AuditRecord[] = [];
+            const auditCollection = collection(db, 'auditoria_logs');
+            const q = query(auditCollection, orderBy('timestamp_unix', 'desc'), limit(1000));
+            const auditSnapshot = await getDocs(q);
+            
+            const groupedByEmail: Record<string, AuditRecord> = {};
+            
             auditSnapshot.forEach(doc => {
-                records.push({ id: doc.id, ...doc.data() } as AuditRecord);
+                const data = doc.data();
+                const email = data.email;
+                if (!email) return;
+                
+                if (!groupedByEmail[email]) {
+                    groupedByEmail[email] = {
+                        id: email,
+                        ultimo_acesso: data.timestamp, // Primeiro (mais recente)
+                        acoes: []
+                    };
+                }
+                
+                groupedByEmail[email].acoes.push({
+                    action: data.action,
+                    details: data.details,
+                    timestamp: data.timestamp,
+                    turma: data.turma
+                });
             });
-            setAuditRecords(records);
+
+            setAuditRecords(Object.values(groupedByEmail));
             setActiveModal(ModalType.AuditLog);
         } catch (error) {
             console.error("Erro ao buscar registros de auditoria:", error);

@@ -1,6 +1,6 @@
 
 
-import React, { useState, memo } from 'react';
+import React, { useState, memo, useEffect } from 'react';
 import { Employee, StatusType } from '../types';
 import { ShiftIcon, AusenteIcon, TrashIcon, EditIcon, CheckIcon, XIcon } from './icons';
 import { formatTimestamp } from '../services/employeeService';
@@ -82,6 +82,10 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
     const [editTimeValue, setEditTimeValue] = useState<string>('');
     const [isEditingMatricula, setIsEditingMatricula] = useState(false);
     const [editMatriculaValue, setEditMatriculaValue] = useState(employee.matricula);
+
+    useEffect(() => {
+        setEditMatriculaValue(employee.matricula);
+    }, [employee.matricula]);
 
     const getMaskedMatricula = (mat: string) => {
         if (!mat) return "";
