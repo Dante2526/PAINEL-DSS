@@ -24,6 +24,12 @@ export class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error, errorInfo: null, copied: false };
   }
 
+  public componentDidMount() {
+    // Limpa a flag de reload de chunk se o app montou com sucesso
+    // Isso garante que um futuro erro de chunk em um novo deploy dispare o reload
+    sessionStorage.removeItem('chunk_reload');
+  }
+
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     const isChunkLoadError = error?.message?.includes('Failed to fetch dynamically imported module') || 
                              error?.message?.includes('Importing a module script failed') ||

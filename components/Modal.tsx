@@ -1,6 +1,12 @@
 import React, { ReactNode, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
+let openModalCount = 0;
+let originalScrollY = 0;
+let originalPosition = '';
+let originalTop = '';
+let originalWidth = '';
+
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -17,21 +23,28 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, onBack, title, children,
   useEffect(() => {
     if (!isOpen) return;
 
-    // Trava o scroll agressivamente no mobile para impedir que o Chrome empurre a página para cima
-    const scrollY = window.scrollY;
-    const originalPosition = document.body.style.position;
-    const originalTop = document.body.style.top;
-    const originalWidth = document.body.style.width;
+    openModalCount++;
 
-    document.body.style.position = 'fixed';
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = '100%';
+    if (openModalCount === 1) {
+      // Trava o scroll agressivamente no mobile para impedir que o Chrome empurre a página para cima
+      originalScrollY = window.scrollY;
+      originalPosition = document.body.style.position;
+      originalTop = document.body.style.top;
+      originalWidth = document.body.style.width;
+
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${originalScrollY}px`;
+      document.body.style.width = '100%';
+    }
 
     return () => {
-      document.body.style.position = originalPosition;
-      document.body.style.top = originalTop;
-      document.body.style.width = originalWidth;
-      window.scrollTo(0, scrollY);
+      openModalCount--;
+      if (openModalCount === 0) {
+        document.body.style.position = originalPosition;
+        document.body.style.top = originalTop;
+        document.body.style.width = originalWidth;
+        window.scrollTo(0, originalScrollY);
+      }
     };
   }, [isOpen]);
 

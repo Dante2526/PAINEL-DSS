@@ -1,7 +1,7 @@
 // Nome do cache
-const CACHE_NAME = 'painel-dss-v3';
+const CACHE_NAME = 'painel-dss-v4';
 
-// Arquivos para cachear
+// Arquivos para cachear na instalação (shell do app)
 const urlsToCache = [
   '/',
   '/index.html',
@@ -36,17 +36,33 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Interceptação de requisições
+// Interceptação de requisições — Network First para JS/CSS
 self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+
+  // Para assets de build (JS/CSS), sempre busca da rede primeiro.
+  // Isso garante que após um novo deploy, o usuário receba o bundle mais recente
+  // em vez de receber o arquivo JS/CSS antigo do cache.
+  if (url.pathname.match(/\.(js|css)$/)) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // Para tudo mais (HTML, imagens, fontes): Cache First
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // Se encontrou no cache, retorna
         if (response) {
           return response;
         }
-        
-        // Se não, tenta buscar na rede
         return fetch(event.request).catch(() => {
             // Se falhar (offline) e for uma navegação (HTML), retorna a raiz (/)
             // Isso corrige o erro 404 ao abrir o app instalado offline
