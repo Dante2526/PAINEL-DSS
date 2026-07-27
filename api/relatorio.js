@@ -330,7 +330,7 @@ export default async function handler(req, res) {
       auth: { user: EMAIL_USER, pass: EMAIL_PASS },
     });
 
-    const subject = `Relatório DSS - TURMA ${validatedTeam} (${dataExibicao})`;
+    const subject = `Relatório DSS - [TURMA ${validatedTeam}] (${dataExibicao})`;
     const mailOptions = {
       from: EMAIL_USER,
       to: EMAIL_TO,

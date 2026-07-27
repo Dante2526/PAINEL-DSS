@@ -170,7 +170,7 @@ async function gerarRelatorio(empSnapshot, dataExibicao, is6HActive = true) {
 // --- 4. FUNÇÃO DE ENVIAR O E-MAIL ---
 async function enviarEmail(htmlRelatorio, dataExibicao, dataID) {
   console.log(`Enviando e-mail para ${EMAIL_TO}...`);
-  const subject = `Relatório DSS - TURMA ${TARGET_TEAM} (${dataExibicao})`;
+  const subject = `Relatório DSS - [TURMA ${TARGET_TEAM}] (${dataExibicao})`;
   const mailOptions = { from: EMAIL_USER, to: EMAIL_TO, subject, html: htmlRelatorio };
   try {
     await transporter.sendMail(mailOptions);

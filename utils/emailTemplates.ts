@@ -117,7 +117,7 @@ export const generateHealthAlertEmail = (
     </html>
     `;
 
-    const subject = `🚨 ALERTA URGENTE TURMA ${TURMA_DISPLAY_NAMES[turma]}: "ESTOU MAL"`;
+    const subject = `🚨 ALERTA URGENTE [TURMA ${TURMA_DISPLAY_NAMES[turma]}]: "ESTOU MAL"`;
 
     return { html, subject };
 };
