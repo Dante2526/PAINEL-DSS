@@ -10,19 +10,27 @@ service cloud.firestore {
          collectionId == 'turma b' || 
          collectionId == 'turma c' ||
          collectionId == 'turma d' ||
-         collectionId == 'turma c cg' ||
-         collectionId == 'turma b cg' ||
          collectionId == 'turma a cg' ||
+         collectionId == 'turma b cg' ||
+         collectionId == 'turma c cg' ||
          collectionId == 'turma d cg' ||
+         collectionId == 'turma a ccp_cg' ||
+         collectionId == 'turma b ccp_cg' ||
+         collectionId == 'turma c ccp_cg' ||
+         collectionId == 'turma d ccp_cg' ||
          collectionId == 'estagio' ||
          collectionId == 'registrosDSS A' || 
          collectionId == 'registrosDSS B' ||
          collectionId == 'registrosDSS C' ||
          collectionId == 'registrosDSS D' ||
-         collectionId == 'registrosDSS C CG' ||
-         collectionId == 'registrosDSS B CG' ||
          collectionId == 'registrosDSS A CG' ||
+         collectionId == 'registrosDSS B CG' ||
+         collectionId == 'registrosDSS C CG' ||
          collectionId == 'registrosDSS D CG' ||
+         collectionId == 'registrosDSS A CCP_CG' ||
+         collectionId == 'registrosDSS B CCP_CG' ||
+         collectionId == 'registrosDSS C CCP_CG' ||
+         collectionId == 'registrosDSS D CCP_CG' ||
          collectionId == 'registrosDSS Estágio');
     }
 

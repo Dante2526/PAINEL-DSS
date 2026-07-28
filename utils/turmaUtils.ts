@@ -5,17 +5,17 @@ export const EMAILJS_PUBLIC_KEY = "Ef-7IoF9U9NQ_iV8X";
 // ----------------------------
 
 // --- TIPO E HELPERS DE TURMA ---
-export type TurmaType = 'A' | 'B' | 'C' | 'D' | 'C_CG' | 'B_CG' | 'A_CG' | 'D_CG' | 'ESTAGIO' | 'A_CCP_CG' | 'B_CCP_CG' | 'C_CCP_CG' | 'D_CCP_CG';
-export const ALL_TURMAS: TurmaType[] = ['A', 'B', 'C', 'D', 'C_CG', 'B_CG', 'A_CG', 'D_CG', 'ESTAGIO', 'A_CCP_CG', 'B_CCP_CG', 'C_CCP_CG', 'D_CCP_CG'];
+export type TurmaType = 'A' | 'B' | 'C' | 'D' | 'A_CG' | 'B_CG' | 'C_CG' | 'D_CG' | 'ESTAGIO' | 'A_CCP_CG' | 'B_CCP_CG' | 'C_CCP_CG' | 'D_CCP_CG';
+export const ALL_TURMAS: TurmaType[] = ['A', 'B', 'C', 'D', 'A_CG', 'B_CG', 'C_CG', 'D_CG', 'ESTAGIO', 'A_CCP_CG', 'B_CCP_CG', 'C_CCP_CG', 'D_CCP_CG'];
 
 export const TURMA_DISPLAY_NAMES: Record<TurmaType, string> = {
     A: 'A',
     B: 'B',
     C: 'C',
     D: 'D',
-    C_CG: 'C CG',
-    B_CG: 'B CG',
     A_CG: 'A CG',
+    B_CG: 'B CG',
+    C_CG: 'C CG',
     D_CG: 'D CG',
     ESTAGIO: 'Estágio',
     A_CCP_CG: 'A CCP_CG',

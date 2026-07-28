@@ -6,9 +6,9 @@ const TURMAS = {
   B:   { employees: 'turma b',    registros: 'registrosDSS B' },
   C:   { employees: 'turma c',    registros: 'registrosDSS C' },
   D:   { employees: 'turma d',    registros: 'registrosDSS D' },
-  C_CG: { employees: 'turma c cg', registros: 'registrosDSS C CG' },
-  B_CG: { employees: 'turma b cg', registros: 'registrosDSS B CG' },
   A_CG: { employees: 'turma a cg', registros: 'registrosDSS A CG' },
+  B_CG: { employees: 'turma b cg', registros: 'registrosDSS B CG' },
+  C_CG: { employees: 'turma c cg', registros: 'registrosDSS C CG' },
   D_CG: { employees: 'turma d cg', registros: 'registrosDSS D CG' },
   ESTAGIO: { employees: 'estagio', registros: 'registrosDSS Estágio' },
   A_CCP_CG: { employees: 'turma a ccp_cg', registros: 'registrosDSS A CCP_CG' },
@@ -25,9 +25,9 @@ const ANCHOR_DATES = {
   B:   "2025-11-07",
   C:   "2026-01-16",
   D:   "2026-01-26",
-  C_CG: "2026-01-16", // C_CG compartilha a escala da Turma C
-  B_CG: "2025-11-07", // B_CG compartilha a escala da Turma B
   A_CG: "2026-01-08", // A_CG compartilha a escala da Turma A
+  B_CG: "2025-11-07", // B_CG compartilha a escala da Turma B
+  C_CG: "2026-01-16", // C_CG compartilha a escala da Turma C
   D_CG: "2026-01-26", // D_CG compartilha a escala da Turma D
   A_CCP_CG: "2026-01-08",
   B_CCP_CG: "2025-11-07",
