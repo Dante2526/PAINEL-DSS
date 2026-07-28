@@ -61,7 +61,9 @@ import {
     getTurmaRegistrationName,
     isValidTurma,
     getShiftLabel,
-    getMainShiftLabel
+    getMainShiftLabel,
+    getDisplayModeFromPath,
+    isCargaGeralTurma
 } from './utils/turmaUtils';
 import { getTutorialSteps, adminTutorialSteps } from './utils/tutorialSteps';
 import { generateHealthAlertEmail } from './utils/emailTemplates';
@@ -103,6 +105,14 @@ const App: React.FC = () => {
     const [selectedTurma, setSelectedTurma] = useState<TurmaType | null>(() => {
         const savedTurma = localStorage.getItem('selectedTurma');
         if (savedTurma && isValidTurma(savedTurma)) {
+            const isCgRoute = getDisplayModeFromPath() === 'CG';
+            const isCgTurma = isCargaGeralTurma(savedTurma);
+            
+            if (isCgRoute !== isCgTurma) {
+                localStorage.removeItem('selectedTurma');
+                localStorage.removeItem('selectedLayout');
+                return null;
+            }
             return savedTurma;
         }
         return null;
@@ -183,7 +193,13 @@ const App: React.FC = () => {
     const [pendingEmployeeId, setPendingEmployeeId] = useState<string | null>(null);
     const [existingUserInfo, setExistingUserInfo] = useState<{ name: string; turma: string } | null>(null);
 
-    const [is6HActive, setIs6HActive] = useState(true);
+    const [is6HActive, setIs6HActive] = useState(() => {
+        const savedTurma = localStorage.getItem('selectedTurma');
+        if (savedTurma && savedTurma.includes('_CCP_')) {
+            return false;
+        }
+        return true;
+    });
     const [isSignaturePasswordActive, setIsSignaturePasswordActive] = useState(false);
     const [isAdminOnlyTheme, setIsAdminOnlyTheme] = useState(false);
     const [isAutomationPaused, setIsAutomationPaused] = useState(false);
@@ -1843,6 +1859,12 @@ const App: React.FC = () => {
         setLoading(true);
         setEmployees([]); // Limpa dados antigos para evitar exibir dados da turma errada
         setSelectedTurma(turma);
+        // Resetar turno secundário conforme tipo da turma
+        if (turma.includes('_CCP_') || turma === 'C_CG' || turma === 'ESTAGIO') {
+            setIs6HActive(false);
+        } else {
+            setIs6HActive(true);
+        }
     }, []);
 
     const handleSelectLayout = useCallback((layout: 'standard' | 'custom') => {

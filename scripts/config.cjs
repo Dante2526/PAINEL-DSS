@@ -11,6 +11,10 @@ const TURMAS = {
   A_CG: { employees: 'turma a cg', registros: 'registrosDSS A CG' },
   D_CG: { employees: 'turma d cg', registros: 'registrosDSS D CG' },
   ESTAGIO: { employees: 'estagio', registros: 'registrosDSS Estágio' },
+  A_CCP_CG: { employees: 'turma a ccp_cg', registros: 'registrosDSS A CCP_CG' },
+  B_CCP_CG: { employees: 'turma b ccp_cg', registros: 'registrosDSS B CCP_CG' },
+  C_CCP_CG: { employees: 'turma c ccp_cg', registros: 'registrosDSS C CCP_CG' },
+  D_CCP_CG: { employees: 'turma d ccp_cg', registros: 'registrosDSS D CCP_CG' },
 };
 
 const TURMAS_VALIDAS = Object.keys(TURMAS);
@@ -25,6 +29,10 @@ const ANCHOR_DATES = {
   B_CG: "2025-11-07", // B_CG compartilha a escala da Turma B
   A_CG: "2026-01-08", // A_CG compartilha a escala da Turma A
   D_CG: "2026-01-26", // D_CG compartilha a escala da Turma D
+  A_CCP_CG: "2026-01-08",
+  B_CCP_CG: "2025-11-07",
+  C_CCP_CG: "2026-01-16",
+  D_CCP_CG: "2026-01-26",
 };
 
 /**
