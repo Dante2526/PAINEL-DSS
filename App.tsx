@@ -1551,13 +1551,13 @@ const App: React.FC = () => {
             const normalizedEmail = email.trim().toLowerCase();
             const normalizedMatricula = matricula.trim();
 
-            const emailExists = administrators.some(a => a.email.trim().toLowerCase() === normalizedEmail);
+            const emailExists = administrators.some(a => (a.email || '').trim().toLowerCase() === normalizedEmail);
             if (emailExists) {
                 showNotification('Já existe um administrador com este e-mail.', 'error');
                 return;
             }
 
-            const matriculaExists = administrators.some(a => a.matricula.trim() === normalizedMatricula);
+            const matriculaExists = administrators.some(a => (a.matricula || '').trim() === normalizedMatricula);
             if (matriculaExists) {
                 showNotification('Já existe um administrador com esta matrícula.', 'error');
                 return;
@@ -1584,13 +1584,13 @@ const App: React.FC = () => {
             const normalizedEmail = email.trim().toLowerCase();
             const normalizedMatricula = matricula.trim();
 
-            const emailExists = administrators.some(a => a.id !== id && a.email.trim().toLowerCase() === normalizedEmail);
+            const emailExists = administrators.some(a => a.id !== id && (a.email || '').trim().toLowerCase() === normalizedEmail);
             if (emailExists) {
                 showNotification('Já existe outro administrador com este e-mail.', 'error');
                 return;
             }
 
-            const matriculaExists = administrators.some(a => a.id !== id && a.matricula.trim() === normalizedMatricula);
+            const matriculaExists = administrators.some(a => a.id !== id && (a.matricula || '').trim() === normalizedMatricula);
             if (matriculaExists) {
                 showNotification('Já existe outro administrador com esta matrícula.', 'error');
                 return;
