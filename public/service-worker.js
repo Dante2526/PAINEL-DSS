@@ -1,5 +1,5 @@
 // Nome do cache
-const CACHE_NAME = 'painel-dss-v4';
+const CACHE_NAME = 'painel-dss-v5';
 
 // Arquivos para cachear na instalação (shell do app)
 const urlsToCache = [
@@ -56,7 +56,21 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Para tudo mais (HTML, imagens, fontes): Cache First
+  // Para HTML (navegação), sempre busca da rede primeiro para não prender o usuário em versão velha
+  if (event.request.mode === 'navigate' || event.request.headers.get('accept').includes('text/html')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          return response;
+        })
+        .catch(() => caches.match(event.request).then(res => res || caches.match('/')))
+    );
+    return;
+  }
+
+  // Para tudo mais (imagens, fontes, manifest): Cache First
   event.respondWith(
     caches.match(event.request)
       .then((response) => {

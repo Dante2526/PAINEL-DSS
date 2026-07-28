@@ -2086,7 +2086,7 @@ const App: React.FC = () => {
     const handleOpenAddUser = useCallback(() => setActiveModal(ModalType.AddUser), []);
     const handleOpenReport = useCallback(() => setActiveModal(ModalType.Report), []);
     const handleOpenImportEmployee = useCallback(() => setActiveModal(ModalType.ImportEmployee), []);
-    const handleStartAdminTutorial = useCallback(() => setIsAdminTutorialOpen(true), []);
+    const handleStartAdminTutorial = useCallback(() => setActiveModal(ModalType.AdminTutorialChoice), []);
     const handleRegister7H = useCallback((subject: string, matricula: string) => handleManualRegister('7H', matricula, subject), [handleManualRegister]);
     const handleRegister6H = useCallback((subject: string, matricula: string) => handleManualRegister('6H', matricula, subject), [handleManualRegister]);
 
@@ -2637,6 +2637,22 @@ const App: React.FC = () => {
                         isOpen={activeModal === ModalType.TutorialVideo}
                         onClose={() => setActiveModal(ModalType.None)}
                         scale={modalScale}
+                    />
+                    <TutorialChoiceModal
+                        isOpen={activeModal === ModalType.AdminTutorialChoice}
+                        onClose={() => setActiveModal(ModalType.None)}
+                        onSelectInteractive={() => {
+                            setActiveModal(ModalType.None);
+                            setIsAdminTutorialOpen(true);
+                        }}
+                        onSelectVideo={() => setActiveModal(ModalType.AdminTutorialVideo)}
+                        scale={modalScale}
+                    />
+                    <TutorialVideoModal
+                        isOpen={activeModal === ModalType.AdminTutorialVideo}
+                        onClose={() => setActiveModal(ModalType.None)}
+                        scale={modalScale}
+                        videoUrl="https://drive.google.com/file/d/1VONdGRijqHaymNi-Y7fcyrHhAQ5FFLM_/preview?hd=1"
                     />
                 </Suspense>
 

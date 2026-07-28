@@ -437,7 +437,8 @@ export const TutorialVideoModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
     scale: number;
-}> = ({ isOpen, onClose, scale }) => {
+    videoUrl?: string;
+}> = ({ isOpen, onClose, scale, videoUrl }) => {
     if (!isOpen) return null;
     return (
         <div
@@ -457,7 +458,7 @@ export const TutorialVideoModal: React.FC<{
                     <span className="text-xl">&times;</span>
                 </button>
                 <iframe
-                    src="https://drive.google.com/file/d/17echHUSii5HsYV3uqciHzckJnTbw2Pig/preview?hd=1"
+                    src={videoUrl || "https://drive.google.com/file/d/1Mb4mFuAkAaebabtgOh_vkNkqXhk2eNc9/preview?hd=1"}
                     className="w-full h-full rounded-lg"
                     allow="autoplay; fullscreen"
                     title="Vídeo Tutorial Painel DSS"

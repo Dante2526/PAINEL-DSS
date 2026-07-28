@@ -89,6 +89,8 @@ export enum ModalType {
   Tutorial,
   TutorialChoice,      // Novo: Escolha entre tour ou vídeo
   TutorialVideo,       // Novo: Visualização do vídeo aula
+  AdminTutorialChoice,
+  AdminTutorialVideo,
   ImportEmployee,
   UserExistsWarning,
   ConfirmDeactivate6H,
