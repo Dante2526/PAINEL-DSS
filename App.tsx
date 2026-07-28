@@ -582,7 +582,7 @@ const App: React.FC = () => {
         // Isso impede a "Tremedeira Matemática" descrita, pois a raiz nunca encolhe.
         let minScale = 0.2;
         if (scalableContainer.offsetWidth > 0) {
-            minScale = Math.min(1.0, window.innerWidth / scalableContainer.offsetWidth);
+            minScale = Math.min(0.8, window.innerWidth / scalableContainer.offsetWidth);
         }
 
         const finalScale = Math.max(minScale, Math.min(newScale, 2.0));
