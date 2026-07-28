@@ -482,18 +482,19 @@ const App: React.FC = () => {
                     const mainReg = registrations.find(r => r.TURNO === '7H');
                     const specialReg = registrations.find(r => r.TURNO === '6H');
                     
+                    const isSingleShiftTurma = selectedTurma.includes('_CG') || selectedTurma.includes('_CCP_') || selectedTurma === 'ESTAGIO';
                     const config6H = querySnapshot.docs.find(d => d.id === 'config_6H');
                     if (config6H) {
-                        setIs6HActive(config6H.data().active ?? (selectedTurma === 'B_CG' || selectedTurma === 'A_CG' || selectedTurma === 'D_CG' || selectedTurma === 'C_CG' ? false : true));
+                        setIs6HActive(config6H.data().active ?? !isSingleShiftTurma);
                     } else {
-                        setIs6HActive(selectedTurma === 'B_CG' || selectedTurma === 'A_CG' || selectedTurma === 'D_CG' || selectedTurma === 'C_CG' ? false : true);
+                        setIs6HActive(!isSingleShiftTurma);
                     }
                     
                     const configSignaturePassword = querySnapshot.docs.find(d => d.id === 'config_signature_password');
                     if (configSignaturePassword) {
-                        setIsSignaturePasswordActive(configSignaturePassword.data().active ?? (selectedTurma === 'B_CG' || selectedTurma === 'A_CG' || selectedTurma === 'D_CG' || selectedTurma === 'C_CG'));
+                        setIsSignaturePasswordActive(configSignaturePassword.data().active ?? selectedTurma.includes('_CG'));
                     } else {
-                        setIsSignaturePasswordActive(selectedTurma === 'B_CG' || selectedTurma === 'A_CG' || selectedTurma === 'D_CG' || selectedTurma === 'C_CG');
+                        setIsSignaturePasswordActive(selectedTurma.includes('_CG'));
                     }
 
                     const configAdminTheme = querySnapshot.docs.find(d => d.id === 'config_admin_theme');
