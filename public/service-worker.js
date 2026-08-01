@@ -36,53 +36,40 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Interceptação de requisições — Network First para JS/CSS
+// Interceptação de requisições
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Para assets de build (JS/CSS), sempre busca da rede primeiro.
-  // Isso garante que após um novo deploy, o usuário receba o bundle mais recente
-  // em vez de receber o arquivo JS/CSS antigo do cache.
-  if (url.pathname.match(/\.(js|css)$/)) {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          return response;
-        })
-        .catch(() => caches.match(event.request))
-    );
+  // Ignora requisições que não sejam HTTP/HTTPS (como chrome-extension)
+  // Ignora requisições que não sejam da mesma origem (ex: Firestore, APIs externas)
+  if (!url.protocol.startsWith('http') || url.origin !== self.location.origin) {
     return;
   }
 
-  // Para HTML (navegação), sempre busca da rede primeiro para não prender o usuário em versão velha
-  if (event.request.mode === 'navigate' || event.request.headers.get('accept')?.includes('text/html')) {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          return response;
-        })
-        .catch(() => caches.match(event.request).then(res => res || caches.match('/')))
-    );
-    return;
-  }
-
-  // Para tudo mais (imagens, fontes, manifest): Cache First
+  // Estratégia: Network First para HTML e assets de build, Cache First para outros
   event.respondWith(
-    caches.match(event.request)
+    fetch(event.request)
       .then((response) => {
-        if (response) {
-          return response;
+        // Se a resposta for válida, armazena no cache
+        if (response && response.status === 200 && response.type === 'basic') {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
         }
-        return fetch(event.request).catch(() => {
-            // Se falhar (offline) e for uma navegação (HTML), retorna a raiz (/)
-            // Isso corrige o erro 404 ao abrir o app instalado offline
-            if (event.request.mode === 'navigate') {
-                return caches.match('/');
-            }
+        return response;
+      })
+      .catch(() => {
+        // Se a rede falhar, tenta buscar no cache
+        return caches.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          // Se for uma navegação e não estiver no cache, retorna o index.html
+          if (event.request.mode === 'navigate') {
+            return caches.match('/index.html');
+          }
+          return new Response('Not found', { status: 404 });
         });
       })
   );
