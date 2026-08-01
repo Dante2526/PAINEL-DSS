@@ -398,12 +398,13 @@ const HistoryModal: React.FC<{
             }
         } catch (error) {
             console.error('Erro ao buscar lote de histórico:', error);
+            setHasMore(false);
         } finally {
             setIsSearching(false);
             setFetchingMore(false);
             setLoading(false);
         }
-    }, [turma, selectedSearchTurmas, currentLiveHistory]);
+    }, [turma, currentLiveHistory]);
 
     // Função disparada ao clicar em buscar ou dar Enter
     const handleSearchSubmit = useCallback(() => {
@@ -447,7 +448,7 @@ const HistoryModal: React.FC<{
             setSelectedSearchTurmas([turma]);
             loadHistoryBatch(false, [turma]);
         }
-    }, [isOpen, turma, loadHistoryBatch]);
+    }, [isOpen, turma]);
 
     // Resultados filtrados pelo tema
     const filteredResults = useMemo(() => {
