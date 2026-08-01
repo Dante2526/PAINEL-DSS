@@ -1,0 +1,13 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "historico_dss",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "turma", "order": "ASCENDING" },
+        { "fieldPath": "dataISO", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

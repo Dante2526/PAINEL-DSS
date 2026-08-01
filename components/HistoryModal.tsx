@@ -192,63 +192,150 @@ const HistoryModal: React.FC<{
         setShowDateList(false);
         setNotFound(false);
 
-        const turmasToSearch = turmasOverride || selectedSearchTurmas;
-        if (!dateValue || !db || turmasToSearch.length === 0) return;
+        const turmasToSearch = (turmasOverride && turmasOverride.length > 0)
+            ? turmasOverride
+            : (selectedSearchTurmas.length > 0 ? selectedSearchTurmas : (turma ? [turma] : []));
+
+        if (!dateValue || !db || turmasToSearch.length === 0) {
+            return;
+        }
+
+        // 1. Verificar se já temos o registro em cache na memória (allRecords)
+        const cachedResults = allRecords.filter(r => r.dataISO === dateValue && turmasToSearch.includes(r.turma));
+        if (cachedResults.length > 0 && cachedResults.length === turmasToSearch.length) {
+            if (cachedResults.length === 1) {
+                setHistoryData(cachedResults[0]);
+                setShowDateList(false);
+            } else {
+                setDateResults(cachedResults);
+                setShowDateList(true);
+            }
+            setNotFound(false);
+            setLoading(false);
+            return;
+        }
 
         setLoading(true);
         try {
             const today = new Date();
             const todayISO = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
 
-            // Buscar em paralelo todas as turmas selecionadas
-            const promises = turmasToSearch.map(async (t) => {
-                const docId = `${t}_${dateValue}`;
-                const docRef = doc(db, 'historico_dss', docId);
-                const docSnap = await getDoc(docRef);
+            let results: HistoryRecord[] = [...cachedResults];
+            const missingTurmas = turmasToSearch.filter(t => !cachedResults.some(cr => cr.turma === t));
 
-                if (docSnap.exists()) {
-                    return docSnap.data() as HistoryRecord;
-                } else if (dateValue === todayISO && t === turma && currentLiveHistory) {
-                    return currentLiveHistory;
-                }
-                return null;
-            });
+            if (missingTurmas.length > 0) {
+                // Buscar em paralelo apenas as turmas faltantes
+                const promises = missingTurmas.map(async (t) => {
+                    const docId = `${t}_${dateValue}`;
+                    const docRef = doc(db, 'historico_dss', docId);
+                    const docSnap = await getDoc(docRef);
 
-            const results = (await Promise.all(promises)).filter(Boolean) as HistoryRecord[];
+                    if (docSnap.exists()) {
+                        return docSnap.data() as HistoryRecord;
+                    } else if (dateValue === todayISO && t === turma && currentLiveHistory) {
+                        return currentLiveHistory;
+                    }
+                    return null;
+                });
+
+                const fetched = (await Promise.all(promises)).filter(Boolean) as HistoryRecord[];
+                results = [...results, ...fetched];
+            }
 
             if (results.length === 0) {
                 setNotFound(true);
+                setHistoryData(null);
+                setShowDateList(false);
             } else if (results.length === 1) {
                 setHistoryData(results[0]);
                 setShowDateList(false);
+                setNotFound(false);
             } else {
                 setDateResults(results);
                 setShowDateList(true);
+                setNotFound(false);
             }
         } catch (error) {
             console.error('Erro ao buscar histórico:', error);
             showNotification('Erro ao buscar histórico.', 'error');
+            setNotFound(true);
         } finally {
             setLoading(false);
         }
-    }, [turma, selectedSearchTurmas, currentLiveHistory, showNotification]);
+    }, [turma, selectedSearchTurmas, allRecords, currentLiveHistory, showNotification]);
 
-    // Função para carregar lote de histórico
+    // Função para carregar lote de histórico focado na(s) turma(s) selecionada(s)
     const loadHistoryBatch = useCallback(async (isManualLoadMore = false, turmasParaBusca?: string[]) => {
-        const turmaFilter = turmasParaBusca ?? (turma ? [turma] : []);
+        const turmaFilter = turmasParaBusca ?? (selectedSearchTurmas.length > 0 ? selectedSearchTurmas : (turma ? [turma] : []));
         if (turmaFilter.length === 0 || !db || (fetchingMoreRef.current && isManualLoadMore)) return;
         
         setIsSearching(true);
-        if (isManualLoadMore) setFetchingMore(true);
+        if (isManualLoadMore) {
+            setFetchingMore(true);
+        } else {
+            setLoading(true);
+        }
 
         try {
-            const fetchLimit = 200; // Limite maior para acelerar a busca profunda no banco todo
+            const fetchLimit = 200; // Limite de registros para a turma selecionada
             const historicoRef = collection(db, 'historico_dss');
-            let q = query(historicoRef, orderBy('dataISO', 'desc'), limit(fetchLimit));
             
-            if (isManualLoadMore && lastVisibleRef.current) {
-                q = query(historicoRef, orderBy('dataISO', 'desc'), startAfter(lastVisibleRef.current), limit(fetchLimit));
-            } else if (!isManualLoadMore) {
+            let q;
+            if (turmaFilter.length === 1) {
+                // Busca direta e exclusiva da turma selecionada, ordenada pela data mais recente
+                if (isManualLoadMore && lastVisibleRef.current) {
+                    q = query(
+                        historicoRef,
+                        where('turma', '==', turmaFilter[0]),
+                        orderBy('dataISO', 'desc'),
+                        startAfter(lastVisibleRef.current),
+                        limit(fetchLimit)
+                    );
+                } else {
+                    q = query(
+                        historicoRef, 
+                        where('turma', '==', turmaFilter[0]),
+                        orderBy('dataISO', 'desc'),
+                        limit(fetchLimit)
+                    );
+                }
+            } else if (turmaFilter.length > 1 && turmaFilter.length <= 30) {
+                // Busca direta para as turmas selecionadas, ordenada pela data mais recente
+                if (isManualLoadMore && lastVisibleRef.current) {
+                    q = query(
+                        historicoRef,
+                        where('turma', 'in', turmaFilter),
+                        orderBy('dataISO', 'desc'),
+                        startAfter(lastVisibleRef.current),
+                        limit(fetchLimit)
+                    );
+                } else {
+                    q = query(
+                        historicoRef, 
+                        where('turma', 'in', turmaFilter),
+                        orderBy('dataISO', 'desc'),
+                        limit(fetchLimit)
+                    );
+                }
+            } else {
+                // Fallback: busca global ordenada (turmaFilter.length > 30)
+                if (isManualLoadMore && lastVisibleRef.current) {
+                    q = query(
+                        historicoRef, 
+                        orderBy('dataISO', 'desc'),
+                        startAfter(lastVisibleRef.current),
+                        limit(fetchLimit)
+                    );
+                } else {
+                    q = query(
+                        historicoRef, 
+                        orderBy('dataISO', 'desc'), 
+                        limit(fetchLimit)
+                    );
+                }
+            }
+            
+            if (!isManualLoadMore) {
                 // Reset states for fresh search
                 setAllRecords([]);
                 setLastVisible(null);
@@ -260,6 +347,19 @@ const HistoryModal: React.FC<{
             
             if (snapshot.empty) {
                 setHasMore(false);
+                if (!isManualLoadMore) {
+                    const today = new Date();
+                    const todayISO = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+                    if (currentLiveHistory && turmaFilter.includes(turma || '')) {
+                        setSelectedDate(todayISO);
+                        setHistoryData(currentLiveHistory);
+                        setNotFound(false);
+                    } else {
+                        setSelectedDate(todayISO);
+                        setHistoryData(null);
+                        setNotFound(true);
+                    }
+                }
             } else {
                 // Filtrar pelas turmas selecionadas e ordenar (descendente por dataISO)
                 const newRecords = snapshot.docs
@@ -271,21 +371,39 @@ const HistoryModal: React.FC<{
                 setLastVisible(snapshot.docs[snapshot.docs.length - 1]);
                 setHasMore(snapshot.docs.length === fetchLimit);
 
-                // Selecionar automaticamente o dia mais recente
-                if (!isManualLoadMore && newRecords.length > 0) {
-                    const mostRecentForTurma = newRecords.find(r => r.turma === turma);
-                    const mostRecent = mostRecentForTurma || newRecords[0];
-                    handleDateChange(mostRecent.dataISO);
+                // Selecionar automaticamente o dia mais recente do banco de dados
+                if (!isManualLoadMore) {
+                    if (newRecords.length > 0) {
+                        const mostRecentForTurma = newRecords.find(r => r.turma === turma);
+                        const mostRecent = mostRecentForTurma || newRecords[0];
+                        
+                        setSelectedDate(mostRecent.dataISO);
+                        setHistoryData(mostRecent);
+                        setShowDateList(false);
+                        setNotFound(false);
+                    } else {
+                        const today = new Date();
+                        const todayISO = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+                        if (currentLiveHistory && turmaFilter.includes(turma || '')) {
+                            setSelectedDate(todayISO);
+                            setHistoryData(currentLiveHistory);
+                            setNotFound(false);
+                        } else {
+                            setSelectedDate(todayISO);
+                            setHistoryData(null);
+                            setNotFound(true);
+                        }
+                    }
                 }
             }
         } catch (error) {
             console.error('Erro ao buscar lote de histórico:', error);
-            // Evitar notificação de erro intrusiva na busca contínua, log no console é suficiente
         } finally {
             setIsSearching(false);
             setFetchingMore(false);
+            setLoading(false);
         }
-    }, [turma, handleDateChange]);
+    }, [turma, selectedSearchTurmas, currentLiveHistory]);
 
     // Função disparada ao clicar em buscar ou dar Enter
     const handleSearchSubmit = useCallback(() => {
@@ -296,11 +414,10 @@ const HistoryModal: React.FC<{
             setLastVisible(null);
             setSelectedRecordsToExport([]);
             if (!searchTerm.trim()) {
-                // Para chamar aqui, dependemos do loadHistoryBatch
-                loadHistoryBatch();
+                loadHistoryBatch(false, selectedSearchTurmas);
             }
         }
-    }, [debouncedSearch, searchTerm, loadHistoryBatch]);
+    }, [debouncedSearch, searchTerm, selectedSearchTurmas, loadHistoryBatch]);
 
     const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
@@ -311,9 +428,9 @@ const HistoryModal: React.FC<{
             setHasMore(true);
             setLastVisible(null);
             setSelectedRecordsToExport([]);
-            loadHistoryBatch();
+            loadHistoryBatch(false, selectedSearchTurmas);
         }
-    }, [loadHistoryBatch]);
+    }, [selectedSearchTurmas, loadHistoryBatch]);
 
     // Carregar primeiro lote ao abrir ou mudar turma
     React.useEffect(() => {
@@ -328,7 +445,7 @@ const HistoryModal: React.FC<{
             setHasMore(true);
             setAutoFetchCount(0);
             setSelectedSearchTurmas([turma]);
-            loadHistoryBatch();
+            loadHistoryBatch(false, [turma]);
         }
     }, [isOpen, turma, loadHistoryBatch]);
 
@@ -720,13 +837,7 @@ const HistoryModal: React.FC<{
                                             nextTurmas = [...selectedSearchTurmas, t];
                                         }
                                         setSelectedSearchTurmas(nextTurmas);
-                                        if (searchTerm) {
-                                            setAllRecords([]);
-                                            setHasMore(true);
-                                            setLastVisible(null);
-                                        } else if (selectedDate) {
-                                            handleDateChange(selectedDate, nextTurmas);
-                                        }
+                                        loadHistoryBatch(false, nextTurmas);
                                     }}
                                     className={`px-3 py-1.5 text-[10px] font-extrabold rounded-full border transition-all uppercase tracking-wider ${
                                         isSelected
