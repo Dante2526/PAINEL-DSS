@@ -233,31 +233,22 @@ export const ReportModal: React.FC<{
             {/* Banner de atalho para histórico de dias anteriores */}
             {onHistory && (
                 <div className="mb-4 px-1">
-                    <button
-                        type="button"
-                        onClick={onHistory}
-                        className="w-full group p-2.5 bg-indigo-50/80 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/50 border border-indigo-200/80 dark:border-indigo-800/80 rounded-xl flex items-center justify-between transition-all duration-200 shadow-sm active:scale-[0.99]"
-                    >
-                        <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-lg bg-indigo-500 text-white flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform shrink-0">
-                                <HistoryIcon className="w-4 h-4" />
-                            </div>
-                            <div className="text-left">
-                                <div className="text-xs font-bold text-indigo-900 dark:text-indigo-200">
-                                    Quer ver dias anteriores?
-                                </div>
-                                <div className="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium">
-                                    Consultar histórico completo de DSS
-                                </div>
-                            </div>
+                    <div className="w-full p-3 bg-indigo-50/80 dark:bg-indigo-950/40 border border-indigo-200/80 dark:border-indigo-800/80 rounded-xl flex flex-col items-center gap-2.5 shadow-sm">
+                        {/* Título Centralizado Sem Quebra de Linha */}
+                        <div className="text-xs font-bold text-indigo-900 dark:text-indigo-200 text-center whitespace-nowrap">
+                            Quer ver dias anteriores?
                         </div>
-                        <div className="flex items-center gap-1 text-xs font-bold text-indigo-600 dark:text-indigo-400 group-hover:translate-x-0.5 transition-transform pr-1 shrink-0">
-                            <span>Ir para Histórico</span>
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                            </svg>
-                        </div>
-                    </button>
+                        
+                        {/* Botão Unificado com Ícone + Histórico e Animação de Expansão/Clique */}
+                        <button
+                            type="button"
+                            onClick={onHistory}
+                            className="w-full py-2 px-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white rounded-lg font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/30 hover:scale-[1.02] active:scale-[0.98] transform transition-all duration-200 cursor-pointer"
+                        >
+                            <HistoryIcon className="w-4 h-4 shrink-0" />
+                            <span>Histórico</span>
+                        </button>
+                    </div>
                 </div>
             )}
 

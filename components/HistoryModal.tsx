@@ -1030,8 +1030,8 @@ const HistoryModal: React.FC<{
                 {/* Lista de resultados multi-turma por data */}
                 {showDateList && !loading && dateResults.length > 0 && !searchTerm && (
                     <div className="space-y-3 mb-6 animate-in fade-in zoom-in-95 duration-200">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                        <div className="flex items-center justify-center text-center">
+                            <h3 className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest text-center">
                                 {dateResults.length} {dateResults.length === 1 ? 'resultado encontrado' : 'turmas encontradas'} nesta data
                             </h3>
                         </div>
@@ -1115,19 +1115,21 @@ const HistoryModal: React.FC<{
                 {historyData && !loading && (
                     <div className="space-y-4">
                         {dateResults.length > 1 && (
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setHistoryData(null);
-                                    setShowDateList(true);
-                                }}
-                                className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 px-1 transition-colors"
-                            >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-                                </svg>
-                                <span>Voltar para os resultados desta data ({dateResults.length} turmas)</span>
-                            </button>
+                            <div className="flex justify-center w-full">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setHistoryData(null);
+                                        setShowDateList(true);
+                                    }}
+                                    className="flex items-center justify-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 px-2 py-1 rounded-lg hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-all mx-auto"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                                    </svg>
+                                    <span>Voltar para os resultados desta data ({dateResults.length} turmas)</span>
+                                </button>
+                            </div>
                         )}
                         <div id="history-capture-area" className="space-y-4 bg-light-card dark:bg-dark-card pt-1 px-4">
                             {/* Data formatada */}
