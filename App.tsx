@@ -131,6 +131,7 @@ const App: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [isAuthReady, setIsAuthReady] = useState(false);
     const [activeModal, setActiveModal] = useState<ModalType>(ModalType.None);
+    const [historyOriginModal, setHistoryOriginModal] = useState<ModalType>(ModalType.AdminOptions);
     const [notifications, setNotifications] = useState<NotificationData[]>([]);
     const [editingAdminId, setEditingAdminId] = useState<string | null>(null);
     const [togglingSpecialTeamId, setTogglingSpecialTeamId] = useState<string | null>(null);
@@ -2092,6 +2093,7 @@ const App: React.FC = () => {
     const handleOpenAdminLogin = useCallback(() => setActiveModal(ModalType.AdminLogin), []);
     const handleCloseModal = useCallback(() => setActiveModal(ModalType.None), []);
     const handleBackToAdminOptions = useCallback(() => setActiveModal(ModalType.AdminOptions), []);
+    const handleBackFromHistory = useCallback(() => setActiveModal(historyOriginModal), [historyOriginModal]);
     const handleOpenAddUser = useCallback(() => setActiveModal(ModalType.AddUser), []);
     const handleOpenReport = useCallback(() => setActiveModal(ModalType.Report), []);
     const handleOpenImportEmployee = useCallback(() => setActiveModal(ModalType.ImportEmployee), []);
@@ -2451,7 +2453,10 @@ const App: React.FC = () => {
                         onStartAdminTutorial={handleStartAdminTutorial}
                         onToggle6H={handleToggle6H}
                         onToggleAutomation={handleToggleAutomation}
-                        onHistory={() => setActiveModal(ModalType.HistoryView)}
+                        onHistory={() => {
+                            setHistoryOriginModal(ModalType.AdminOptions);
+                            setActiveModal(ModalType.HistoryView);
+                        }}
                         onClearBiometrics={() => {
                             clearBiometricData();
                             showNotification('Acesso por impressão digital desativado neste aparelho.', 'success');
@@ -2489,7 +2494,10 @@ const App: React.FC = () => {
                         isOpen={activeModal === ModalType.Report}
                         onClose={handleCloseModal}
                         onBack={handleBackToAdminOptions}
-                        onHistory={() => setActiveModal(ModalType.HistoryView)}
+                        onHistory={() => {
+                            setHistoryOriginModal(ModalType.Report);
+                            setActiveModal(ModalType.HistoryView);
+                        }}
                         employees={employees}
                         showNotification={showNotification}
                         scale={modalScale}
@@ -2506,7 +2514,7 @@ const App: React.FC = () => {
                     <HistoryModal
                         isOpen={activeModal === ModalType.HistoryView}
                         onClose={handleCloseModal}
-                        onBack={handleBackToAdminOptions}
+                        onBack={handleBackFromHistory}
                         scale={modalScale}
                         turma={selectedTurma}
                         showNotification={showNotification}
