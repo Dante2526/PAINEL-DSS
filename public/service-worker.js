@@ -1,5 +1,5 @@
 // Nome do cache
-const CACHE_NAME = 'painel-dss-v6';
+const CACHE_NAME = 'painel-dss-v7';
 
 // Arquivos para cachear na instalação (shell do app)
 const urlsToCache = [
