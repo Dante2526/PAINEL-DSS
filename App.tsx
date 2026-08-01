@@ -184,6 +184,8 @@ const App: React.FC = () => {
     const [specialSubject, setSpecialSubject] = useState('');
     const [specialMatricula, setSpecialMatricula] = useState('');
     const [specialResponsible, setSpecialResponsible] = useState('');
+    const [mainRegisterTime, setMainRegisterTime] = useState('');
+    const [specialRegisterTime, setSpecialRegisterTime] = useState('');
 
     const lastDbMainSubject = useRef('');
     const lastDbMainMatricula = useRef('');
@@ -518,6 +520,7 @@ const App: React.FC = () => {
                         lastDbMainMatricula.current = newDbMainMatricula;
                     }
                     setMainResponsible(mainReg?.name || '');
+                    setMainRegisterTime(mainReg?.horario || '');
 
                     if (newDbSpecialSubject !== lastDbSpecialSubject.current) {
                         setSpecialSubject(newDbSpecialSubject);
@@ -528,6 +531,7 @@ const App: React.FC = () => {
                         lastDbSpecialMatricula.current = newDbSpecialMatricula;
                     }
                     setSpecialResponsible(specialReg?.name || '');
+                    setSpecialRegisterTime(specialReg?.horario || '');
                 });
 
                 const configAutomacaoQuery = doc(db, 'configuracoes', 'automacao');
@@ -1414,11 +1418,14 @@ const App: React.FC = () => {
         const docId = `registro_${turno}`; // Creates a predictable ID like "registro_7H" or "registro_6H"
         const docRef = doc(db, registrationCollectionName, docId);
 
+        const currentHorario = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
         const registrationData = {
             matricula: actualMatricula,
             name: resolvedName,
             assunto: subject || 'Não preenchido',
             TURNO: turno, // Explicitly using the '7H' or '6H' parameter
+            horario: currentHorario,
         };
 
         try {
@@ -1736,6 +1743,8 @@ const App: React.FC = () => {
             setSpecialSubject('');
             setSpecialMatricula('');
             setSpecialResponsible('');
+            setMainRegisterTime('');
+            setSpecialRegisterTime('');
             setActiveModal(ModalType.None);
             showNotification('Dados limpos com sucesso (DEMO)!', 'success');
             return;
@@ -2285,6 +2294,7 @@ const App: React.FC = () => {
                                     administrators={administrators}
                                     turma={selectedTurma}
                                     dbName={mainResponsible}
+                                    registerTime={mainRegisterTime}
                                     isAdminOnlyTheme={isAdminOnlyTheme}
                                     isAdmin={isAdmin}
                                     onLockedClick={handleLockedClick}
@@ -2402,6 +2412,7 @@ const App: React.FC = () => {
                                     administrators={administrators}
                                     turma={selectedTurma}
                                     dbName={specialResponsible}
+                                    registerTime={specialRegisterTime}
                                     isAdminOnlyTheme={isAdminOnlyTheme}
                                     onLockedClick={handleLockedClick}
                                 />

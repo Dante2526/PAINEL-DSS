@@ -22,6 +22,7 @@ interface SpecialTeamPanelProps {
     administrators: Administrator[]; // Access to admin list for lookup
     turma: string | null;
     dbName?: string;
+    registerTime?: string;
     isAdminOnlyTheme?: boolean;
     onLockedClick?: () => void;
 }
@@ -42,6 +43,7 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
     administrators,
     turma,
     dbName,
+    registerTime,
     isAdminOnlyTheme,
     onLockedClick
 }) => {
@@ -114,7 +116,7 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
                     ) : (
                         <div className="mb-4 mx-auto p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/30 rounded-xl flex items-center justify-center gap-2.5 text-green-600 dark:text-green-400 text-xs font-bold w-[50%] shadow-sm">
                             <span className="w-2.5 h-2.5 bg-green-500 rounded-full inline-block"></span>
-                            <span>DSS REGISTRADO COM SUCESSO</span>
+                            <span>DSS REGISTRADO COM SUCESSO{registerTime ? ` • ${registerTime}` : ''}</span>
                         </div>
                     )}
 
@@ -219,6 +221,7 @@ const arePropsEqual = (prevProps: SpecialTeamPanelProps, nextProps: SpecialTeamP
         prevProps.turma !== nextProps.turma ||
         prevProps.onRegister !== nextProps.onRegister ||
         prevProps.dbName !== nextProps.dbName ||
+        prevProps.registerTime !== nextProps.registerTime ||
         prevProps.administrators !== nextProps.administrators ||
         prevProps.employeesForLookup !== nextProps.employeesForLookup ||
         prevProps.isAdminOnlyTheme !== nextProps.isAdminOnlyTheme

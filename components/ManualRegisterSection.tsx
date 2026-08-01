@@ -11,10 +11,11 @@ export const ManualRegisterSection: React.FC<{
     administrators: Administrator[];
     turma: string | null;
     dbName?: string;
+    registerTime?: string;
     isAdminOnlyTheme?: boolean;
     isAdmin?: boolean;
     onLockedClick?: () => void;
-}> = React.memo(({ subject, matricula, onRegister, employeesForLookup, administrators, turma, dbName, isAdminOnlyTheme, isAdmin, onLockedClick }) => {
+}> = React.memo(({ subject, matricula, onRegister, employeesForLookup, administrators, turma, dbName, registerTime, isAdminOnlyTheme, isAdmin, onLockedClick }) => {
     const [localSubject, setLocalSubject] = useState(subject);
     const [localMatricula, setLocalMatricula] = useState(matricula);
 
@@ -77,7 +78,7 @@ export const ManualRegisterSection: React.FC<{
             ) : (
                 <div className="mb-4 p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-900/30 rounded-xl flex items-center gap-2.5 text-green-600 dark:text-green-400 text-xs font-bold w-fit shadow-sm">
                     <span className="w-2.5 h-2.5 bg-green-500 rounded-full inline-block"></span>
-                    <span>DSS REGISTRADO COM SUCESSO</span>
+                    <span>DSS REGISTRADO COM SUCESSO{registerTime ? ` • ${registerTime}` : ''}</span>
                 </div>
             )}
 
@@ -135,6 +136,7 @@ export const ManualRegisterSection: React.FC<{
     prev.employeesForLookup === next.employeesForLookup &&
     prev.administrators === next.administrators &&
     prev.dbName === next.dbName &&
+    prev.registerTime === next.registerTime &&
     prev.isAdminOnlyTheme === next.isAdminOnlyTheme &&
     prev.isAdmin === next.isAdmin &&
     prev.onLockedClick === next.onLockedClick

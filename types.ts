@@ -28,6 +28,7 @@ export interface ManualRegistration {
   name?: string; // Added to persist the responsible person's name
   assunto: string;
   TURNO: string;
+  horario?: string; // Horário local (HH:mm) de quando o registro foi salvo
 }
 
 export type StatusType = 'assDss' | 'bem' | 'mal' | 'ausente';
