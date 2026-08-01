@@ -1,5 +1,5 @@
 // Nome do cache
-const CACHE_NAME = 'painel-dss-v7';
+const CACHE_NAME = 'painel-dss-v8';
 
 // Arquivos para cachear na instalação (shell do app)
 const urlsToCache = [
@@ -46,12 +46,25 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Estratégia: Network First para HTML e assets de build, Cache First para outros
+  // Ignora chamadas para /api/
+  if (url.pathname.startsWith('/api/')) {
+    return;
+  }
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Se a resposta for válida, armazena no cache
+        // Se a resposta for válida
         if (response && response.status === 200 && response.type === 'basic') {
+          const contentType = response.headers.get('content-type') || '';
+          
+          // PROTEÇÃO CRÍTICA: Se for um arquivo .js ou /assets/ mas o servidor retornou text/html (SPA fallback de arquivo inexistente),
+          // NÃO armazene em cache e retorne 404 para evitar erro de MIME type no navegador
+          const isScriptOrAsset = url.pathname.endsWith('.js') || url.pathname.includes('/assets/');
+          if (isScriptOrAsset && contentType.includes('text/html')) {
+            return new Response('Asset not found or outdated build chunk', { status: 404, statusText: 'Not Found' });
+          }
+
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseToCache);
@@ -65,11 +78,11 @@ self.addEventListener('fetch', (event) => {
           if (cachedResponse) {
             return cachedResponse;
           }
-          // Se for uma navegação e não estiver no cache, retorna o index.html
+          // Se for uma navegação de página e estiver offline, retorna o index.html
           if (event.request.mode === 'navigate') {
             return caches.match('/index.html');
           }
-          return new Response('Not found', { status: 404 });
+          return new Response('Not found or offline', { status: 404 });
         });
       })
   );
