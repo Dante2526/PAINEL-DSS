@@ -243,7 +243,7 @@ export const ReportModal: React.FC<{
                         <button
                             type="button"
                             onClick={onHistory}
-                            className="w-auto min-w-[150px] max-w-[200px] py-2.5 px-6 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/30 hover:scale-[1.03] active:scale-[0.97] transform transition-all duration-200 cursor-pointer"
+                            className="w-auto min-w-[160px] max-w-[200px] py-3 px-8 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/30 hover:scale-[1.03] active:scale-[0.97] transform transition-all duration-200 cursor-pointer"
                         >
                             <HistoryIcon className="w-4 h-4 shrink-0" />
                             <span>Histórico</span>
