@@ -44,12 +44,13 @@ export const AdminOptionsModal: React.FC<{
         <Modal isOpen={isOpen} onClose={onClose} title="PAINEL ADM" scale={scale} size="md">
             <div className="flex flex-col gap-2 md:gap-3 max-h-[70vh] overflow-y-auto custom-scrollbar p-2">
                 <div className="grid grid-cols-2 gap-2 md:gap-3">
+                    {/* Linha 1: Consultas e Relatórios */}
                     <AdminButton
-                        id="admin-clear-btn"
-                        onClick={onClear}
-                        className="bg-orange text-white hover:bg-orange-600"
-                        icon={<EraserIcon className="w-7 h-7" />}
-                        label="Limpar Tudo"
+                        id="admin-history-btn"
+                        onClick={onHistory}
+                        className="bg-indigo-500 text-white hover:bg-indigo-600"
+                        icon={<HistoryIcon className="w-7 h-7" />}
+                        label="Histórico"
                     />
                     <AdminButton
                         id="admin-report-btn"
@@ -58,6 +59,8 @@ export const AdminOptionsModal: React.FC<{
                         icon={<FileTextIcon className="w-7 h-7" />}
                         label="Relatório"
                     />
+
+                    {/* Linha 2: Gestão de Colaboradores */}
                     <AdminButton
                         id="admin-adduser-btn"
                         onClick={onAddUser}
@@ -66,20 +69,31 @@ export const AdminOptionsModal: React.FC<{
                         label="Add Usuário"
                     />
                     <AdminButton
+                        id="admin-import-user-btn"
+                        onClick={onImportUser}
+                        className="bg-teal-500 text-white hover:bg-teal-600 w-full"
+                        icon={<ExchangeIcon className="w-7 h-7" />}
+                        label="Importar Colab."
+                    />
+
+                    {/* Linha 3: Manutenção do Painel */}
+                    <AdminButton
                         id="admin-reorganize-btn"
                         onClick={onReorganize}
                         className="bg-purple-500 text-white hover:bg-purple-600"
                         icon={<SortIcon className="w-7 h-7" />}
                         label="Reorganizar"
                     />
-                    <div className="col-span-2 grid grid-cols-2 gap-2 md:gap-3">
-                        <AdminButton
-                            id="admin-import-user-btn"
-                            onClick={onImportUser}
-                            className="bg-teal-500 text-white hover:bg-teal-600 w-full"
-                            icon={<ExchangeIcon className="w-7 h-7" />}
-                            label="Importar Colab."
-                        />
+                    <AdminButton
+                        id="admin-clear-btn"
+                        onClick={onClear}
+                        className="bg-orange text-white hover:bg-orange-600"
+                        icon={<EraserIcon className="w-7 h-7" />}
+                        label="Limpar Tudo"
+                    />
+
+                    {/* Linha 4: Turnos e Automação */}
+                    <div className={`col-span-2 grid ${currentAdminNivel === '2' ? 'grid-cols-2' : 'grid-cols-1'} gap-2 md:gap-3`}>
                         <button
                             onClick={onToggle6H}
                             className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 shadow-md h-[86px] md:h-[82px] hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] transform ${is6HActive ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-green-500 hover:bg-green-600 text-white'}`}
@@ -89,27 +103,18 @@ export const AdminOptionsModal: React.FC<{
                                 {is6HActive ? `Desativar ${getShiftLabel(selectedTurma)}` : `Ativar ${getShiftLabel(selectedTurma)}`}
                             </span>
                         </button>
+                        {currentAdminNivel === '2' && (
+                            <button
+                                onClick={onToggleAutomation}
+                                className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 shadow-md h-[86px] md:h-[82px] hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] transform ${isAutomationPaused ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`}
+                            >
+                                <div className="scale-[0.85] md:scale-90 origin-bottom"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
+                                <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">
+                                    {isAutomationPaused ? "AÇÕES OFF" : "PAUSAR AÇÕES"}
+                                </span>
+                            </button>
+                        )}
                     </div>
-                </div>
-                <div className={`col-span-2 grid ${currentAdminNivel === '2' ? 'grid-cols-2' : 'grid-cols-1'} gap-2 md:gap-3`}>
-                    <AdminButton
-                        id="admin-history-btn"
-                        onClick={onHistory}
-                        className="bg-indigo-500 text-white hover:bg-indigo-600 w-full"
-                        icon={<HistoryIcon className="w-7 h-7" />}
-                        label="Histórico"
-                    />
-                    {currentAdminNivel === '2' && (
-                        <button
-                            onClick={onToggleAutomation}
-                            className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 shadow-md h-[86px] md:h-[82px] hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] transform ${isAutomationPaused ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`}
-                        >
-                            <div className="scale-[0.85] md:scale-90 origin-bottom"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
-                            <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">
-                                {isAutomationPaused ? "AÇÕES OFF" : "PAUSAR AÇÕES"}
-                            </span>
-                        </button>
-                    )}
                 </div>
                 <div className="col-span-2 grid grid-cols-2 gap-2 md:gap-3">
                     <button

@@ -154,14 +154,14 @@ const HistoryModal: React.FC<{
 
 
     const shiftLabel = useMemo(() => {
-        return getShiftLabel(turma);
-    }, [turma]);
+        return getShiftLabel(historyData ? historyData.turma : turma);
+    }, [turma, historyData]);
 
     const mainShiftLabel = useMemo(() => {
-        return getMainShiftLabel(turma);
-    }, [turma]);
+        return getMainShiftLabel(historyData ? historyData.turma : turma);
+    }, [turma, historyData]);
 
-    // Estados para Busca por Tema
+    // Estados para Busca por Tema e Multi-Turma por Data
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedSearchTurmas, setSelectedSearchTurmas] = useState<string[]>(turma ? [turma] : []);
     const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -175,39 +175,55 @@ const HistoryModal: React.FC<{
     const [hasMore, setHasMore] = useState(true);
     const [autoFetchCount, setAutoFetchCount] = useState(0);
 
+    // Estados para Multi-turma por Data
+    const [dateResults, setDateResults] = useState<HistoryRecord[]>([]);
+    const [showDateList, setShowDateList] = useState(false);
+
     const fetchingMoreRef = React.useRef(fetchingMore);
     const lastVisibleRef = React.useRef(lastVisible);
 
     React.useEffect(() => { fetchingMoreRef.current = fetchingMore; }, [fetchingMore]);
     React.useEffect(() => { lastVisibleRef.current = lastVisible; }, [lastVisible]);
 
-    const handleDateChange = useCallback(async (dateValue: string) => {
+    const handleDateChange = useCallback(async (dateValue: string, turmasOverride?: string[]) => {
         setSelectedDate(dateValue);
         setHistoryData(null);
+        setDateResults([]);
+        setShowDateList(false);
         setNotFound(false);
 
-        if (!dateValue || !turma || !db) return;
+        const turmasToSearch = turmasOverride || selectedSearchTurmas;
+        if (!dateValue || !db || turmasToSearch.length === 0) return;
 
         setLoading(true);
         try {
-            const docId = `${turma}_${dateValue}`;
-            const docRef = doc(db, 'historico_dss', docId);
-            const docSnap = await getDoc(docRef);
+            const today = new Date();
+            const todayISO = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
 
-            if (docSnap.exists()) {
-                setHistoryData(docSnap.data() as HistoryRecord);
-                setNotFound(false);
-            } else {
-                const today = new Date();
-                const todayISO = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
-                
-                if (dateValue === todayISO && currentLiveHistory) {
-                    setHistoryData(currentLiveHistory);
-                    setNotFound(false);
-                } else {
-                    setHistoryData(null);
-                    setNotFound(true);
+            // Buscar em paralelo todas as turmas selecionadas
+            const promises = turmasToSearch.map(async (t) => {
+                const docId = `${t}_${dateValue}`;
+                const docRef = doc(db, 'historico_dss', docId);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    return docSnap.data() as HistoryRecord;
+                } else if (dateValue === todayISO && t === turma && currentLiveHistory) {
+                    return currentLiveHistory;
                 }
+                return null;
+            });
+
+            const results = (await Promise.all(promises)).filter(Boolean) as HistoryRecord[];
+
+            if (results.length === 0) {
+                setNotFound(true);
+            } else if (results.length === 1) {
+                setHistoryData(results[0]);
+                setShowDateList(false);
+            } else {
+                setDateResults(results);
+                setShowDateList(true);
             }
         } catch (error) {
             console.error('Erro ao buscar histórico:', error);
@@ -215,7 +231,7 @@ const HistoryModal: React.FC<{
         } finally {
             setLoading(false);
         }
-    }, [turma, currentLiveHistory, showNotification]);
+    }, [turma, selectedSearchTurmas, currentLiveHistory, showNotification]);
 
     // Função para carregar lote de histórico
     const loadHistoryBatch = useCallback(async (isManualLoadMore = false, turmasParaBusca?: string[]) => {
@@ -395,7 +411,7 @@ const HistoryModal: React.FC<{
         };
 
         formatTeam(rTeam7H, mainShiftLabel);
-        if (is6HActive && turma !== 'C_CG' && turma !== 'ESTAGIO' && rTeam6H.length > 0) {
+        if (is6HActive && turma !== 'ESTAGIO' && rTeam6H.length > 0) {
             formatTeam(rTeam6H, shiftLabel);
         }
 
@@ -411,7 +427,7 @@ const HistoryModal: React.FC<{
         }
         report += `\n`;
 
-        if (is6HActive && turma !== 'C_CG' && turma !== 'ESTAGIO' && record.registros6H && record.registros6H.length > 0) {
+        if (is6HActive && turma !== 'ESTAGIO' && record.registros6H && record.registros6H.length > 0) {
             report += `REGISTROS DSS (TURNO ${shiftLabel})\n`;
             record.registros6H.forEach(reg => {
                 report += `• Assunto: ${reg.assunto || 'NÃO PREENCHIDO'}\n`;
@@ -685,39 +701,44 @@ const HistoryModal: React.FC<{
                         )}
                     </div>
                     
-                    {searchTerm && (
-                        <div className="flex flex-wrap justify-center gap-2 mt-1 px-1 animate-in fade-in slide-in-from-top-1 duration-300">
-                            <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 w-full text-center mb-1 uppercase tracking-wider">Buscar também nas turmas:</span>
-                            {['A', 'B', 'C', 'D', 'A_CG', 'B_CG', 'C_CG', 'D_CG', 'A_CCP_CG', 'B_CCP_CG', 'C_CCP_CG', 'D_CCP_CG'].map(t => {
-                                const isSelected = selectedSearchTurmas.includes(t);
-                                return (
-                                    <button
-                                        key={t}
-                                        onClick={() => {
-                                            let nextTurmas;
-                                            if (isSelected) {
-                                                if (selectedSearchTurmas.length === 1) return;
-                                                nextTurmas = selectedSearchTurmas.filter(x => x !== t);
-                                            } else {
-                                                nextTurmas = [...selectedSearchTurmas, t];
-                                            }
-                                            setSelectedSearchTurmas(nextTurmas);
+                    <div className="flex flex-wrap justify-center gap-2 mt-1 px-1 animate-in fade-in slide-in-from-top-1 duration-300">
+                        <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 w-full text-center mb-1 uppercase tracking-wider">
+                            {searchTerm ? 'Buscar também nas turmas:' : 'Filtrar por turmas:'}
+                        </span>
+                        {['A', 'B', 'C', 'D', 'A_CG', 'B_CG', 'C_CG', 'D_CG', 'A_CCP_CG', 'B_CCP_CG', 'C_CCP_CG', 'D_CCP_CG'].map(t => {
+                            const isSelected = selectedSearchTurmas.includes(t);
+                            return (
+                                <button
+                                    key={t}
+                                    type="button"
+                                    onClick={() => {
+                                        let nextTurmas;
+                                        if (isSelected) {
+                                            if (selectedSearchTurmas.length === 1) return;
+                                            nextTurmas = selectedSearchTurmas.filter(x => x !== t);
+                                        } else {
+                                            nextTurmas = [...selectedSearchTurmas, t];
+                                        }
+                                        setSelectedSearchTurmas(nextTurmas);
+                                        if (searchTerm) {
                                             setAllRecords([]);
                                             setHasMore(true);
                                             setLastVisible(null);
-                                        }}
-                                        className={`px-3 py-1.5 text-[10px] font-extrabold rounded-full border transition-all uppercase tracking-wider ${
-                                            isSelected
-                                                ? 'bg-indigo-100 border-indigo-300 text-indigo-700 dark:bg-indigo-900/40 dark:border-indigo-600 dark:text-indigo-300 shadow-sm'
-                                                : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700'
-                                        }`}
-                                    >
-                                        TURMA {t.replace('_', ' ')}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    )}
+                                        } else if (selectedDate) {
+                                            handleDateChange(selectedDate, nextTurmas);
+                                        }
+                                    }}
+                                    className={`px-3 py-1.5 text-[10px] font-extrabold rounded-full border transition-all uppercase tracking-wider ${
+                                        isSelected
+                                            ? 'bg-indigo-100 border-indigo-300 text-indigo-700 dark:bg-indigo-900/40 dark:border-indigo-600 dark:text-indigo-300 shadow-sm'
+                                            : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700'
+                                    }`}
+                                >
+                                    TURMA {t.replace('_', ' ')}
+                                </button>
+                            );
+                        })}
+                    </div>
 
                     {!searchTerm && (
                         <div className="animate-in fade-in slide-in-from-top-1 duration-300">
@@ -894,6 +915,71 @@ const HistoryModal: React.FC<{
                     </div>
                 )}
 
+                {/* Lista de resultados multi-turma por data */}
+                {showDateList && !loading && dateResults.length > 0 && !searchTerm && (
+                    <div className="space-y-3 mb-6 animate-in fade-in zoom-in-95 duration-200">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                                {dateResults.length} {dateResults.length === 1 ? 'resultado encontrado' : 'turmas encontradas'} nesta data
+                            </h3>
+                        </div>
+                        <div className="grid grid-cols-1 gap-2 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+                            {dateResults.map((rec) => {
+                                const recId = `${rec.turma}_${rec.dataISO}`;
+                                const matchedAssunto = rec.registros7H?.[0]?.assunto || rec.registros6H?.[0]?.assunto || 'Tema não preenchido';
+                                const has7H = (rec.registros7H?.length ?? 0) > 0;
+                                const has6H = (rec.registros6H?.length ?? 0) > 0;
+
+                                return (
+                                    <button
+                                        key={recId}
+                                        type="button"
+                                        onClick={() => {
+                                            setHistoryData(rec);
+                                            setShowDateList(false);
+                                        }}
+                                        className="relative flex items-center gap-3 p-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-sm rounded-xl transition-all text-left group w-full"
+                                    >
+                                        <div className="flex-1 flex flex-col items-start">
+                                            <div className="flex items-center justify-between w-full mb-1">
+                                                <span className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 uppercase">
+                                                    {new Date(rec.dataISO + 'T12:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                </span>
+                                                <div className="flex items-center gap-2">
+                                                    {has7H && (
+                                                        <span className="text-[9px] bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">
+                                                            {getMainShiftLabel(rec.turma)}
+                                                        </span>
+                                                    )}
+                                                    {has6H && is6HActive && (
+                                                        <span className="text-[9px] bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">
+                                                            {getShiftLabel(rec.turma)}
+                                                        </span>
+                                                    )}
+                                                    <span className="text-[10px] font-bold text-gray-500 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">
+                                                        TURMA {rec.turma.replace('_', ' ')}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <span className="text-sm font-semibold text-gray-800 dark:text-gray-100 line-clamp-1 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                                {typeof matchedAssunto === 'string' ? matchedAssunto.trim() : matchedAssunto}
+                                            </span>
+                                            <div className="flex gap-3 mt-1.5">
+                                                <span className="text-[10px] text-green-600 dark:text-green-400 font-bold">✓ {rec.totalPresentes} pres.</span>
+                                                <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">✗ {rec.totalAusentes} aus.</span>
+                                                <span className="text-[10px] text-gray-400 font-bold">⏳ {rec.totalPendentes} pend.</span>
+                                            </div>
+                                        </div>
+                                        <svg className="w-4 h-4 text-gray-400 group-hover:text-indigo-500 group-hover:translate-x-0.5 transition-all shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
                 {/* Não encontrado */}
                 {notFound && !loading && !searchTerm && (
                     <div className="text-center py-10">
@@ -903,7 +989,9 @@ const HistoryModal: React.FC<{
                             </svg>
                         </div>
                         <p className="text-light-text-secondary dark:text-dark-text-secondary font-medium">
-                            Nenhum registro encontrado para esta data.
+                            {selectedSearchTurmas.length === 1
+                                ? 'Nenhum registro encontrado para esta data.'
+                                : 'Nenhum registro encontrado para as turmas selecionadas nesta data.'}
                         </p>
                         <p className="text-xs text-gray-400 mt-1">
                             O histórico só inclui dias em que houve limpeza automática.
@@ -913,11 +1001,32 @@ const HistoryModal: React.FC<{
 
                 {/* Resultados */}
                 {historyData && !loading && (
-                    <div id="history-capture-area" className="space-y-4 bg-light-card dark:bg-dark-card pt-1 px-4">
-                        {/* Data formatada */}
-                        <div className="text-sm font-semibold text-gray-500 dark:text-gray-400 capitalize border-b border-gray-200 dark:border-gray-700 pb-2 text-center">
-                            {formattedDate}
-                        </div>
+                    <div className="space-y-4">
+                        {dateResults.length > 1 && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setHistoryData(null);
+                                    setShowDateList(true);
+                                }}
+                                className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 px-1 transition-colors"
+                            >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                                </svg>
+                                <span>Voltar para os resultados desta data ({dateResults.length} turmas)</span>
+                            </button>
+                        )}
+                        <div id="history-capture-area" className="space-y-4 bg-light-card dark:bg-dark-card pt-1 px-4">
+                            {/* Data formatada */}
+                            <div className="text-sm font-semibold text-gray-500 dark:text-gray-400 capitalize border-b border-gray-200 dark:border-gray-700 pb-2 text-center flex items-center justify-center gap-2">
+                                <span>{formattedDate}</span>
+                                {historyData.turma && (
+                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 uppercase">
+                                        TURMA {historyData.turma.replace('_', ' ')}
+                                    </span>
+                                )}
+                            </div>
 
                         {/* Registro DSS Cards */}
                         <div className="flex gap-3">
@@ -942,7 +1051,7 @@ const HistoryModal: React.FC<{
                             </div>
 
                             {/* 6H Card (somente se não for C_CG e estiver ativo) */}
-                            {is6HActive && turma !== 'C_CG' && turma !== 'ESTAGIO' && (
+                            {is6HActive && turma !== 'ESTAGIO' && (
                                 <div className="flex-1 bg-orange-50 dark:bg-orange-900/20 p-3 rounded-xl border border-orange-100 dark:border-orange-800 text-center relative overflow-hidden group">
                                     <div className="absolute right-0 top-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
                                         <ShiftIcon className="w-12 h-12 text-orange-600" />
@@ -986,7 +1095,7 @@ const HistoryModal: React.FC<{
 
                         {/* Listas de funcionários */}
                         {renderEmployeeGroup(team7H, mainShiftLabel)}
-                        {is6HActive && turma !== 'C_CG' && turma !== 'ESTAGIO' && renderEmployeeGroup(team6H, shiftLabel)}
+                        {is6HActive && turma !== 'ESTAGIO' && renderEmployeeGroup(team6H, shiftLabel)}
 
                         {/* Botões de exportação */}
                         <div className="grid grid-cols-2 gap-3 pt-3 border-t border-gray-200 dark:border-gray-700">
@@ -1114,6 +1223,7 @@ const HistoryModal: React.FC<{
                                 </div>
                             </div>
                         )}
+                        </div>
                     </div>
                 )}
 

@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import Modal from '../Modal';
-import { SubjectIcon, ShiftIcon, FileTextIcon } from '../icons';
+import { SubjectIcon, ShiftIcon, FileTextIcon, HistoryIcon } from '../icons';
 import { getShiftLabel, getMainShiftLabel } from '../../utils/turmaUtils';
 import ExportDropdown from '../ExportDropdown';
 import { exportToPng, exportToPdf, exportToDoc, exportToExcel, exportToTxt } from '../../utils/exportService';
@@ -11,6 +11,7 @@ export const ReportModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;
     onBack?: () => void;
+    onHistory?: () => void;
     employees: Employee[];
     showNotification: (msg: string, type: 'success' | 'error') => void;
     scale: number;
@@ -23,7 +24,7 @@ export const ReportModal: React.FC<{
     adminEmail: string;
     turma: string | null;
     is6HActive?: boolean;
-}> = ({ isOpen, onClose, onBack, employees, showNotification, scale, subject7H, responsible7H, matricula7H, subject6H, responsible6H, matricula6H, adminEmail, turma, is6HActive = true }) => {
+}> = ({ isOpen, onClose, onBack, onHistory, employees, showNotification, scale, subject7H, responsible7H, matricula7H, subject6H, responsible6H, matricula6H, adminEmail, turma, is6HActive = true }) => {
     // Generate text for Clipboard/File functions
     const generateReport = () => {
         const team7H = employees.filter(e => e.turno !== '6H');
@@ -71,7 +72,7 @@ export const ReportModal: React.FC<{
         report += getStatusList(team7H);
         report += `\n\n`;
 
-        if (is6HActive && turma !== 'C_CG' && turma !== 'ESTAGIO' && team6H.length > 0) {
+        if (is6HActive && turma !== 'ESTAGIO' && team6H.length > 0) {
             report += `EQUIPE TURNO ${shiftLabel}\n`;
             report += getStatusList(team6H);
             report += `\n\n`;
@@ -85,7 +86,7 @@ export const ReportModal: React.FC<{
             report += `\n`;
         }
 
-        if (is6HActive && turma !== 'C_CG' && turma !== 'ESTAGIO') {
+        if (is6HActive && turma !== 'ESTAGIO') {
             report += `\nREGISTROS DSS (TURNO ${shiftLabel})\n`;
             report += `• Assunto: ${subject6H || 'NÃO PREENCHIDO'}`;
             if (responsible6H) {
@@ -229,6 +230,37 @@ export const ReportModal: React.FC<{
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} onBack={onBack} title="Relatório Diário" scale={scale}>
+            {/* Banner de atalho para histórico de dias anteriores */}
+            {onHistory && (
+                <div className="mb-4 px-1">
+                    <button
+                        type="button"
+                        onClick={onHistory}
+                        className="w-full group p-2.5 bg-indigo-50/80 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/50 border border-indigo-200/80 dark:border-indigo-800/80 rounded-xl flex items-center justify-between transition-all duration-200 shadow-sm active:scale-[0.99]"
+                    >
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-lg bg-indigo-500 text-white flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform shrink-0">
+                                <HistoryIcon className="w-4 h-4" />
+                            </div>
+                            <div className="text-left">
+                                <div className="text-xs font-bold text-indigo-900 dark:text-indigo-200">
+                                    Quer ver dias anteriores?
+                                </div>
+                                <div className="text-[10px] text-indigo-600 dark:text-indigo-400 font-medium">
+                                    Consultar histórico completo de DSS
+                                </div>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-1 text-xs font-bold text-indigo-600 dark:text-indigo-400 group-hover:translate-x-0.5 transition-transform pr-1 shrink-0">
+                            <span>Ir para Histórico</span>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
+                    </button>
+                </div>
+            )}
+
             {/* Visual Report Container */}
             <div id="report-capture-area" className="w-full mb-6 bg-light-card dark:bg-dark-card pt-1 px-4">
                 <div className="text-sm font-semibold text-gray-500 mb-4 capitalize border-b border-gray-200 dark:border-gray-700 pb-2 text-center">
@@ -254,7 +286,7 @@ export const ReportModal: React.FC<{
                     </div>
 
                     {/* 6H Card */}
-                    {is6HActive && turma !== 'C_CG' && turma !== 'ESTAGIO' && (
+                    {is6HActive && turma !== 'ESTAGIO' && (
                         <div className="flex-1 bg-orange-50 dark:bg-orange-900/20 p-3 rounded-xl border border-orange-100 dark:border-orange-800 text-center relative overflow-hidden group">
                             <div className="absolute right-0 top-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
                                 <ShiftIcon className="w-12 h-12 text-orange-600" />

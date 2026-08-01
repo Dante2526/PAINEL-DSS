@@ -3,7 +3,7 @@
 import React from 'react';
 import DarkModeToggle from './DarkModeToggle';
 import { AdminIcon, HelpIcon, ShieldLogo, ExchangeIcon } from './icons';
-import { TurmaType, TURMA_DISPLAY_NAMES } from '../utils/turmaUtils';
+import { TurmaType, TURMA_DISPLAY_NAMES, getShiftLabel } from '../utils/turmaUtils';
 
 interface HeaderProps {
     stats: {
@@ -20,6 +20,8 @@ interface HeaderProps {
     onToggleDarkMode: (e?: any) => void;
     turma: TurmaType;
     onReturnToSelection: () => void;
+    is6HActive?: boolean;
+    specialTeamCount?: number;
 }
 
 const StatCard: React.FC<{ label: string; value: number; colorClass: string }> = ({ label, value, colorClass }) => (
@@ -29,7 +31,21 @@ const StatCard: React.FC<{ label: string; value: number; colorClass: string }> =
     </div>
 );
 
-const Header: React.FC<HeaderProps> = React.memo(({ stats, loading, onAdminClick, onHelpClick, isDarkMode, onToggleDarkMode, turma, onReturnToSelection }) => {
+const Header: React.FC<HeaderProps> = React.memo(({ 
+    stats, 
+    loading, 
+    onAdminClick, 
+    onHelpClick, 
+    isDarkMode, 
+    onToggleDarkMode, 
+    turma, 
+    onReturnToSelection,
+    is6HActive,
+    specialTeamCount = 0
+}) => {
+    const shiftLabel = getShiftLabel(turma);
+    const showSecondaryShift = is6HActive && turma !== 'ESTAGIO';
+
     return (
         <header id="app-header" className="relative z-[110] bg-light-card dark:bg-dark-card rounded-3xl p-6 md:p-10 mb-8 shadow-lg flex justify-between items-center w-full transition-colors">
             <div className="flex items-center gap-6">
@@ -85,6 +101,13 @@ const Header: React.FC<HeaderProps> = React.memo(({ stats, loading, onAdminClick
                     <StatCard label="Estou Mal" value={stats.mal} colorClass="text-danger" />
                     <StatCard label="Ausente" value={stats.ausente} colorClass="text-warning" />
                     <StatCard label="Pendente" value={stats.pendente} colorClass="text-gray-500 dark:text-gray-400" />
+                    {showSecondaryShift && (
+                        <StatCard 
+                            label={`Turno ${shiftLabel}`} 
+                            value={specialTeamCount} 
+                            colorClass="text-orange-500 dark:text-orange-400" 
+                        />
+                    )}
                     <StatCard label="Total" value={stats.total} colorClass="text-neutral" />
                 </div>
             </div>

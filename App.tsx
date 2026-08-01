@@ -2275,6 +2275,8 @@ const App: React.FC = () => {
                             onToggleDarkMode={handleToggleDarkMode}
                             turma={selectedTurma}
                             onReturnToSelection={handleReturnToSelection}
+                            is6HActive={is6HActive}
+                            specialTeamCount={specialTeam.length}
                         />
 
                         {isDemoMode && (
@@ -2318,7 +2320,7 @@ const App: React.FC = () => {
                                                             onTimeChange={handleTimeUpdate}
                                                             onMatriculaChange={handleMatriculaUpdate}
                                                             domId={index === 0 ? "tutorial-first-card" : undefined}
-                                                            hideShiftButton={selectedTurma === 'C_CG' || selectedTurma === 'ESTAGIO' || !is6HActive}
+                                                            hideShiftButton={selectedTurma === 'ESTAGIO' || !is6HActive}
                                                             shiftLabel={getShiftLabel(selectedTurma)}
                                                         />
                                                     </div>
@@ -2349,7 +2351,7 @@ const App: React.FC = () => {
                                                                     onTimeChange={handleTimeUpdate}
                                                                     onMatriculaChange={handleMatriculaUpdate}
                                                                     domId={index === 0 && group.letter === groupedMainTeam[0]?.letter ? "tutorial-first-card" : undefined}
-                                                                    hideShiftButton={selectedTurma === 'C_CG' || selectedTurma === 'ESTAGIO' || !is6HActive}
+                                                                    hideShiftButton={selectedTurma === 'ESTAGIO' || !is6HActive}
                                                                     shiftLabel={getShiftLabel(selectedTurma)}
                                                                 />
                                                             </div>
@@ -2395,7 +2397,7 @@ const App: React.FC = () => {
 
                                 </div>
                             </div>
-                            {selectedTurma !== 'C_CG' && selectedTurma !== 'ESTAGIO' && is6HActive && (
+                            {selectedTurma !== 'ESTAGIO' && is6HActive && (
                                 <SpecialTeamPanel
                                     specialTeam={specialTeam}
                                     onStatusChange={handleStatusChange}
@@ -2487,6 +2489,7 @@ const App: React.FC = () => {
                         isOpen={activeModal === ModalType.Report}
                         onClose={handleCloseModal}
                         onBack={handleBackToAdminOptions}
+                        onHistory={() => setActiveModal(ModalType.HistoryView)}
                         employees={employees}
                         showNotification={showNotification}
                         scale={modalScale}
