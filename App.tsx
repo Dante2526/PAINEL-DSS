@@ -485,9 +485,9 @@ const App: React.FC = () => {
                     const isSingleShiftTurma = selectedTurma.includes('_CG') || selectedTurma.includes('_CCP_') || selectedTurma === 'ESTAGIO';
                     const config6H = querySnapshot.docs.find(d => d.id === 'config_6H');
                     if (config6H) {
-                        setIs6HActive(config6H.data().active ?? !isSingleShiftTurma);
+                        setIs6HActive(config6H.data().ativado ?? false);
                     } else {
-                        setIs6HActive(!isSingleShiftTurma);
+                        setIs6HActive(false);
                     }
                     
                     const configSignaturePassword = querySnapshot.docs.find(d => d.id === 'config_signature_password');
@@ -1267,7 +1267,7 @@ const App: React.FC = () => {
 
             // Save settings explicitly in the registration collection as config_6H
             const docRef = doc(db, getTurmaRegistrationName(selectedTurma), 'config_6H');
-            batch.set(docRef, { active }, { merge: true });
+            batch.set(docRef, { ativado: active }, { merge: true });
 
             await batch.commit();
 

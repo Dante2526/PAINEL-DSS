@@ -125,7 +125,7 @@ async function gerarRelatorio(db, team, empSnapshot, dataExibicao, colRegistrosN
     htmlBody += `</ul>`; 
   }
 
-  if (is6HActive && team !== 'C_CG' && team !== 'ESTAGIO') {
+  if (is6HActive && team !== 'ESTAGIO') {
     htmlBody += `<br><h2>TEMA DSS (TURNO ${shiftLabel})</h2><hr>`;
     if (registrosSH.length === 0) { 
       htmlBody += `Nenhum registro de assunto encontrado para ${shiftLabel}.`; 
@@ -154,7 +154,7 @@ async function gerarRelatorio(db, team, empSnapshot, dataExibicao, colRegistrosN
   if (cat_7H_Ausentes.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_7H_Ausentes.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }
 
   // EQUIPE TURNO SECUNDÁRIO
-  if (is6HActive && team !== 'C_CG' && team !== 'ESTAGIO') {
+  if (is6HActive && team !== 'ESTAGIO') {
     htmlBody += `<br><h2>EQUIPE TURNO ${shiftLabel}</h2><hr>`;
     htmlBody += `<h3>STATUS: "ASS.DSS + ESTOU BEM"</h3>`;
     if (cat_SH_EstouBem.length === 0) htmlBody += `Nenhum`; else { htmlBody += `<ul ${ulStyle}>`; cat_SH_EstouBem.forEach(e => { htmlBody += `<li>${limparTexto(e.name)} (Matrícula: ${e.matricula})</li>`; }); htmlBody += `</ul>`; }
@@ -310,14 +310,12 @@ export default async function handler(req, res) {
     // 10.5 Verificar Status do Turno de 6H
     const config6HRef = db.collection(colRegistrosName).doc('config_6H');
     const config6HSnap = await config6HRef.get();
-    let is6HActive = true;
+    let is6HActive = false;
     if (config6HSnap.exists) {
       const configData = config6HSnap.data();
-      if (typeof configData.active !== 'undefined') {
-        is6HActive = configData.active;
+      if (typeof configData.ativado !== 'undefined') {
+        is6HActive = configData.ativado;
       }
-    } else if (validatedTeam === 'B_CG' || validatedTeam === 'A_CG' || validatedTeam === 'D_CG' || validatedTeam === 'C_CG') {
-      is6HActive = false;
     }
 
     // 11. Gerar HTML Integrado
