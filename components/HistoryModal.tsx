@@ -199,6 +199,7 @@ const HistoryModal: React.FC<{
         if (!dateValue || !db || turmasToSearch.length === 0) {
             return;
         }
+        const dbInstance = db;
 
         // 1. Verificar se já temos o registro em cache na memória (allRecords)
         const cachedResults = allRecords.filter(r => r.dataISO === dateValue && turmasToSearch.includes(r.turma));
@@ -227,7 +228,7 @@ const HistoryModal: React.FC<{
                 // Buscar em paralelo apenas as turmas faltantes
                 const promises = missingTurmas.map(async (t) => {
                     const docId = `${t}_${dateValue}`;
-                    const docRef = doc(db, 'historico_dss', docId);
+                    const docRef = doc(dbInstance, 'historico_dss', docId);
                     const docSnap = await getDoc(docRef);
 
                     if (docSnap.exists()) {

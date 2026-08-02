@@ -101,6 +101,12 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
 
     const isLocked = isAdminOnlyTheme && !isAdmin;
 
+    const handleLockedClick = () => {
+        if (isLocked && onLockedClick) {
+            onLockedClick();
+        }
+    };
+
     return (
         <div id="tutorial-special-panel" className="w-[870px] flex-shrink-0 bg-light-card dark:bg-dark-card rounded-3xl p-8 shadow-lg h-fit">
             <div id="tutorial-special-demo-area">
@@ -120,7 +126,7 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
                         </div>
                     )}
 
-                    <div className="relative w-full" onClickCapture={onLockedClick}>
+                    <div className="relative w-full" onClickCapture={handleLockedClick}>
                         {isLocked && <div className="absolute inset-0 z-20 cursor-not-allowed" title="Faça login como Adm para preencher" />}
                         <div className="space-y-4 mb-6 pb-6 border-b-2 border-gray-200 dark:border-gray-700">
                             <div className="relative">
