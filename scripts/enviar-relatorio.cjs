@@ -105,6 +105,9 @@ async function gerarRelatorio(empSnapshot, dataExibicao, is6HActive = true) {
     const regRef = db.collection(colRegistrosName);
     const regSnapshot = await regRef.get();
     regSnapshot.forEach(doc => {
+      // Ignorar documentos de configuração persistente (config_6H, config_signature_password, etc.)
+      if (doc.id.startsWith('config_')) return;
+
       const reg = doc.data();
       const hasName = reg.name && String(reg.name).trim() !== '';
       const hasAssunto = reg.assunto && String(reg.assunto).trim() !== '';

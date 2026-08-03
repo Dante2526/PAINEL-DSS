@@ -39,6 +39,8 @@ async function salvarHistorico() {
   const registros7H = [];
   const registros6H = [];
   regSnapshot.forEach(doc => {
+    // Ignorar documentos de configuração persistente (config_6H, config_signature_password, etc.)
+    if (doc.id.startsWith('config_')) return;
     const reg = doc.data();
     const entry = {
       assunto: reg.assunto || '',
@@ -150,16 +152,25 @@ async function limparRegistros() {
   }
 
   const docs = snapshot.docs;
-  for (let i = 0; i < docs.length; i += BATCH_LIMIT) {
+
+  // Filtrar documentos de configuração persistente (config_6H, config_signature_password, etc.)
+  const docsToDelete = docs.filter(doc => !doc.id.startsWith('config_'));
+
+  if (docsToDelete.length === 0) {
+    console.log(`Nenhum registro de dados encontrado (apenas configs). Nada a apagar.`);
+    return 0;
+  }
+
+  for (let i = 0; i < docsToDelete.length; i += BATCH_LIMIT) {
     const batch = db.batch();
-    const chunk = docs.slice(i, i + BATCH_LIMIT);
+    const chunk = docsToDelete.slice(i, i + BATCH_LIMIT);
     chunk.forEach(doc => {
       batch.delete(doc.ref);
     });
     await batch.commit();
     console.log(`  [Lote ${Math.floor(i / BATCH_LIMIT) + 1}] Apagados ${chunk.length} registros.`);
   }
-  console.log(`[OK] Apagados ${docs.length} registros antigos de "${colRegistrosName}".`);
+  console.log(`[OK] Apagados ${docsToDelete.length} registros antigos de "${colRegistrosName}". Documentos config_* preservados.`);
 }
 
 // --- FUNÇÃO 3: Limpar o controle de envio ---

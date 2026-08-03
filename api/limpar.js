@@ -26,6 +26,8 @@ async function salvarHistorico(db, team, colEmployees, colRegistros) {
   const registros7H = [];
   const registros6H = [];
   regSnapshot.forEach(doc => {
+    // Ignorar documentos de configuração persistente (config_6H, config_signature_password, etc.)
+    if (doc.id.startsWith('config_')) return;
     const reg = doc.data();
     const entry = {
       assunto: reg.assunto || '',
@@ -133,7 +135,14 @@ async function limparRegistros(db, colRegistros) {
     return;
   }
 
-  const docs = snapshot.docs;
+  // Filtrar documentos de configuração persistente (config_6H, config_signature_password, etc.)
+  const docs = snapshot.docs.filter(doc => !doc.id.startsWith('config_'));
+
+  if (docs.length === 0) {
+    console.log(`[Limpeza] Nenhum registro de dados encontrado (apenas configs). Nada a apagar.`);
+    return;
+  }
+
   for (let i = 0; i < docs.length; i += BATCH_LIMIT) {
     const batch = db.batch();
     const chunk = docs.slice(i, i + BATCH_LIMIT);
@@ -142,7 +151,7 @@ async function limparRegistros(db, colRegistros) {
     });
     await batch.commit();
   }
-  console.log(`[Limpeza] Remoção de ${docs.length} registros DSS concluída.`);
+  console.log(`[Limpeza] Remoção de ${docs.length} registros DSS concluída. Documentos config_* preservados.`);
 }
 
 // --- FUNÇÃO AUXILIAR: Limpar Trava de Envio ---
