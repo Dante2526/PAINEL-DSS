@@ -26,7 +26,7 @@ async function salvarHistorico(db, team, colEmployees, colRegistros) {
   const registros7H = [];
   const registros6H = [];
   regSnapshot.forEach(doc => {
-    // Ignorar documentos de configuração persistente (config_6H, config_signature_password, etc.)
+    // Ignorar documentos de configuração persistente (config_6H, config_senha_assinatura, etc.)
     if (doc.id.startsWith('config_')) return;
     const reg = doc.data();
     const entry = {
@@ -135,7 +135,7 @@ async function limparRegistros(db, colRegistros) {
     return;
   }
 
-  // Filtrar documentos de configuração persistente (config_6H, config_signature_password, etc.)
+  // Filtrar documentos de configuração persistente (config_6H, config_senha_assinatura, etc.)
   const docs = snapshot.docs.filter(doc => !doc.id.startsWith('config_'));
 
   if (docs.length === 0) {

@@ -493,14 +493,14 @@ const App: React.FC = () => {
                         setIs6HActive(false);
                     }
                     
-                    const configSignaturePassword = querySnapshot.docs.find(d => d.id === 'config_signature_password');
+                    const configSignaturePassword = querySnapshot.docs.find(d => d.id === 'config_senha_assinatura');
                     if (configSignaturePassword) {
-                        setIsSignaturePasswordActive(configSignaturePassword.data().active ?? selectedTurma.includes('_CG'));
+                        setIsSignaturePasswordActive(configSignaturePassword.data().active || false);
                     } else {
-                        setIsSignaturePasswordActive(selectedTurma.includes('_CG'));
+                        setIsSignaturePasswordActive(false);
                     }
 
-                    const configAdminTheme = querySnapshot.docs.find(d => d.id === 'config_admin_theme');
+                    const configAdminTheme = querySnapshot.docs.find(d => d.id === 'config_tema_admin');
                     if (configAdminTheme) {
                         setIsAdminOnlyTheme(configAdminTheme.data().active || false);
                     } else {
@@ -1325,7 +1325,7 @@ const App: React.FC = () => {
         }
 
         try {
-            const docRef = doc(db, getTurmaRegistrationName(selectedTurma), 'config_signature_password');
+            const docRef = doc(db, getTurmaRegistrationName(selectedTurma), 'config_senha_assinatura');
             await setDoc(docRef, { active: newActive }, { merge: true });
             showNotification(newActive ? 'Senha de assinatura ATIVADA para esta turma.' : 'Senha de assinatura DESATIVADA para esta turma.', 'success');
             logAuditEvent(adminEmailRef.current, 'ALTERAÇÃO SENHA ASSINATURA', `Senha de assinatura: ${newActive ? 'Ativada' : 'Desativada'}`, selectedTurma);
@@ -1355,7 +1355,7 @@ const App: React.FC = () => {
         }
 
         try {
-            const docRef = doc(db, getTurmaRegistrationName(selectedTurma), 'config_admin_theme');
+            const docRef = doc(db, getTurmaRegistrationName(selectedTurma), 'config_tema_admin');
             await setDoc(docRef, { active: newActive }, { merge: true });
             showNotification(newActive ? 'Tema DSS BLOQUEADO (Somente Administradores).' : 'Tema DSS LIBERADO (Todos podem preencher).', 'success');
             logAuditEvent(adminEmailRef.current, 'ALTERAÇÃO BLOQUEIO TEMA DSS', `Bloqueio de Tema DSS: ${newActive ? 'Ativado' : 'Desativado'}`, selectedTurma);
@@ -1773,7 +1773,7 @@ const App: React.FC = () => {
             const registrationCollectionName = getTurmaRegistrationName(selectedTurma);
             const registrationsSnapshot = await getDocs(collection(db, registrationCollectionName));
             registrationsSnapshot.forEach((doc) => {
-                // Preserva documentos de configuração (config_6H, config_signature_password, etc.)
+                // Preserva documentos de configuração (config_6H, config_senha_assinatura, etc.)
                 if (!doc.id.startsWith('config_')) {
                     batch.delete(doc.ref);
                 }

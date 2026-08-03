@@ -85,7 +85,7 @@ async function gerarRelatorio(db, team, empSnapshot, dataExibicao, colRegistrosN
     const regRef = db.collection(colRegistrosName);
     const regSnapshot = await regRef.get();
     regSnapshot.forEach(doc => {
-      // Ignorar documentos de configuração persistente (config_6H, config_signature_password, etc.)
+      // Ignorar documentos de configuração persistente (config_6H, config_senha_assinatura, etc.)
       if (doc.id.startsWith('config_')) return;
 
       const reg = doc.data();
