@@ -757,7 +757,7 @@ const HistoryModal: React.FC<{
 
         return (
             <div className="mt-4">
-                <div className="text-xs font-bold text-white bg-gray-600 dark:bg-gray-500 px-3 py-1 rounded-full w-fit mb-3">
+                <div className="text-xs font-bold text-white bg-gray-600 dark:bg-gray-500 px-3 py-1 rounded-full w-fit mb-3 mx-auto text-center">
                     TURNO {turnoLabel} — {employees.length} colaboradores
                 </div>
                 <div className="space-y-2">
@@ -765,16 +765,16 @@ const HistoryModal: React.FC<{
                         if (emps.length === 0) return null;
                         const config = STATUS_CONFIG[status];
                         return (
-                            <div key={status} className={`${config.bg} border ${config.border} rounded-xl p-3`}>
-                                <div className={`flex items-center gap-1.5 mb-2 ${config.color} font-bold text-[10px] uppercase tracking-wide`}>
+                            <div key={status} className={`${config.bg} border ${config.border} rounded-xl p-3 text-center`}>
+                                <div className={`flex items-center justify-center gap-1.5 mb-2 ${config.color} font-bold text-[10px] uppercase tracking-wide`}>
                                     <span className={`w-2 h-2 rounded-full ${STATUS_DOT_COLORS[status]} ${status === 'MAL' ? 'animate-pulse' : ''}`}></span>
                                     {config.label} ({emps.length})
                                 </div>
-                                <div className="flex flex-wrap gap-1.5">
+                                <div className="flex flex-wrap justify-center gap-1.5">
                                     {emps.map((emp, i) => (
                                         <span
                                             key={`${emp.m}-${i}`}
-                                            className={`text-[10px] px-2 py-1 rounded border ${config.border} ${config.color} font-medium bg-white/50 dark:bg-black/20`}
+                                            className={`text-[10px] px-2 py-1 rounded border ${config.border} ${config.color} font-medium bg-white/50 dark:bg-black/20 text-center`}
                                             title={`Matrícula: ${emp.m}${emp.t ? ` | Horário: ${emp.t}` : ''}`}
                                         >
                                             {emp.n}
@@ -1134,11 +1134,13 @@ const HistoryModal: React.FC<{
                         )}
                         <div id="history-capture-area" className="space-y-4 bg-light-card dark:bg-dark-card pt-1 px-4">
                             {/* Data formatada */}
-                            <div className="text-sm font-semibold text-gray-500 dark:text-gray-400 capitalize border-b border-gray-200 dark:border-gray-700 pb-2 text-center flex items-center justify-center gap-2">
-                                <span>{formattedDate}</span>
+                            <div className="border-b border-gray-200 dark:border-gray-700 pb-2 flex flex-col items-center justify-center gap-1.5 text-center">
+                                <span className="text-sm font-semibold text-gray-500 dark:text-gray-400 capitalize text-center">
+                                    {formattedDate}
+                                </span>
                                 {historyData.turma && (
-                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 uppercase">
-                                        TURMA {historyData.turma.replace('_', ' ')}
+                                    <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300 uppercase w-fit text-center">
+                                        TURMA {historyData.turma.replace(/_/g, ' ')}
                                     </span>
                                 )}
                             </div>

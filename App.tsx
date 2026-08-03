@@ -482,8 +482,8 @@ const App: React.FC = () => {
                 unsubscribeRegistrations = onSnapshot(registrationsQuery, (querySnapshot) => {
                     if (isDemoModeRef.current) return;
                     const registrations = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() })) as ManualRegistration[];
-                    const mainReg = registrations.find(r => r.TURNO === '7H');
-                    const specialReg = registrations.find(r => r.TURNO === '6H');
+                    const mainReg = registrations.find(r => r.id === 'registro_7H') || registrations.find(r => r.TURNO === '7H');
+                    const specialReg = registrations.find(r => r.id === 'registro_6H') || registrations.find(r => r.TURNO === '6H');
                     
                     const isSingleShiftTurma = selectedTurma.includes('_CG') || selectedTurma.includes('_CCP_') || selectedTurma === 'ESTAGIO';
                     const config6H = querySnapshot.docs.find(d => d.id === 'config_6H');
