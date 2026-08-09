@@ -96,8 +96,11 @@ import {
     ConfirmDeleteModal,
     ConfirmDeactivate6HModal,
     TutorialChoiceModal,
-    TutorialVideoModal
+    TutorialVideoModal,
+    ConnectionErrorModal
 } from './components/modals/ActionModals';
+
+import { isInternetFastAndStable } from './utils/network';
 
 
 
@@ -851,6 +854,7 @@ const App: React.FC = () => {
 
     const processStatusUpdate = useCallback(async (id: string, type: StatusType) => {
         if (!selectedTurma) return;
+
         const employee = employeesRef.current.find(e => e.id === id);
         if (!employee) return;
 
@@ -918,6 +922,14 @@ const App: React.FC = () => {
 
         if (!db) {
             showNotification("A conexão com o banco de dados não está disponível.", "error");
+            return;
+        }
+
+        // Verificar estabilidade da internet ANTES de gravar no banco
+        // (feito APÓS o guard isDemoMode para não bloquear o modo demonstração)
+        const isStable = await isInternetFastAndStable();
+        if (!isStable) {
+            setActiveModal(ModalType.ConnectionError);
             return;
         }
 
@@ -2157,6 +2169,7 @@ const App: React.FC = () => {
                     groupedByEmail[email] = {
                         id: email,
                         ultimo_acesso: data.timestamp, // Primeiro (mais recente)
+                        ultimo_acesso_unix: data.timestamp_unix || 0,
                         acoes: []
                     };
                 }
@@ -2165,6 +2178,7 @@ const App: React.FC = () => {
                     action: data.action,
                     details: data.details,
                     timestamp: data.timestamp,
+                    timestamp_unix: data.timestamp_unix || 0,
                     turma: data.turma
                 });
             });
@@ -2577,6 +2591,11 @@ const App: React.FC = () => {
                         onClose={() => { setPendingEmployeeId(null); setActiveModal(ModalType.None); }}
                         onConfirm={handleConfirmAusente}
                         employeeName={getPendingEmployeeName()}
+                        scale={modalScale}
+                    />
+                    <ConnectionErrorModal
+                        isOpen={activeModal === ModalType.ConnectionError}
+                        onClose={() => setActiveModal(ModalType.None)}
                         scale={modalScale}
                     />
                     {activeModal === ModalType.SignaturePassword && (

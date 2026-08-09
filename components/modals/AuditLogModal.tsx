@@ -51,7 +51,9 @@ export const AuditLogModal: React.FC<{
     // Ordena os administradores pelo último acesso (mais recente primeiro)
     const sortedAdmins = useMemo(() => {
         return [...auditRecords].sort((a, b) => {
-            return parseTimestamp(b.ultimo_acesso) - parseTimestamp(a.ultimo_acesso);
+            const timeB = b.ultimo_acesso_unix || parseTimestamp(b.ultimo_acesso);
+            const timeA = a.ultimo_acesso_unix || parseTimestamp(a.ultimo_acesso);
+            return timeB - timeA;
         });
     }, [auditRecords]);
 
@@ -88,7 +90,9 @@ export const AuditLogModal: React.FC<{
                             
                             // Ordena as ações do administrador da mais recente para a mais antiga
                             const sortedActions = [...(admin.acoes || [])].sort((a, b) => {
-                                return parseTimestamp(b.timestamp) - parseTimestamp(a.timestamp);
+                                const timeB = b.timestamp_unix || parseTimestamp(b.timestamp);
+                                const timeA = a.timestamp_unix || parseTimestamp(a.timestamp);
+                                return timeB - timeA;
                             });
 
                             return (

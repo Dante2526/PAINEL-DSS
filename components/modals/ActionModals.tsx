@@ -467,3 +467,53 @@ export const TutorialVideoModal: React.FC<{
         </div>
     );
 };
+
+export const ConnectionErrorModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    scale: number;
+}> = ({ isOpen, onClose, scale }) => {
+    if (!isOpen) return null;
+    return (
+        <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
+            onClick={onClose}
+        >
+            <div
+                className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center relative mx-4"
+                style={{ transform: `scale(${scale})`, animation: 'fade-in-scale 0.3s forwards ease-out' }}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10"
+                >
+                    &times;
+                </button>
+                <h2 className="text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6">INTERNET LENTA</h2>
+                <div className="space-y-6 text-center p-2 flex flex-col items-center">
+                    <div className="mx-auto w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mb-2 text-red-500">
+                        <InfoIcon className="w-8 h-8" />
+                    </div>
+                    <div className="text-lg text-light-text dark:text-dark-text font-medium flex flex-col items-center gap-2">
+                        <span>A sua conexão de internet está lenta ou caiu.</span>
+                    </div>
+                    <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl w-full border border-gray-200 dark:border-gray-600">
+                        <p className="text-sm text-light-text-secondary dark:text-gray-300">
+                            <span className="block font-bold mb-2 text-red-500 dark:text-red-400 uppercase text-xs tracking-wider">Aviso</span>
+                            Para evitar que a assinatura fique salva apenas no seu aparelho e não sincronize com o servidor, bloqueamos a ação temporariamente. <strong className="text-light-text dark:text-white">Conecte-se a uma rede melhor e tente assinar novamente.</strong>
+                        </p>
+                    </div>
+                    <div className="w-full">
+                        <button
+                            onClick={onClose}
+                            className="w-full py-4 font-bold text-white bg-red-500 rounded-lg hover:bg-red-600 shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
+                        >
+                            ENTENDI
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};

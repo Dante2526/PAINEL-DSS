@@ -67,12 +67,14 @@ export interface AuditAction {
     action: string;
     details: string;
     timestamp: string;
+    timestamp_unix: number;
     turma: string;
 }
 
 export interface AuditRecord {
     id: string; // The email of the admin
     ultimo_acesso: string;
+    ultimo_acesso_unix: number;
     acoes: AuditAction[];
 }
 
@@ -103,6 +105,7 @@ export enum ModalType {
   AddAdmin,
   EditAdmin,
   AuditLog,
+  ConnectionError,
 }
 
 export interface PdfReportData {
