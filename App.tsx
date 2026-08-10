@@ -1338,7 +1338,7 @@ const App: React.FC = () => {
 
         try {
             const docRef = doc(db, getTurmaRegistrationName(selectedTurma), 'config_senha_assinatura');
-            await setDoc(docRef, { active: newActive }, { merge: true });
+            await setDoc(docRef, { ativado: newActive }, { merge: true });
             showNotification(newActive ? 'Senha de assinatura ATIVADA para esta turma.' : 'Senha de assinatura DESATIVADA para esta turma.', 'success');
             logAuditEvent(adminEmailRef.current, 'ALTERAÇÃO SENHA ASSINATURA', `Senha de assinatura: ${newActive ? 'Ativada' : 'Desativada'}`, selectedTurma);
         } catch (error) {
@@ -1368,7 +1368,7 @@ const App: React.FC = () => {
 
         try {
             const docRef = doc(db, getTurmaRegistrationName(selectedTurma), 'config_tema_admin');
-            await setDoc(docRef, { active: newActive }, { merge: true });
+            await setDoc(docRef, { ativado: newActive }, { merge: true });
             showNotification(newActive ? 'Tema DSS BLOQUEADO (Somente Administradores).' : 'Tema DSS LIBERADO (Todos podem preencher).', 'success');
             logAuditEvent(adminEmailRef.current, 'ALTERAÇÃO BLOQUEIO TEMA DSS', `Bloqueio de Tema DSS: ${newActive ? 'Ativado' : 'Desativado'}`, selectedTurma);
         } catch (error) {
