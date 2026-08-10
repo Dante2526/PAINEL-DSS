@@ -501,7 +501,7 @@ export const ConnectionErrorModal: React.FC<{
                     <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl w-full border border-gray-200 dark:border-gray-600">
                         <p className="text-sm text-light-text-secondary dark:text-gray-300">
                             <span className="block font-bold mb-2 text-red-500 dark:text-red-400 uppercase text-xs tracking-wider">Aviso</span>
-                            Para evitar que a assinatura fique salva apenas no seu aparelho e não sincronize com o servidor, bloqueamos a ação temporariamente. <strong className="text-light-text dark:text-white">Conecte-se a uma rede melhor e tente assinar novamente.</strong>
+                            Para evitar que a sua ação não sincronize com o servidor e cause perda de dados, bloqueamos a gravação temporariamente. <strong className="text-light-text dark:text-white">Conecte-se a uma rede melhor e tente novamente.</strong>
                         </p>
                     </div>
                     <div className="w-full">

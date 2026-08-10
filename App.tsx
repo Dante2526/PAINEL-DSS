@@ -498,14 +498,14 @@ const App: React.FC = () => {
                     
                     const configSignaturePassword = querySnapshot.docs.find(d => d.id === 'config_senha_assinatura');
                     if (configSignaturePassword) {
-                        setIsSignaturePasswordActive(configSignaturePassword.data().active || false);
+                        setIsSignaturePasswordActive(configSignaturePassword.data().ativado ?? false);
                     } else {
                         setIsSignaturePasswordActive(false);
                     }
 
                     const configAdminTheme = querySnapshot.docs.find(d => d.id === 'config_tema_admin');
                     if (configAdminTheme) {
-                        setIsAdminOnlyTheme(configAdminTheme.data().active || false);
+                        setIsAdminOnlyTheme(configAdminTheme.data().ativado || false);
                     } else {
                         setIsAdminOnlyTheme(false);
                     }
