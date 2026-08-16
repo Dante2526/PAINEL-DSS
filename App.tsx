@@ -2107,7 +2107,13 @@ const App: React.FC = () => {
 
     // Callbacks estáveis para evitar re-renders de componentes com React.memo
     // IMPORTANTE: Hooks devem ficar ANTES de qualquer return condicional (Regra dos Hooks do React)
-    const handleOpenAdminLogin = useCallback(() => setActiveModal(ModalType.AdminLogin), []);
+    const handleOpenAdminLogin = useCallback(() => {
+        if (isAdmin) {
+            setActiveModal(ModalType.AdminOptions);
+        } else {
+            setActiveModal(ModalType.AdminLogin);
+        }
+    }, [isAdmin]);
     const handleCloseModal = useCallback(() => setActiveModal(ModalType.None), []);
     const handleBackToAdminOptions = useCallback(() => setActiveModal(ModalType.AdminOptions), []);
     const handleBackFromHistory = useCallback(() => setActiveModal(historyOriginModal), [historyOriginModal]);

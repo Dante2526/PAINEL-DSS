@@ -9,7 +9,8 @@ export const AddUserModal: React.FC<{
     onAdd: (name: string, matricula: string, addAnother: boolean) => void;
     scale: number;
 }> = ({ isOpen, onClose, onBack, onAdd, scale }) => {
-    const [name, setName] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
     const [matricula, setMatricula] = useState('');
     const [addAnother, setAddAnother] = useState(false);
     const [showWarningCard, setShowWarningCard] = useState(false);
@@ -19,7 +20,8 @@ export const AddUserModal: React.FC<{
     useEffect(() => {
         // Reset state when modal is closed to ensure it's fresh next time
         if (!isOpen) {
-            setName('');
+            setFirstName('');
+            setLastName('');
             setMatricula('');
             setAddAnother(false);
             setShowWarningCard(false);
@@ -29,8 +31,8 @@ export const AddUserModal: React.FC<{
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!name.trim()) {
-            setErrorMsg('Por favor, preencha o nome do colaborador.');
+        if (!firstName.trim() || !lastName.trim()) {
+            setErrorMsg('Por favor, preencha o primeiro nome e um sobrenome.');
             return;
         }
         setErrorMsg('');
@@ -40,10 +42,12 @@ export const AddUserModal: React.FC<{
             return;
         }
 
-        if (name.trim() && matricula.trim()) {
-            onAdd(name.trim(), matricula, addAnother);
+        if (firstName.trim() && lastName.trim() && matricula.trim()) {
+            const fullName = `${firstName.trim()} ${lastName.trim()}`;
+            onAdd(fullName, matricula, addAnother);
             // Sempre limpa os campos após enviar
-            setName('');
+            setFirstName('');
+            setLastName('');
             setMatricula('');
 
             // Se "Continuar Adicionando" estiver marcado, o modal não fechará
@@ -54,10 +58,6 @@ export const AddUserModal: React.FC<{
                 }, 100);
             }
         }
-    };
-
-    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setName(e.target.value);
     };
 
     if (!isOpen) return null;
@@ -108,19 +108,23 @@ export const AddUserModal: React.FC<{
                     Adicionar Colaborador
                 </h2>
 
-                <div>
+                <div className="flex gap-3">
                     <input
                         ref={nameInputRef}
                         type="text"
-                        placeholder="Nome e Sobrenome"
-                        value={name}
-                        onChange={handleNameChange}
-                        className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white uppercase"
+                        placeholder="Primeiro Nome"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        className="w-1/2 p-3 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white uppercase"
                         autoFocus
                     />
-                    <p className="text-xs text-left text-warning font-semibold px-1 mt-1.5">
-                        *Coloque apenas o primeiro nome e o último sobrenome
-                    </p>
+                    <input
+                        type="text"
+                        placeholder="Sobrenome"
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        className="w-1/2 p-3 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white uppercase"
+                    />
                 </div>
                 <div>
                     <input
@@ -128,7 +132,7 @@ export const AddUserModal: React.FC<{
                         placeholder="Matrícula"
                         value={matricula}
                         onChange={(e) => setMatricula(e.target.value.replace(/[^0-9]/g, ''))}
-                        className="w-full p-4 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
+                        className="w-full p-3 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary dark:text-white"
                         inputMode="numeric"
                         maxLength={8}
                     />

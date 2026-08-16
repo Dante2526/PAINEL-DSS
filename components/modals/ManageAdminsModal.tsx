@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Modal from '../Modal';
 import { Administrator } from '../../types';
-import { TrashIcon, InfoIcon, UserPlusIcon, EditIcon } from '../icons';
+import { TrashIcon, UserPlusIcon, EditIcon } from '../icons';
 
 export const ManageAdminsModal: React.FC<{
     isOpen: boolean;
@@ -15,10 +15,26 @@ export const ManageAdminsModal: React.FC<{
     scale: number;
 }> = ({ isOpen, onClose, onBack, administrators, currentAdminEmail, onOpenAddAdmin, onOpenEditAdmin, onDeleteAdmin, scale }) => {
     const [adminToDelete, setAdminToDelete] = useState<Administrator | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [appliedSearchTerm, setAppliedSearchTerm] = useState('');
+
+    useEffect(() => {
+        if (!isOpen) {
+            setSearchTerm('');
+            setAppliedSearchTerm('');
+            setAdminToDelete(null);
+        }
+    }, [isOpen]);
 
     if (!isOpen) return null;
 
     const inputClassName = "w-full p-3 bg-light-bg dark:bg-dark-bg border border-gray-300 dark:border-gray-600 rounded-lg outline-none focus:ring-2 focus:ring-primary text-light-text dark:text-white text-sm";
+
+    const filteredAdmins = administrators.filter(admin => {
+        if (!appliedSearchTerm) return true;
+        const search = appliedSearchTerm.toLowerCase();
+        return admin.name.toLowerCase().includes(search) || admin.matricula.includes(search);
+    });
 
     return (
         <Modal 
@@ -31,6 +47,36 @@ export const ManageAdminsModal: React.FC<{
         >
             <div className="flex flex-col space-y-4">
                 
+                {/* Barra de Pesquisa */}
+                <div className="flex gap-2">
+                    <input
+                        type="text"
+                        placeholder="Buscar por nome ou matrícula..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className={inputClassName}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                setAppliedSearchTerm(searchTerm.toLowerCase());
+                            }
+                        }}
+                    />
+                    <button
+                        onClick={() => setAppliedSearchTerm(searchTerm.toLowerCase())}
+                        className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors shadow-sm"
+                    >
+                        BUSCAR
+                    </button>
+                    {appliedSearchTerm && (
+                        <button
+                            onClick={() => { setSearchTerm(''); setAppliedSearchTerm(''); }}
+                            className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors shadow-sm"
+                        >
+                            LIMPAR
+                        </button>
+                    )}
+                </div>
+
                 {/* Botão de Adicionar */}
                 <div className="flex justify-center items-center">
                     <button 
@@ -44,7 +90,12 @@ export const ManageAdminsModal: React.FC<{
 
                 {/* Lista de Administradores */}
                 <div className="max-h-[50vh] overflow-y-auto pr-1 space-y-2 custom-scrollbar">
-                    {administrators.map((admin) => {
+                    {filteredAdmins.length === 0 ? (
+                        <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
+                            Nenhum administrador encontrado.
+                        </div>
+                    ) : null}
+                    {filteredAdmins.map((admin) => {
                         const isSuper = admin.nivel === '2';
                         const isMe = admin.email === currentAdminEmail;
 

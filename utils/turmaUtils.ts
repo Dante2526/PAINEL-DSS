@@ -18,14 +18,14 @@ export const TURMA_DISPLAY_NAMES: Record<TurmaType, string> = {
     C_CG: 'C CG',
     D_CG: 'D CG',
     ESTAGIO: 'Estágio',
-    A_CCP_CG: 'A CCP_CG',
-    B_CCP_CG: 'B CCP_CG',
-    C_CCP_CG: 'C CCP_CG',
-    D_CCP_CG: 'D CCP_CG',
-    A_CCP_MINERIO: 'A CCP_MINERIO',
-    B_CCP_MINERIO: 'B CCP_MINERIO',
-    C_CCP_MINERIO: 'C CCP_MINERIO',
-    D_CCP_MINERIO: 'D CCP_MINERIO',
+    A_CCP_CG: 'A CCP Carga Geral',
+    B_CCP_CG: 'B CCP Carga Geral',
+    C_CCP_CG: 'C CCP Carga Geral',
+    D_CCP_CG: 'D CCP Carga Geral',
+    A_CCP_MINERIO: 'A CCP Minério',
+    B_CCP_MINERIO: 'B CCP Minério',
+    C_CCP_MINERIO: 'C CCP Minério',
+    D_CCP_MINERIO: 'D CCP Minério',
 };
 
 // Coleções CCP com nome fixo para não depender do displayName

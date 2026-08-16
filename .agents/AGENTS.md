@@ -39,3 +39,13 @@ Sempre que uma nova turma for adicionada ao sistema, o agente deve instruir o us
    - URL para Disparo de Relatório: `https://[SEU-DOMINIO]/api/relatorio?team=[LETRA_DA_TURMA]&token=[SEU_TOKEN]`
    - URL para Limpeza Diária: `https://[SEU-DOMINIO]/api/limpar?team=[LETRA_DA_TURMA]&token=[SEU_TOKEN]`
 </RULE[adding_new_teams]>
+
+<RULE[layout_width_constraint]>
+## Restrição de Largura do Layout (Design Intencional)
+
+ATENÇÃO: A largura do contêiner principal no layout (ex: `minWidth: '2658px'` em `App.tsx` para o layout customizado) é fixada em tamanhos grandes de forma PROPOSITAL, mesmo para turmas com poucos colaboradores.
+
+- O espaço em branco que sobra à direita em turmas pequenas é uma decisão de design aceita pelo usuário.
+- O objetivo dessa largura estendida é impedir que o cabeçalho superior "encolha" e achate os botões (como "TROCAR TURMA", "TUTORIAL", "ACESSO ADM") contra o texto do título.
+- NÃO proponha refatorações ou aponte problemas ("Issues") para tornar essa largura estritamente proporcional ao número exato de colunas/cards se isso resultar na redução da largura do painel. Trate esse comportamento de esticar a interface como definitivo e esperado.
+</RULE[layout_width_constraint]>
