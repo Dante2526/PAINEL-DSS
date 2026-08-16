@@ -2325,7 +2325,12 @@ const App: React.FC = () => {
                                 )}
 
                                 <div className="flex gap-6 pr-12 relative w-fit">
-                                    <div className="flex flex-col gap-8 w-fit shrink-0 relative pb-2">
+                                    <div 
+                                        className="flex flex-col gap-8 shrink-0 relative pb-2"
+                                        style={selectedLayout === 'custom' ? {
+                                            minWidth: mainTeam.length <= 1 ? '870px' : mainTeam.length === 2 ? '1764px' : '2658px'
+                                        } : undefined}
+                                    >
                                         {/* RENDERIZAÇÃO BASEADA NO LAYOUT SELECIONADO */}
                                         {selectedLayout === 'standard' ? (
                                             <div className="flex flex-wrap gap-[24px] w-max max-w-[2660px]">
