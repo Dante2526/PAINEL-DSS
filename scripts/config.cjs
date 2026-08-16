@@ -15,6 +15,10 @@ const TURMAS = {
   B_CCP_CG: { employees: 'turma b ccp_cg', registros: 'registrosDSS B CCP_CG' },
   C_CCP_CG: { employees: 'turma c ccp_cg', registros: 'registrosDSS C CCP_CG' },
   D_CCP_CG: { employees: 'turma d ccp_cg', registros: 'registrosDSS D CCP_CG' },
+  A_CCP_MINERIO: { employees: 'turma a ccp_minerio', registros: 'registrosDSS A CCP_MINERIO' },
+  B_CCP_MINERIO: { employees: 'turma b ccp_minerio', registros: 'registrosDSS B CCP_MINERIO' },
+  C_CCP_MINERIO: { employees: 'turma c ccp_minerio', registros: 'registrosDSS C CCP_MINERIO' },
+  D_CCP_MINERIO: { employees: 'turma d ccp_minerio', registros: 'registrosDSS D CCP_MINERIO' },
 };
 
 const TURMAS_VALIDAS = Object.keys(TURMAS);
@@ -33,6 +37,10 @@ const ANCHOR_DATES = {
   B_CCP_CG: "2025-11-07",
   C_CCP_CG: "2026-01-16",
   D_CCP_CG: "2026-01-26",
+  A_CCP_MINERIO: "2026-01-08",
+  B_CCP_MINERIO: "2025-11-07",
+  C_CCP_MINERIO: "2026-01-16",
+  D_CCP_MINERIO: "2026-01-26",
 };
 
 /**

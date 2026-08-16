@@ -108,10 +108,15 @@ const App: React.FC = () => {
     const [selectedTurma, setSelectedTurma] = useState<TurmaType | null>(() => {
         const savedTurma = localStorage.getItem('selectedTurma');
         if (savedTurma && isValidTurma(savedTurma)) {
-            const isCgRoute = getDisplayModeFromPath() === 'CG';
+            const displayMode = getDisplayModeFromPath();
             const isCgTurma = isCargaGeralTurma(savedTurma);
             
-            if (isCgRoute !== isCgTurma) {
+            let isValidRoute = false;
+            if (displayMode === 'CG' && isCgTurma) isValidRoute = true;
+            else if (displayMode === 'NORMAL' && !isCgTurma) isValidRoute = true;
+            else if (displayMode === 'MINERIO') isValidRoute = false; // To be implemented
+            
+            if (!isValidRoute) {
                 localStorage.removeItem('selectedTurma');
                 localStorage.removeItem('selectedLayout');
                 return null;

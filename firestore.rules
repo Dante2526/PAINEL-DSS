@@ -31,6 +31,14 @@ service cloud.firestore {
          collectionId == 'registrosDSS B CCP_CG' ||
          collectionId == 'registrosDSS C CCP_CG' ||
          collectionId == 'registrosDSS D CCP_CG' ||
+         collectionId == 'turma a ccp_minerio' ||
+         collectionId == 'turma b ccp_minerio' ||
+         collectionId == 'turma c ccp_minerio' ||
+         collectionId == 'turma d ccp_minerio' ||
+         collectionId == 'registrosDSS A CCP_MINERIO' ||
+         collectionId == 'registrosDSS B CCP_MINERIO' ||
+         collectionId == 'registrosDSS C CCP_MINERIO' ||
+         collectionId == 'registrosDSS D CCP_MINERIO' ||
          collectionId == 'registrosDSS Estágio');
     }
 

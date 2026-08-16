@@ -104,30 +104,71 @@ const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, i
                                 {/* Turma A CCP */}
                                 <button
                                     onClick={() => onSelect('A_CCP_CG')}
-                                    className="flex items-center justify-center whitespace-nowrap w-full px-2 py-3 md:py-4 font-extrabold text-sm sm:text-base md:text-lg text-white bg-gradient-to-br from-lime-500 to-emerald-600 rounded-xl md:rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-lime-300 dark:focus:ring-lime-800"
+                                    className="flex flex-col items-center justify-center w-full px-1 py-2 md:py-3 font-extrabold text-white bg-gradient-to-br from-lime-500 to-emerald-600 rounded-xl md:rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-lime-300 dark:focus:ring-lime-800"
                                 >
-                                    TURMA A CCP_CG
+                                    <span className="text-sm sm:text-base md:text-lg leading-tight">TURMA A</span>
+                                    <span className="text-[10px] sm:text-xs md:text-sm font-bold opacity-90 tracking-wide mt-0.5">CCP CARGA GERAL</span>
                                 </button>
                                 {/* Turma B CCP */}
                                 <button
                                     onClick={() => onSelect('B_CCP_CG')}
-                                    className="flex items-center justify-center whitespace-nowrap w-full px-2 py-3 md:py-4 font-extrabold text-sm sm:text-base md:text-lg text-white bg-gradient-to-br from-sky-400 to-sky-700 rounded-xl md:rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-sky-300 dark:focus:ring-sky-800"
+                                    className="flex flex-col items-center justify-center w-full px-1 py-2 md:py-3 font-extrabold text-white bg-gradient-to-br from-sky-400 to-sky-700 rounded-xl md:rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-sky-300 dark:focus:ring-sky-800"
                                 >
-                                    TURMA B CCP_CG
+                                    <span className="text-sm sm:text-base md:text-lg leading-tight">TURMA B</span>
+                                    <span className="text-[10px] sm:text-xs md:text-sm font-bold opacity-90 tracking-wide mt-0.5">CCP CARGA GERAL</span>
                                 </button>
                                 {/* Turma C CCP */}
                                 <button
                                     onClick={() => onSelect('C_CCP_CG')}
-                                    className="flex items-center justify-center whitespace-nowrap w-full px-2 py-3 md:py-4 font-extrabold text-sm sm:text-base md:text-lg text-white bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-xl md:rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-yellow-300 dark:focus:ring-yellow-800"
+                                    className="flex flex-col items-center justify-center w-full px-1 py-2 md:py-3 font-extrabold text-white bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-xl md:rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-yellow-300 dark:focus:ring-yellow-800"
                                 >
-                                    TURMA C CCP_CG
+                                    <span className="text-sm sm:text-base md:text-lg leading-tight">TURMA C</span>
+                                    <span className="text-[10px] sm:text-xs md:text-sm font-bold opacity-90 tracking-wide mt-0.5">CCP CARGA GERAL</span>
                                 </button>
                                 {/* Turma D CCP */}
                                 <button
                                     onClick={() => onSelect('D_CCP_CG')}
-                                    className="flex items-center justify-center whitespace-nowrap w-full px-2 py-3 md:py-4 font-extrabold text-sm sm:text-base md:text-lg text-white bg-gradient-to-br from-emerald-500 to-emerald-800 rounded-xl md:rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-emerald-300 dark:focus:ring-emerald-800"
+                                    className="flex flex-col items-center justify-center w-full px-1 py-2 md:py-3 font-extrabold text-white bg-gradient-to-br from-emerald-500 to-emerald-800 rounded-xl md:rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-emerald-300 dark:focus:ring-emerald-800"
                                 >
-                                    TURMA D CCP_CG
+                                    <span className="text-sm sm:text-base md:text-lg leading-tight">TURMA D</span>
+                                    <span className="text-[10px] sm:text-xs md:text-sm font-bold opacity-90 tracking-wide mt-0.5">CCP CARGA GERAL</span>
+                                </button>
+                            </>
+                        )}
+
+                        {displayMode === 'MINERIO' && (
+                            <>
+                                {/* Turma A CCP Minério */}
+                                <button
+                                    onClick={() => onSelect('A_CCP_MINERIO')}
+                                    className="flex flex-col items-center justify-center w-full px-1 py-2 md:py-3 font-extrabold text-white bg-gradient-to-br from-lime-500 to-emerald-600 rounded-xl md:rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-lime-300 dark:focus:ring-lime-800"
+                                >
+                                    <span className="text-sm sm:text-base md:text-lg leading-tight">TURMA A</span>
+                                    <span className="text-[10px] sm:text-xs md:text-sm font-bold opacity-90 tracking-wide mt-0.5">CCP MINÉRIO</span>
+                                </button>
+                                {/* Turma B CCP Minério */}
+                                <button
+                                    onClick={() => onSelect('B_CCP_MINERIO')}
+                                    className="flex flex-col items-center justify-center w-full px-1 py-2 md:py-3 font-extrabold text-white bg-gradient-to-br from-sky-400 to-sky-700 rounded-xl md:rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-sky-300 dark:focus:ring-sky-800"
+                                >
+                                    <span className="text-sm sm:text-base md:text-lg leading-tight">TURMA B</span>
+                                    <span className="text-[10px] sm:text-xs md:text-sm font-bold opacity-90 tracking-wide mt-0.5">CCP MINÉRIO</span>
+                                </button>
+                                {/* Turma C CCP Minério */}
+                                <button
+                                    onClick={() => onSelect('C_CCP_MINERIO')}
+                                    className="flex flex-col items-center justify-center w-full px-1 py-2 md:py-3 font-extrabold text-white bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-xl md:rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-yellow-300 dark:focus:ring-yellow-800"
+                                >
+                                    <span className="text-sm sm:text-base md:text-lg leading-tight">TURMA C</span>
+                                    <span className="text-[10px] sm:text-xs md:text-sm font-bold opacity-90 tracking-wide mt-0.5">CCP MINÉRIO</span>
+                                </button>
+                                {/* Turma D CCP Minério */}
+                                <button
+                                    onClick={() => onSelect('D_CCP_MINERIO')}
+                                    className="flex flex-col items-center justify-center w-full px-1 py-2 md:py-3 font-extrabold text-white bg-gradient-to-br from-emerald-500 to-emerald-800 rounded-xl md:rounded-2xl shadow-md hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-emerald-300 dark:focus:ring-emerald-800"
+                                >
+                                    <span className="text-sm sm:text-base md:text-lg leading-tight">TURMA D</span>
+                                    <span className="text-[10px] sm:text-xs md:text-sm font-bold opacity-90 tracking-wide mt-0.5">CCP MINÉRIO</span>
                                 </button>
                             </>
                         )}

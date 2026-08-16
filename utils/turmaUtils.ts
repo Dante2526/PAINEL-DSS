@@ -5,8 +5,8 @@ export const EMAILJS_PUBLIC_KEY = "Ef-7IoF9U9NQ_iV8X";
 // ----------------------------
 
 // --- TIPO E HELPERS DE TURMA ---
-export type TurmaType = 'A' | 'B' | 'C' | 'D' | 'A_CG' | 'B_CG' | 'C_CG' | 'D_CG' | 'ESTAGIO' | 'A_CCP_CG' | 'B_CCP_CG' | 'C_CCP_CG' | 'D_CCP_CG';
-export const ALL_TURMAS: TurmaType[] = ['A', 'B', 'C', 'D', 'A_CG', 'B_CG', 'C_CG', 'D_CG', 'ESTAGIO', 'A_CCP_CG', 'B_CCP_CG', 'C_CCP_CG', 'D_CCP_CG'];
+export type TurmaType = 'A' | 'B' | 'C' | 'D' | 'A_CG' | 'B_CG' | 'C_CG' | 'D_CG' | 'ESTAGIO' | 'A_CCP_CG' | 'B_CCP_CG' | 'C_CCP_CG' | 'D_CCP_CG' | 'A_CCP_MINERIO' | 'B_CCP_MINERIO' | 'C_CCP_MINERIO' | 'D_CCP_MINERIO';
+export const ALL_TURMAS: TurmaType[] = ['A', 'B', 'C', 'D', 'A_CG', 'B_CG', 'C_CG', 'D_CG', 'ESTAGIO', 'A_CCP_CG', 'B_CCP_CG', 'C_CCP_CG', 'D_CCP_CG', 'A_CCP_MINERIO', 'B_CCP_MINERIO', 'C_CCP_MINERIO', 'D_CCP_MINERIO'];
 
 export const TURMA_DISPLAY_NAMES: Record<TurmaType, string> = {
     A: 'A',
@@ -22,6 +22,10 @@ export const TURMA_DISPLAY_NAMES: Record<TurmaType, string> = {
     B_CCP_CG: 'B CCP_CG',
     C_CCP_CG: 'C CCP_CG',
     D_CCP_CG: 'D CCP_CG',
+    A_CCP_MINERIO: 'A CCP_MINERIO',
+    B_CCP_MINERIO: 'B CCP_MINERIO',
+    C_CCP_MINERIO: 'C CCP_MINERIO',
+    D_CCP_MINERIO: 'D CCP_MINERIO',
 };
 
 // Coleções CCP com nome fixo para não depender do displayName
@@ -30,6 +34,10 @@ const CCP_COLLECTIONS: Partial<Record<TurmaType, string>> = {
     B_CCP_CG: 'turma b ccp_cg',
     C_CCP_CG: 'turma c ccp_cg',
     D_CCP_CG: 'turma d ccp_cg',
+    A_CCP_MINERIO: 'turma a ccp_minerio',
+    B_CCP_MINERIO: 'turma b ccp_minerio',
+    C_CCP_MINERIO: 'turma c ccp_minerio',
+    D_CCP_MINERIO: 'turma d ccp_minerio',
 };
 
 // Registros CCP com nome fixo para não depender do displayName
@@ -38,6 +46,10 @@ const CCP_REGISTRATIONS: Partial<Record<TurmaType, string>> = {
     B_CCP_CG: 'registrosDSS B CCP_CG',
     C_CCP_CG: 'registrosDSS C CCP_CG',
     D_CCP_CG: 'registrosDSS D CCP_CG',
+    A_CCP_MINERIO: 'registrosDSS A CCP_MINERIO',
+    B_CCP_MINERIO: 'registrosDSS B CCP_MINERIO',
+    C_CCP_MINERIO: 'registrosDSS C CCP_MINERIO',
+    D_CCP_MINERIO: 'registrosDSS D CCP_MINERIO',
 };
 
 export function getTurmaCollectionName(turma: TurmaType): string {
@@ -63,20 +75,22 @@ export function isValidTurma(value: string): value is TurmaType {
 }
 
 export function getShiftLabel(turma: string | null): string {
-    return (turma === 'C' || turma === 'D' || turma === 'D_CG' || turma === 'C_CG' || turma === 'C_CCP_CG' || turma === 'D_CCP_CG') ? '18H' : '6H';
+    return (turma === 'C' || turma === 'D' || turma === 'D_CG' || turma === 'C_CG' || turma === 'C_CCP_CG' || turma === 'D_CCP_CG' || turma === 'C_CCP_MINERIO' || turma === 'D_CCP_MINERIO') ? '18H' : '6H';
 }
 
 export function getMainShiftLabel(turma: string | null): string {
-    return (turma === 'C' || turma === 'D' || turma === 'D_CG' || turma === 'C_CG' || turma === 'C_CCP_CG' || turma === 'D_CCP_CG') ? '19H' : '7H';
+    return (turma === 'C' || turma === 'D' || turma === 'D_CG' || turma === 'C_CG' || turma === 'C_CCP_CG' || turma === 'D_CCP_CG' || turma === 'C_CCP_MINERIO' || turma === 'D_CCP_MINERIO') ? '19H' : '7H';
 }
 // --------------------------------
 
-export type DisplayMode = 'NORMAL' | 'CG';
+export type DisplayMode = 'NORMAL' | 'CG' | 'MINERIO';
 
 /** Retorna o modo de exibição baseado na URL atual. */
 export function getDisplayModeFromPath(): DisplayMode {
     const path = window.location.pathname.replace(/\/$/, '');
-    return path === '/ccp-carga-geral' ? 'CG' : 'NORMAL';
+    if (path === '/ccp-carga-geral') return 'CG';
+    if (path === '/ccp-minerio') return 'MINERIO';
+    return 'NORMAL';
 }
 
 /** Função utilitária para verificar se a turma é da rota Carga Geral (CCP) */
