@@ -24,8 +24,8 @@ interface HeaderProps {
     specialTeamCount?: number;
 }
 
-const StatCard: React.FC<{ label: string; value: number; colorClass: string }> = ({ label, value, colorClass }) => (
-    <div className="text-center p-4 bg-light-bg dark:bg-dark-bg-secondary rounded-xl min-w-[100px] transition-colors">
+const StatCard: React.FC<{ label: string; value: number; colorClass: string; id?: string }> = ({ label, value, colorClass, id }) => (
+    <div id={id} className="text-center p-4 bg-light-bg dark:bg-dark-bg-secondary rounded-xl min-w-[100px] transition-colors">
         <div className={`text-4xl font-bold mb-1 transition-colors ${colorClass}`}>{value}</div>
         <div className="text-xs text-light-text-secondary dark:text-dark-text-secondary uppercase font-semibold">{label}</div>
     </div>
@@ -103,6 +103,7 @@ const Header: React.FC<HeaderProps> = React.memo(({
                     <StatCard label="Pendente" value={stats.pendente} colorClass="text-gray-500 dark:text-gray-400" />
                     {showSecondaryShift && (
                         <StatCard 
+                            id="tutorial-secondary-stats"
                             label={`Turno ${shiftLabel}`} 
                             value={specialTeamCount} 
                             colorClass="text-orange-500 dark:text-orange-400" 

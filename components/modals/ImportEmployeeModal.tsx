@@ -175,7 +175,7 @@ export const ImportEmployeeModal: React.FC<{
                         </div>
                     </div>
                     {isTurmaDropdownOpen && (
-                        <div className="absolute z-20 w-full mt-1 bg-light-card dark:bg-dark-card border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+                        <div className="absolute z-20 w-full mt-1 bg-light-card dark:bg-dark-card border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl max-h-60 overflow-y-auto custom-scrollbar animate-in fade-in zoom-in-95 duration-150">
                             {availableTurmas.map(turma => (
                                 <div
                                     key={turma}

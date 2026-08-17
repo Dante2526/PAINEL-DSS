@@ -2252,7 +2252,7 @@ const App: React.FC = () => {
         showNotification('Faça login como Adm para preencher', 'error');
     }, [showNotification]);
 
-    const memoizedTutorialSteps = useMemo(() => getTutorialSteps(selectedTurma), [selectedTurma]);
+    const memoizedTutorialSteps = useMemo(() => getTutorialSteps(selectedTurma, is6HActive), [selectedTurma, is6HActive]);
     const handleCloseAdminTutorial = useCallback(() => setIsAdminTutorialOpen(false), []);
 
     if (!hasSelectedTheme) {

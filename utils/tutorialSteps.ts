@@ -1,8 +1,8 @@
 import type { TutorialStep } from '../components/InteractiveTutorial';
 import { getShiftLabel, getMainShiftLabel } from './turmaUtils';
 
-export const getTutorialSteps = (turma: string | null): TutorialStep[] => {
-    const isCCG = turma === 'C_CG';
+export const getTutorialSteps = (turma: string | null, is6HActive: boolean = false): TutorialStep[] => {
+    const isCCG = turma === 'C_CG' || turma === 'C_CCP_CG' || turma === 'C_CCP_MINERIO'; // ajustado pra ser genérico se precisar
     const shiftLabel = getShiftLabel(turma);
     const mainShiftLabel = getMainShiftLabel(turma);
 
@@ -27,7 +27,7 @@ export const getTutorialSteps = (turma: string | null): TutorialStep[] => {
         {
             targetId: 'tutorial-card-actions',
             title: 'Botões de Ação',
-            content: `Use "AUSENTE" para marcar que o colaborador faltou. Use "DELETAR" para remover permanentemente o usuário (Aparece somente para ADM).${!isCCG ? ` Use "TURNO ${shiftLabel}" para mover o colaborador para uma coluna somente para esse turno.` : ''}`,
+            content: `Todos iniciam como "PENDENTE". Use "AUSENTE" para marcar quem faltou. Use "DELETAR" para remover um usuário (só ADM).${!isCCG ? ` Use "TURNO ${shiftLabel}" para realocar o colaborador.` : ''}`,
             scrollTargetId: 'tutorial-first-card'
         },
         {
@@ -63,8 +63,19 @@ export const getTutorialSteps = (turma: string | null): TutorialStep[] => {
         {
             targetId: 'tutorial-stats',
             title: 'Estatísticas em Tempo Real',
-            content: 'Acompanhe quantos colaboradores estão bem, mal ou ausentes instantaneamente.'
-        },
+            content: 'Acompanhe quantos colaboradores estão bem, mal, ausentes ou pendentes instantaneamente.'
+        }
+    );
+
+    if (is6HActive && turma !== 'ESTAGIO') {
+        baseSteps.push({
+            targetId: 'tutorial-secondary-stats',
+            title: `Estatísticas Turno ${shiftLabel}`,
+            content: `Acompanhe quantos colaboradores estão alocados para o turno diferenciado de ${shiftLabel}.`
+        });
+    }
+
+    baseSteps.push(
         {
             targetId: 'tutorial-dark-mode',
             title: 'Modo Escuro (BB-8)',
@@ -78,7 +89,7 @@ export const getTutorialSteps = (turma: string | null): TutorialStep[] => {
         {
             targetId: 'tutorial-admin-btn',
             title: 'Área Administrativa',
-            content: 'Acesso restrito para limpar os dados diários, gerar relatórios em PDF/Texto e cadastrar novos usuários.'
+            content: 'Acesso restrito para histórico, limpeza, geração de relatórios e configurações do sistema.'
         }
     );
 
@@ -87,24 +98,19 @@ export const getTutorialSteps = (turma: string | null): TutorialStep[] => {
 
 export const adminTutorialSteps: TutorialStep[] = [
     {
-        targetId: 'admin-clear-btn',
-        title: 'Limpar Status Diário',
-        content: 'O sistema realiza a limpeza automática diariamente. Use esta opção apenas caso seja realmente necessário forçar o reset de todos os status manualmente.'
+        targetId: 'admin-history-btn',
+        title: 'Histórico Completo',
+        content: 'Consulte o histórico de dias anteriores ou acompanhe o dia atual em tempo real. Você pode exportar relatórios diretamente para a plataforma Lumina ou gerar PDFs.'
     },
     {
         targetId: 'admin-report-btn',
-        title: 'Gerar Relatório',
-        content: 'Cria um resumo completo da equipe, separando quem está Bem, Mal ou Pendente. Você pode copiar o texto ou baixar um arquivo.'
-    },
-    {
-        targetId: 'admin-reorganize-btn',
-        title: 'Reorganizar Painel',
-        content: 'O sistema já organiza os cartões automaticamente. Use este botão apenas caso seja realmente necessário forçar a reordenação alfabética.'
+        title: 'Gerar Relatório Rápido',
+        content: 'Cria um resumo diário rápido da equipe, separando quem está Bem, Mal ou Ausente, ideal para colar no WhatsApp ou enviar por E-mail.'
     },
     {
         targetId: 'admin-adduser-btn',
         title: 'Novo Usuário',
-        content: 'Cadastre novos colaboradores manualmente no sistema.'
+        content: 'Cadastre novos colaboradores manualmente informando Nome, Sobrenome e Matrícula.'
     },
     {
         targetId: 'admin-import-user-btn',
@@ -112,8 +118,33 @@ export const adminTutorialSteps: TutorialStep[] = [
         content: 'Transfira rapidamente um colaborador de outra turma para a turma atual. Muito útil para realocações e coberturas de falta.'
     },
     {
+        targetId: 'admin-reorganize-btn',
+        title: 'Reorganizar Painel',
+        content: 'O sistema já organiza os cartões automaticamente. Use este botão apenas caso seja realmente necessário forçar a reordenação alfabética de todos os cards.'
+    },
+    {
+        targetId: 'admin-clear-btn',
+        title: 'Limpar Status Diário',
+        content: 'O sistema realiza a limpeza automática diariamente (Madrugada). Use esta opção apenas caso seja necessário forçar o reset manual (ex: virada de turno emergencial).'
+    },
+    {
+        targetId: 'admin-password-btn',
+        title: 'Alterar Senha',
+        content: 'Mude a sua própria senha de acesso à Área Administrativa.'
+    },
+    {
+        targetId: 'admin-manage-btn',
+        title: 'Gerenciar Administradores',
+        content: 'Área exclusiva para Master ADMs. Crie, edite ou exclua outros administradores do sistema.'
+    },
+    {
+        targetId: 'admin-audit-btn',
+        title: 'Log de Auditoria',
+        content: 'Área exclusiva para Master ADMs. Monitore todas as ações críticas (exclusões, limpezas, criação de usuários) feitas por qualquer administrador.'
+    },
+    {
         targetId: 'admin-demo-btn',
         title: 'Modo Demonstração',
-        content: 'Preenche o sistema com dados fictícios para testes. Recurso destinado ao uso técnico do Desenvolvedor Near.'
+        content: 'Preenche o sistema com dados fictícios para testes. Recurso destinado ao uso técnico.'
     }
 ];
