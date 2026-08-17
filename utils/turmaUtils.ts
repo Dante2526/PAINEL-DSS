@@ -95,5 +95,10 @@ export function getDisplayModeFromPath(): DisplayMode {
 
 /** Função utilitária para verificar se a turma é da rota Carga Geral (CCP) */
 export function isCargaGeralTurma(turma: TurmaType): boolean {
-    return turma.includes('_CCP_');
+    return turma.includes('_CCP_CG');
+}
+
+/** Função utilitária para verificar se a turma é da rota Minério (CCP) */
+export function isMinerioTurma(turma: TurmaType): boolean {
+    return turma.includes('_CCP_MINERIO');
 }

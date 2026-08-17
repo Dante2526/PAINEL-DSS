@@ -63,7 +63,8 @@ import {
     getShiftLabel,
     getMainShiftLabel,
     getDisplayModeFromPath,
-    isCargaGeralTurma
+    isCargaGeralTurma,
+    isMinerioTurma
 } from './utils/turmaUtils';
 import { getTutorialSteps, adminTutorialSteps } from './utils/tutorialSteps';
 import { generateHealthAlertEmail } from './utils/emailTemplates';
@@ -110,11 +111,12 @@ const App: React.FC = () => {
         if (savedTurma && isValidTurma(savedTurma)) {
             const displayMode = getDisplayModeFromPath();
             const isCgTurma = isCargaGeralTurma(savedTurma);
+            const isMinerioTurmaSaved = isMinerioTurma(savedTurma);
             
             let isValidRoute = false;
             if (displayMode === 'CG' && isCgTurma) isValidRoute = true;
-            else if (displayMode === 'NORMAL' && !isCgTurma) isValidRoute = true;
-            else if (displayMode === 'MINERIO') isValidRoute = false; // To be implemented
+            else if (displayMode === 'MINERIO' && isMinerioTurmaSaved) isValidRoute = true;
+            else if (displayMode === 'NORMAL' && !isCgTurma && !isMinerioTurmaSaved) isValidRoute = true;
             
             if (!isValidRoute) {
                 localStorage.removeItem('selectedTurma');

@@ -49,3 +49,16 @@ ATENÇÃO: A largura do contêiner principal no layout (ex: `minWidth: '2658px'`
 - O objetivo dessa largura estendida é impedir que o cabeçalho superior "encolha" e achate os botões (como "TROCAR TURMA", "TUTORIAL", "ACESSO ADM") contra o texto do título.
 - NÃO proponha refatorações ou aponte problemas ("Issues") para tornar essa largura estritamente proporcional ao número exato de colunas/cards se isso resultar na redução da largura do painel. Trate esse comportamento de esticar a interface como definitivo e esperado.
 </RULE[layout_width_constraint]>
+
+<RULE[domain_terminology]>
+## Terminologia de Negócio: As 4 Rotas Operacionais
+
+ATENÇÃO: A operação no mundo real é dividida estritamente em quatro contextos distintos. Nunca confunda ou misture essas nomenclaturas nas conversas com o usuário ou na lógica do código:
+
+1. **Rota Minério**: Refere-se às turmas base de minério (Turmas A, B, C, D).
+2. **Rota Carga Geral**: Refere-se às turmas base de carga geral (Turmas A CG, B CG, C CG, D CG).
+3. **Rota CCP Minério**: Refere-se à área da CCP exclusiva para minério (Turmas A CCP Minério, B CCP Minério...).
+4. **Rota CCP Carga Geral**: Refere-se à área da CCP exclusiva para carga geral (Turmas A CCP Carga Geral, B CCP Carga Geral...).
+
+Sempre use "CCP" no nome se estiver lidando com as turmas/rotas da CCP, e omita o "CCP" se estiver lidando com as rotas convencionais. O termo "Minério" isolado NUNCA deve ser usado para se referir a "CCP Minério".
+</RULE[domain_terminology]>
