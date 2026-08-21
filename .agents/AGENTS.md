@@ -62,3 +62,13 @@ ATENÇÃO: A operação no mundo real é dividida estritamente em quatro context
 
 Sempre use "CCP" no nome se estiver lidando com as turmas/rotas da CCP, e omita o "CCP" se estiver lidando com as rotas convencionais. O termo "Minério" isolado NUNCA deve ser usado para se referir a "CCP Minério".
 </RULE[domain_terminology]>
+
+<RULE[layout_no_vertical_scroll_on_home]>
+## Restrição de Rolagem Vertical nas Telas Iniciais
+
+ATENÇÃO: O usuário NÃO DESEJA barras de rolagem vertical (`overflow-y-auto` ou `scroll`) nas telas iniciais de seleção (ex: Turma, Layout, Tema).
+
+- Essas telas devem sempre manter `h-[100dvh]` e `overflow-hidden`.
+- Se o conteúdo (como rodapés, botões ou textos) estiver sendo cortado em resoluções específicas (overflow oculto), você NÃO DEVE resolver o problema adicionando rolagem vertical.
+- Para corrigir qualquer corte de layout, você deve ajustar paddings, margens (ex: reduzir `pb` ou `mt`), gap, ou usar escala/tamanhos dinâmicos nos elementos internos, garantindo que tudo caiba na viewport fixa sem gerar rolagem.
+</RULE[layout_no_vertical_scroll_on_home]>

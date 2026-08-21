@@ -20,9 +20,9 @@ const TurmaSelectionScreen: React.FC<TurmaSelectionScreenProps> = ({ onSelect, i
                 <main className="flex flex-col items-center text-center m-auto w-full px-2">
                     <ShieldLogo className="h-10 w-10 md:h-14 md:w-14 mb-2" />
                     <h1 className="text-2xl md:text-3xl font-extrabold text-light-text dark:text-dark-text tracking-tight mb-1">Painel de Acompanhamento</h1>
-                    <p className="text-sm md:text-base font-medium text-light-text-secondary dark:text-dark-text-secondary mb-4 md:mb-6">Selecione a turma para continuar</p>
+                    <p className="text-sm md:text-base font-medium text-light-text-secondary dark:text-dark-text-secondary mb-2 md:mb-4">Selecione a turma para continuar</p>
 
-                    <div className="grid grid-cols-2 gap-2 md:gap-3 w-full max-w-[340px] sm:max-w-[460px] md:max-w-[500px] mx-auto mb-2 md:mb-4">
+                    <div className="grid grid-cols-2 gap-2 md:gap-3 w-full max-w-[340px] sm:max-w-[460px] md:max-w-[500px] mx-auto mb-1 md:mb-2">
                         {displayMode === 'NORMAL' && (
                             <>
                                 {/* Turma A | A CG */}
