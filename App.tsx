@@ -85,6 +85,7 @@ import ManageAdminsModal from './components/modals/ManageAdminsModal';
 import AddAdminModal from './components/modals/AddAdminModal';
 import EditAdminModal from './components/modals/EditAdminModal';
 import AuditLogModal from './components/modals/AuditLogModal';
+import DssRaffleModal from './components/modals/DssRaffleModal';
 
 const ReportModal = lazy(() => import('./components/modals/ReportModal').then(module => ({ default: module.ReportModal })));
 // Remover AutomationPasswordModal
@@ -205,6 +206,11 @@ const App: React.FC = () => {
 
     const [pendingEmployeeId, setPendingEmployeeId] = useState<string | null>(null);
     const [existingUserInfo, setExistingUserInfo] = useState<{ name: string; turma: string } | null>(null);
+    const [pendingRaffleId, setPendingRaffleId] = useState<string | null>(null);
+    
+    // Refs for Raffle
+    const drawn7HRef = useRef<string[]>([]);
+    const drawn6HRef = useRef<string[]>([]);
 
     const [is6HActive, setIs6HActive] = useState(() => {
         const savedTurma = localStorage.getItem('selectedTurma');
@@ -515,6 +521,16 @@ const App: React.FC = () => {
                         setIsAdminOnlyTheme(configAdminTheme.data().ativado || false);
                     } else {
                         setIsAdminOnlyTheme(false);
+                    }
+                    
+                    const configRaffle = querySnapshot.docs.find(d => d.id === 'config_dss_raffle');
+                    if (configRaffle) {
+                        const data = configRaffle.data();
+                        drawn7HRef.current = data.drawn7H || [];
+                        drawn6HRef.current = data.drawn6H || [];
+                    } else {
+                        drawn7HRef.current = [];
+                        drawn6HRef.current = [];
                     }
                     
                     const newDbMainSubject = mainReg?.assunto || '';
@@ -1044,6 +1060,43 @@ const App: React.FC = () => {
         }
     }, [isAdminRef, isDemoMode, selectedTurma, showNotification]);
 
+    const checkDssRaffle = useCallback((id: string) => {
+        const employee = employeesRef.current.find(e => e.id === id);
+        if (!employee) return false;
+
+        const isSpecial = employee.isSpecialTeam;
+        const currentSubject = isSpecial ? lastDbSpecialSubject.current : lastDbMainSubject.current;
+
+        if (currentSubject) return false; // Tema já preenchido
+
+        const drawnList = isSpecial ? drawn6HRef.current : drawn7HRef.current;
+        
+        // Check se o usuário já foi sorteado
+        if (drawnList.includes(id)) {
+            // Verifica se todos já foram sorteados para resetar o ciclo
+            const activeShiftEmployees = employeesRef.current.filter(e => e.isSpecialTeam === isSpecial && !e.ausente);
+            const activeIds = activeShiftEmployees.map(e => e.id);
+            const allDrawn = activeIds.length > 0 && activeIds.every(eid => drawnList.includes(eid));
+            
+            if (allDrawn) {
+                // Reseta localmente
+                if (isSpecial) drawn6HRef.current = [];
+                else drawn7HRef.current = [];
+            } else {
+                return false;
+            }
+        }
+
+        // Chance de 30%
+        if (Math.random() < 0.3) {
+            setPendingRaffleId(id);
+            setActiveModal(ModalType.DssRaffle);
+            return true;
+        }
+
+        return false;
+    }, []);
+
     const handleStatusChange = useCallback((id: string, type: StatusType) => {
         const employee = employeesRef.current.find(e => e.id === id);
         if (!employee) return;
@@ -1075,8 +1128,14 @@ const App: React.FC = () => {
             return;
         }
 
+        if (type === 'assDss' && isChecking && !isAdminRef.current) {
+            if (checkDssRaffle(id)) {
+                return; // Raffle assumiu o fluxo
+            }
+        }
+
         processStatusUpdate(id, type);
-    }, [processStatusUpdate, isSignaturePasswordActive]);
+    }, [processStatusUpdate, isSignaturePasswordActive, checkDssRaffle]);
 
     const handleConfirmMal = useCallback(() => {
         if (pendingEmployeeId) {
@@ -1103,6 +1162,11 @@ const App: React.FC = () => {
         const correctPassword = employee.senha || employee.matricula;
         
         if (password === correctPassword) {
+            if (!isAdminRef.current && checkDssRaffle(pendingEmployeeId)) {
+                // Raffle assumiu o fluxo, manter pendingEmployeeId caso cancele
+                return;
+            }
+            
             processStatusUpdate(pendingEmployeeId, 'assDss');
             setPendingEmployeeId(null);
             setActiveModal(ModalType.None);
@@ -1110,7 +1174,55 @@ const App: React.FC = () => {
         } else {
             showNotification('Senha incorreta. Tente novamente.', 'error');
         }
-    }, [pendingEmployeeId, processStatusUpdate, selectedTurma, showNotification]);
+    }, [pendingEmployeeId, processStatusUpdate, selectedTurma, showNotification, checkDssRaffle]);
+
+    const handleDssRaffleCancel = useCallback(() => {
+        if (pendingRaffleId) {
+            // Se ele cancela, apenas libera a assinatura normalmente, conforme o req "não é obrigatório".
+            processStatusUpdate(pendingRaffleId, 'assDss');
+            setPendingRaffleId(null);
+            setPendingEmployeeId(null);
+            setActiveModal(ModalType.None);
+        }
+    }, [pendingRaffleId, processStatusUpdate]);
+
+    const handleDssRaffleSubmit = useCallback(async (subject: string, inspectorMatricula: string) => {
+        if (!pendingRaffleId || !selectedTurma) return;
+
+        const employee = employeesRef.current.find(e => e.id === pendingRaffleId);
+        if (!employee) return;
+
+        const isSpecial = employee.isSpecialTeam;
+        const shift = isSpecial ? '6H' : '7H';
+
+        try {
+            // 1. Atualizar config_dss_raffle
+            const newDrawn = isSpecial ? [...drawn6HRef.current, employee.id] : [...drawn7HRef.current, employee.id];
+            if (isSpecial) drawn6HRef.current = newDrawn;
+            else drawn7HRef.current = newDrawn;
+
+            const docRef = doc(db, getTurmaRegistrationName(selectedTurma), 'config_dss_raffle');
+            await setDoc(docRef, {
+                drawn7H: drawn7HRef.current,
+                drawn6H: drawn6HRef.current
+            }, { merge: true });
+
+            // 2. Preencher assunto e matricula
+            await handleManualRegister(shift, inspectorMatricula, subject);
+
+            // 3. Processar assinatura normal
+            processStatusUpdate(pendingRaffleId, 'assDss');
+            
+            setPendingRaffleId(null);
+            setPendingEmployeeId(null);
+            setActiveModal(ModalType.None);
+            
+            showNotification('Tema da DSS registrado! Obrigado!', 'success');
+        } catch (err) {
+            console.error('Erro ao salvar raffle:', err);
+            showNotification('Erro ao salvar informações.', 'error');
+        }
+    }, [pendingRaffleId, selectedTurma, handleManualRegister, processStatusUpdate, showNotification]);
 
     const handleChangeSignaturePassword = useCallback(async (
         currentPassword: string, 
@@ -2712,6 +2824,13 @@ const App: React.FC = () => {
                         onClose={() => setActiveModal(ModalType.None)}
                         scale={modalScale}
                         videoUrl="https://drive.google.com/file/d/1VONdGRijqHaymNi-Y7fcyrHhAQ5FFLM_/preview?hd=1"
+                    />
+                    <DssRaffleModal
+                        isOpen={activeModal === ModalType.DssRaffle}
+                        onClose={handleDssRaffleCancel}
+                        onSubmit={handleDssRaffleSubmit}
+                        employeeName={pendingRaffleId ? (employees.find(e => e.id === pendingRaffleId)?.name || 'COLABORADOR') : ''}
+                        scale={modalScale}
                     />
                 </Suspense>
 
