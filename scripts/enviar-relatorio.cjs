@@ -228,6 +228,19 @@ async function main() {
       }
     }
 
+    // Verificar se há tema preenchido
+    const regSnapshotVerif = await db.collection(colRegistrosName).get();
+    const temTemaValido = regSnapshotVerif.docs.some(doc => {
+      if (doc.id.startsWith('config_')) return false;
+      const r = doc.data();
+      return (r.name && String(r.name).trim()) || (r.assunto && String(r.assunto).trim());
+    });
+    
+    if (!temTemaValido) {
+      console.log('Tema da DSS não preenchido. Abortando envio de e-mail.');
+      process.exit(0);
+    }
+
     const htmlRelatorio = await gerarRelatorio(empSnapshot, dataExibicao, is6HActive);
     await enviarEmail(htmlRelatorio, dataExibicao, dataID);
     console.log("Script de relatório concluído.");
