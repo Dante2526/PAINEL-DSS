@@ -32,12 +32,16 @@ export const AdminOptionsModal: React.FC<{
     is6HActive: boolean;
     isAutomationPaused: boolean;
     isSignaturePasswordActive: boolean;
+    isSorteioActive: boolean;
+    isPularTelasActive: boolean;
     isAdminOnlyTheme: boolean;
     onToggleAdminOnlyTheme: () => void;
+    onToggleSorteio: () => void;
+    onTogglePularTelas: () => void;
     scale: number;
     selectedTurma: string | null;
     currentAdminNivel: string;
-}> = ({ isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onImportUser, onEnterDemo, onStartAdminTutorial, onToggle6H, onToggleAutomation, onToggleSignaturePassword, onChangeAdminPassword, onHistory, onClearBiometrics, onManageAdmins, onAuditLog, hasBiometrics, is6HActive, isAutomationPaused, isSignaturePasswordActive, isAdminOnlyTheme, onToggleAdminOnlyTheme, scale, selectedTurma, currentAdminNivel }) => {
+}> = ({ isOpen, onClose, onClear, onReorganize, onAddUser, onSendReport, onImportUser, onEnterDemo, onStartAdminTutorial, onToggle6H, onToggleAutomation, onToggleSignaturePassword, onChangeAdminPassword, onHistory, onClearBiometrics, onManageAdmins, onAuditLog, hasBiometrics, is6HActive, isAutomationPaused, isSignaturePasswordActive, isSorteioActive, isPularTelasActive, isAdminOnlyTheme, onToggleAdminOnlyTheme, onToggleSorteio, onTogglePularTelas, scale, selectedTurma, currentAdminNivel }) => {
     if (!isOpen) return null;
 
     return (
@@ -111,6 +115,28 @@ export const AdminOptionsModal: React.FC<{
                                 <div className="scale-[0.85] md:scale-90 origin-bottom"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></div>
                                 <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">
                                     {isAutomationPaused ? "AÇÕES OFF" : "PAUSAR AÇÕES"}
+                                </span>
+                            </button>
+                        )}
+                        {currentAdminNivel === '2' && (
+                            <button
+                                onClick={onToggleSorteio}
+                                className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 shadow-md h-[86px] md:h-[82px] hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] transform col-span-2 ${isSorteioActive ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`}
+                            >
+                                <div className="scale-[0.85] md:scale-90 origin-bottom"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg></div>
+                                <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">
+                                    {isSorteioActive ? "DESATIVAR SORTEIO" : "ATIVAR SORTEIO"}
+                                </span>
+                            </button>
+                        )}
+                        {currentAdminNivel === '2' && (
+                            <button
+                                onClick={onTogglePularTelas}
+                                className={`p-3 rounded-xl flex flex-col items-center justify-center gap-1.5 transition-all duration-300 shadow-md h-[86px] md:h-[82px] hover:-translate-y-1 hover:scale-[1.03] hover:shadow-lg active:scale-[0.98] transform col-span-2 ${isPularTelasActive ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-emerald-500 hover:bg-emerald-600 text-white'}`}
+                            >
+                                <div className="scale-[0.85] md:scale-90 origin-bottom"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" /></svg></div>
+                                <span className="font-bold text-[10px] md:text-xs uppercase tracking-wider text-center leading-tight">
+                                    {isPularTelasActive ? "DESATIVAR PULAR TELAS" : "ATIVAR PULAR TELAS"}
                                 </span>
                             </button>
                         )}

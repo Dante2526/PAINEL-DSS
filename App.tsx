@@ -220,6 +220,20 @@ const App: React.FC = () => {
         return true;
     });
     const [isSignaturePasswordActive, setIsSignaturePasswordActive] = useState(false);
+    const [isSorteioActive, setIsSorteioActive] = useState(false);
+    const isSorteioActiveRef = useRef(false);
+
+    const [isPularTelasActive, setIsPularTelasActive] = useState(false);
+    const isPularTelasActiveRef = useRef(false);
+
+    useEffect(() => {
+        isSorteioActiveRef.current = isSorteioActive;
+    }, [isSorteioActive]);
+
+    useEffect(() => {
+        isPularTelasActiveRef.current = isPularTelasActive;
+    }, [isPularTelasActive]);
+
     const [isAdminOnlyTheme, setIsAdminOnlyTheme] = useState(false);
     const [isAutomationPaused, setIsAutomationPaused] = useState(false);
 
@@ -290,8 +304,10 @@ const App: React.FC = () => {
             if (!hasSeenTutorial) {
                 // Short delay to ensure rendering frames are complete
                 timeoutId = setTimeout(() => {
-                    setActiveModal(ModalType.TutorialChoice);
-                    localStorage.setItem('hasSeenTutorial', 'true');
+                    if (!localStorage.getItem('hasSeenTutorial')) {
+                        setActiveModal(ModalType.TutorialChoice);
+                        localStorage.setItem('hasSeenTutorial', 'true');
+                    }
                 }, 1500);
             }
         }
@@ -509,6 +525,25 @@ const App: React.FC = () => {
                         setIs6HActive(false);
                     }
                     
+                    const configSorteio = querySnapshot.docs.find(d => d.id === 'config_sorteio');
+                    if (configSorteio) {
+                        setIsSorteioActive(configSorteio.data().ativado ?? false);
+                    } else {
+                        setIsSorteioActive(false);
+                    }
+
+                    const configPularTelas = querySnapshot.docs.find(d => d.id === 'config_pular_telas');
+                    const pularAtivo = configPularTelas?.data()?.ativado ?? false;
+                    setIsPularTelasActive(pularAtivo);
+                    if (pularAtivo) {
+                        // Pular telas automaticamente ao carregar a turma
+                        localStorage.setItem('themeSelected', 'true');
+                        localStorage.setItem('selectedLayout', 'standard');
+                        localStorage.setItem('hasSeenTutorial', 'true');
+                        setHasSelectedTheme(true);
+                        setSelectedLayout('standard');
+                    }
+
                     const configSignaturePassword = querySnapshot.docs.find(d => d.id === 'config_senha_assinatura');
                     if (configSignaturePassword) {
                         setIsSignaturePasswordActive(configSignaturePassword.data().ativado ?? false);
@@ -1061,6 +1096,8 @@ const App: React.FC = () => {
     }, [isAdminRef, isDemoMode, selectedTurma, showNotification]);
 
     const checkDssRaffle = useCallback((id: string) => {
+        if (!isSorteioActiveRef.current) return false;
+
         const employee = employeesRef.current.find(e => e.id === id);
         if (!employee) return false;
 
@@ -1178,6 +1215,84 @@ const App: React.FC = () => {
             showNotification('Senha incorreta. Tente novamente.', 'error');
         }
     }, [pendingEmployeeId, processStatusUpdate, selectedTurma, showNotification, checkDssRaffle]);
+
+    const handleManualRegister = useCallback(async (turno: '7H' | '6H', matricula: string, rawSubject: string) => {
+        if (!selectedTurma || !db) return;
+
+        const subject = rawSubject ? rawSubject.toUpperCase() : '';
+
+        if (!matricula) {
+            showNotification('Por favor, insira uma matrícula.', 'error');
+            return;
+        }
+
+        if (matricula.length !== 8) {
+            setActiveModal(ModalType.InvalidMatricula);
+            return;
+        }
+
+        let resolvedName = '';
+        let actualMatricula = matricula;
+        
+        const currentEmp = employeesRef.current.find(e => (isSignaturePasswordActive && e.senha === matricula) || e.matricula === matricula);
+        if (currentEmp) {
+            resolvedName = currentEmp.name;
+            actualMatricula = currentEmp.matricula;
+        } else {
+            const adminQ = query(collection(db, 'administrators'), where('matricula', '==', matricula), limit(1));
+            const adminSnap = await getDocs(adminQ);
+            if (!adminSnap.empty) {
+                resolvedName = adminSnap.docs[0].data().name;
+            } else {
+                for (const t of ALL_TURMAS) {
+                    if (t === selectedTurma) continue;
+                    const q = query(collection(db, getTurmaCollectionName(t)), where("matricula", "==", matricula), limit(1));
+                    const snap = await getDocs(q);
+                    if (!snap.empty) {
+                        resolvedName = snap.docs[0].data().name;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (isDemoMode) {
+            showNotification(`Registro para turno ${turno} salvo com sucesso (DEMO).`, 'success');
+            return;
+        }
+
+        if (!db) {
+            showNotification("A conexão com o banco de dados não está disponível.", "error");
+            return;
+        }
+
+        const registrationCollectionName = getTurmaRegistrationName(selectedTurma);
+        const docId = `registro_${turno}`; // Creates a predictable ID like "registro_7H" or "registro_6H"
+        const docRef = doc(db, registrationCollectionName, docId);
+
+        const currentHorario = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+        const registrationData = {
+            matricula: actualMatricula,
+            name: resolvedName,
+            assunto: subject || 'Não preenchido',
+            TURNO: turno, // Explicitly using the '7H' or '6H' parameter
+            horario: currentHorario,
+        };
+
+        try {
+            // setDoc will create the document if it doesn't exist, or completely overwrite it if it does.
+            // This simplifies the logic from query/update/add to a single operation.
+            await setDoc(docRef, registrationData);
+
+            showNotification(`Registro para turno ${turno} salvo com sucesso.`, 'success');
+            logAuditEvent(adminEmailRef.current, 'REGISTRO MANUAL', `Registro manual salvo | Turno: ${turno} | Matrícula: ${matricula} | Assunto: ${subject || 'Não preenchido'}`, selectedTurma);
+        } catch (error) {
+            console.error("Error saving manual registration:", error);
+            const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
+            showNotification(`Falha ao salvar registro: ${message}`, 'error');
+        }
+    }, [selectedTurma, isDemoMode, isSignaturePasswordActive, showNotification]);
 
     const handleDssRaffleCancel = useCallback(() => {
         if (pendingRaffleId) {
@@ -1469,6 +1584,58 @@ const App: React.FC = () => {
         }
     }, [isSignaturePasswordActive, selectedTurma, isDemoMode, showNotification]);
 
+    const handleToggleSorteio = useCallback(async () => {
+        if (adminNivel !== '2' || !selectedTurma) {
+            showNotification('Apenas Master Admins (Nível 2) podem alterar esta configuração.', 'error');
+            return;
+        }
+
+        const newActive = !isSorteioActive;
+
+        if (isDemoMode) {
+            setIsSorteioActive(newActive);
+            showNotification(newActive ? 'Sorteio da DSS ativado (DEMO).' : 'Sorteio da DSS desativado (DEMO).', 'success');
+            return;
+        }
+
+        if (!db) return;
+
+        try {
+            const docRef = doc(db, getTurmaRegistrationName(selectedTurma), 'config_sorteio');
+            await setDoc(docRef, { ativado: newActive }, { merge: true });
+            showNotification(newActive ? 'Sorteio da DSS ATIVADO para esta turma.' : 'Sorteio da DSS DESATIVADO para esta turma.', 'success');
+            logAuditEvent(adminEmailRef.current, 'ALTERAÇÃO SORTEIO DSS', `Sorteio da DSS: ${newActive ? 'Ativado' : 'Desativado'}`, selectedTurma);
+        } catch (error) {
+            console.error("Error toggling sorteio:", error);
+            showNotification('Falha ao alterar configuração de sorteio.', 'error');
+        }
+    }, [isSorteioActive, selectedTurma, isDemoMode, showNotification, adminNivel]);
+
+    const handleTogglePularTelas = useCallback(async () => {
+        if (adminNivel !== '2' || !selectedTurma) {
+            showNotification('Apenas Master Admins (Nível 2) podem alterar esta configuração.', 'error');
+            return;
+        }
+
+        const newActive = !isPularTelasActive;
+
+        if (isDemoMode) {
+            setIsPularTelasActive(newActive);
+            showNotification(newActive ? 'Pular Telas Iniciais ATIVADO (DEMO).' : 'Pular Telas Iniciais DESATIVADO (DEMO).', 'success');
+            return;
+        }
+
+        try {
+            const docRef = doc(db, getTurmaRegistrationName(selectedTurma), 'config_pular_telas');
+            await setDoc(docRef, { ativado: newActive }, { merge: true });
+            showNotification(newActive ? 'Pular Telas Iniciais ATIVADO para esta turma.' : 'Pular Telas Iniciais DESATIVADO para esta turma.', 'success');
+            logAuditEvent(adminEmailRef.current, 'ALTERAÇÃO PULAR TELAS', `Pular Telas: ${newActive ? 'Ativado' : 'Desativado'}`, selectedTurma);
+        } catch (error) {
+            console.error("Error toggling pular telas:", error);
+            showNotification('Falha ao alterar configuração de pular telas.', 'error');
+        }
+    }, [isPularTelasActive, selectedTurma, isDemoMode, showNotification, adminNivel]);
+
     const handleToggleAdminOnlyTheme = useCallback(async () => {
         if (!isAdminRef.current || !selectedTurma) {
             showNotification('Apenas administradores podem alterar esta configuração.', 'error');
@@ -1498,84 +1665,6 @@ const App: React.FC = () => {
             showNotification('Falha ao alterar configuração do Tema DSS.', 'error');
         }
     }, [isAdminOnlyTheme, selectedTurma, isDemoMode, showNotification]);
-
-    const handleManualRegister = useCallback(async (turno: '7H' | '6H', matricula: string, rawSubject: string) => {
-        if (!selectedTurma || !db) return;
-
-        const subject = rawSubject ? rawSubject.toUpperCase() : '';
-
-        if (!matricula) {
-            showNotification('Por favor, insira uma matrícula.', 'error');
-            return;
-        }
-
-        if (matricula.length !== 8) {
-            setActiveModal(ModalType.InvalidMatricula);
-            return;
-        }
-
-        let resolvedName = '';
-        let actualMatricula = matricula;
-        
-        const currentEmp = employeesRef.current.find(e => (isSignaturePasswordActive && e.senha === matricula) || e.matricula === matricula);
-        if (currentEmp) {
-            resolvedName = currentEmp.name;
-            actualMatricula = currentEmp.matricula;
-        } else {
-            const adminQ = query(collection(db, 'administrators'), where('matricula', '==', matricula), limit(1));
-            const adminSnap = await getDocs(adminQ);
-            if (!adminSnap.empty) {
-                resolvedName = adminSnap.docs[0].data().name;
-            } else {
-                for (const t of ALL_TURMAS) {
-                    if (t === selectedTurma) continue;
-                    const q = query(collection(db, getTurmaCollectionName(t)), where("matricula", "==", matricula), limit(1));
-                    const snap = await getDocs(q);
-                    if (!snap.empty) {
-                        resolvedName = snap.docs[0].data().name;
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (isDemoMode) {
-            showNotification(`Registro para turno ${turno} salvo com sucesso (DEMO).`, 'success');
-            return;
-        }
-
-        if (!db) {
-            showNotification("A conexão com o banco de dados não está disponível.", "error");
-            return;
-        }
-
-        const registrationCollectionName = getTurmaRegistrationName(selectedTurma);
-        const docId = `registro_${turno}`; // Creates a predictable ID like "registro_7H" or "registro_6H"
-        const docRef = doc(db, registrationCollectionName, docId);
-
-        const currentHorario = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-
-        const registrationData = {
-            matricula: actualMatricula,
-            name: resolvedName,
-            assunto: subject || 'Não preenchido',
-            TURNO: turno, // Explicitly using the '7H' or '6H' parameter
-            horario: currentHorario,
-        };
-
-        try {
-            // setDoc will create the document if it doesn't exist, or completely overwrite it if it does.
-            // This simplifies the logic from query/update/add to a single operation.
-            await setDoc(docRef, registrationData);
-
-            showNotification(`Registro para turno ${turno} salvo com sucesso.`, 'success');
-            logAuditEvent(adminEmailRef.current, 'REGISTRO MANUAL', `Registro manual salvo | Turno: ${turno} | Matrícula: ${matricula} | Assunto: ${subject || 'Não preenchido'}`, selectedTurma);
-        } catch (error) {
-            console.error("Error saving manual registration:", error);
-            const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
-            showNotification(`Falha ao salvar registro: ${message}`, 'error');
-        }
-    }, [selectedTurma, isDemoMode, isSignaturePasswordActive, showNotification]);
 
     const handleAdminLogin = async (inputStr: string, isBiometric = false) => {
         const normalizedInput = inputStr.trim();
@@ -2370,22 +2459,22 @@ const App: React.FC = () => {
     const memoizedTutorialSteps = useMemo(() => getTutorialSteps(selectedTurma, is6HActive), [selectedTurma, is6HActive]);
     const handleCloseAdminTutorial = useCallback(() => setIsAdminTutorialOpen(false), []);
 
-    if (!hasSelectedTheme) {
-        return (
-            <ThemeSelectionScreen 
-                isDarkMode={isDarkMode} 
-                onToggleDarkMode={handleToggleDarkMode} 
-                onContinue={handleThemeContinue} 
-            />
-        );
-    }
-
     if (!selectedTurma) {
         return (
             <TurmaSelectionScreen
                 onSelect={handleSelectTurma}
                 isDarkMode={isDarkMode}
                 onToggleDarkMode={handleToggleDarkMode}
+            />
+        );
+    }
+
+    if (!hasSelectedTheme) {
+        return (
+            <ThemeSelectionScreen 
+                isDarkMode={isDarkMode} 
+                onToggleDarkMode={handleToggleDarkMode} 
+                onContinue={handleThemeContinue} 
             />
         );
     }
@@ -2617,6 +2706,10 @@ const App: React.FC = () => {
                         is6HActive={is6HActive}
                         isAutomationPaused={isAutomationPaused}
                         isSignaturePasswordActive={isSignaturePasswordActive}
+                        isSorteioActive={isSorteioActive}
+                        onToggleSorteio={handleToggleSorteio}
+                        isPularTelasActive={isPularTelasActive}
+                        onTogglePularTelas={handleTogglePularTelas}
                         scale={modalScale}
                         selectedTurma={selectedTurma}
                         currentAdminNivel={adminNivel}
