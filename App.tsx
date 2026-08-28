@@ -1693,7 +1693,17 @@ const App: React.FC = () => {
             setIsAdmin(true);
             setAdminEmail(loggedEmail);
             
-            const hasSeenUpdate = localStorage.getItem('hasSeenReportUpdateNotice');
+            const storageKey = `hasSeenNotice_${loggedEmail}`;
+            const lastSeenStr = localStorage.getItem(storageKey);
+            let hasSeenUpdate = false;
+            
+            if (lastSeenStr) {
+                const lastSeenTime = parseInt(lastSeenStr, 10);
+                // Verifica se passou menos de 24 horas
+                if (Date.now() - lastSeenTime < 24 * 60 * 60 * 1000) {
+                    hasSeenUpdate = true;
+                }
+            }
 
             if (!hasSeenUpdate) {
                 setActiveModal(ModalType.AdminUpdateNotice);
@@ -2141,7 +2151,9 @@ const App: React.FC = () => {
     }, []);
 
     const handleCloseAdminUpdateNotice = useCallback(async () => {
-        localStorage.setItem('hasSeenReportUpdateNotice', 'true');
+        if (adminEmail) {
+            localStorage.setItem(`hasSeenNotice_${adminEmail}`, Date.now().toString());
+        }
         const isCell = await isMobileCellularWithBiometrics();
         const alreadyRegistered = hasRegisteredBiometrics();
         if (isCell && !alreadyRegistered && !isDemoMode) {
@@ -2149,7 +2161,7 @@ const App: React.FC = () => {
         } else {
             setActiveModal(ModalType.AdminOptions);
         }
-    }, [isDemoMode]);
+    }, [isDemoMode, adminEmail]);
 
     const handleHelpClick = useCallback(() => {
         // Não removemos mais as flags aqui para evitar loops de tutorial ao recarregar
