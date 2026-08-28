@@ -1118,7 +1118,7 @@ const App: React.FC = () => {
         const employee = employeesRef.current.find(e => e.id === id);
         if (!employee) return false;
 
-        const isSpecial = employee.isSpecialTeam;
+        const isSpecial = employee.turno === '6H';
         const currentSubject = isSpecial ? lastDbSpecialSubject.current : lastDbMainSubject.current;
 
         if (currentSubject) return false; // Tema já preenchido
@@ -1128,7 +1128,7 @@ const App: React.FC = () => {
         // Check se o usuário já foi sorteado
         if (drawnList.includes(id)) {
             // Verifica se todos já foram sorteados para resetar o ciclo
-            const activeShiftEmployees = employeesRef.current.filter(e => e.isSpecialTeam === isSpecial && !e.ausente);
+            const activeShiftEmployees = employeesRef.current.filter(e => (e.turno === '6H') === isSpecial && !e.ausente);
             const activeIds = activeShiftEmployees.map(e => e.id);
             const allDrawn = activeIds.length > 0 && activeIds.every(eid => drawnList.includes(eid));
             
@@ -1327,7 +1327,7 @@ const App: React.FC = () => {
         const employee = employeesRef.current.find(e => e.id === pendingRaffleId);
         if (!employee) return;
 
-        const isSpecial = employee.isSpecialTeam;
+        const isSpecial = employee.turno === '6H';
         const shift = isSpecial ? '6H' : '7H';
 
         try {
