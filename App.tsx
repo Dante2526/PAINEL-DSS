@@ -1163,7 +1163,10 @@ const App: React.FC = () => {
         
         if (password === correctPassword) {
             if (!isAdminRef.current && checkDssRaffle(pendingEmployeeId)) {
-                // Raffle assumiu o fluxo, manter pendingEmployeeId caso cancele
+                // Raffle assumiu o fluxo. Limpa pendingEmployeeId para evitar
+                // conflito de estado entre SignaturePassword e DssRaffle.
+                setPendingEmployeeId(null);
+                setActiveModal(ModalType.DssRaffle); // garantia de modal ativo
                 return;
             }
             
