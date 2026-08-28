@@ -157,7 +157,6 @@ export const AdminUpdateNoticeModal: React.FC<{
     return (
         <div
             className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
-            onClick={onClose}
         >
             <div
                 className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center relative mx-4"
