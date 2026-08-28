@@ -31,3 +31,5 @@ docs/superpowers/
 *.txt
 old_*.tsx
 /*.cjs
+
+.worktrees/

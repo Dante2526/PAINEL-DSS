@@ -38,6 +38,14 @@ async function salvarHistorico(db, team, colEmployees, colRegistros) {
     else registros7H.push(entry);
   });
 
+  const hasValidEntry = (arr) =>
+    arr.some(e => (e.name && e.name.trim()) || (e.assunto && e.assunto.trim()));
+
+  if (!hasValidEntry(registros7H) && !hasValidEntry(registros6H)) {
+    console.log(`[Histórico] Tema da DSS não preenchido. Histórico não será salvo.`);
+    return;
+  }
+
   const funcionarios = [];
   empSnapshot.forEach(doc => {
     const emp = doc.data();

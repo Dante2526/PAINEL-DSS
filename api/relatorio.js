@@ -321,6 +321,19 @@ export default async function handler(req, res) {
       }
     }
 
+    // 10.6 Verificar se há tema preenchido
+    const regSnapshotVerif = await db.collection(colRegistrosName).get();
+    const temTemaValido = regSnapshotVerif.docs.some(doc => {
+      if (doc.id.startsWith('config_')) return false;
+      const r = doc.data();
+      return (r.name && String(r.name).trim()) || (r.assunto && String(r.assunto).trim());
+    });
+    
+    if (!temTemaValido) {
+      console.log(`>>> [SERVERLESS] Tema da DSS não preenchido para Turma ${validatedTeam}. Envio cancelado. <<<`);
+      return res.status(200).json({ status: 'no_tema', message: `Tema da DSS não preenchido para a Turma ${validatedTeam}. E-mail não enviado.` });
+    }
+
     // 11. Gerar HTML Integrado
     const htmlRelatorio = await gerarRelatorio(db, validatedTeam, empSnapshot, dataExibicao, colRegistrosName, mainShiftLabel, shiftLabel, estagioSnapshot, is6HActive);
     

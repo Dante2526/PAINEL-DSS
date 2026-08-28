@@ -98,13 +98,16 @@ export enum ModalType {
   UserExistsWarning,
   ConfirmDeactivate6H,
   HistoryView,
-  ConfirmBiometric,
+  HistoryEdit,
   SignaturePassword,
-  AdminPassword,
+  ChangeAdminPassword,
+  BiometricEnrollment,
+  BiometricLogin,
   ManageAdmins,
   AddAdmin,
   EditAdmin,
   AuditLog,
+  DssRaffle,
   ConnectionError,
 }
 
