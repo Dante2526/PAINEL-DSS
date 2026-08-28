@@ -39,7 +39,10 @@ async function salvarHistorico(db, team, colEmployees, colRegistros) {
   });
 
   const hasValidEntry = (arr) =>
-    arr.some(e => (e.name && e.name.trim()) || (e.assunto && e.assunto.trim()));
+    arr.some(e => {
+      const tema = e.assunto ? String(e.assunto).trim().toLowerCase() : '';
+      return tema !== '' && tema !== 'não preenchido' && tema !== 'nao preenchido';
+    });
 
   if (!hasValidEntry(registros7H) && !hasValidEntry(registros6H)) {
     console.log(`[Histórico] Tema da DSS não preenchido. Histórico não será salvo.`);

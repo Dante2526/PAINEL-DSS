@@ -233,7 +233,8 @@ async function main() {
     const temTemaValido = regSnapshotVerif.docs.some(doc => {
       if (doc.id.startsWith('config_')) return false;
       const r = doc.data();
-      return (r.name && String(r.name).trim()) || (r.assunto && String(r.assunto).trim());
+      const tema = r.assunto ? String(r.assunto).trim().toLowerCase() : '';
+      return tema !== '' && tema !== 'não preenchido' && tema !== 'nao preenchido';
     });
     
     if (!temTemaValido) {
