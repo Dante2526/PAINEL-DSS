@@ -99,7 +99,8 @@ import {
     ConfirmDeactivate6HModal,
     TutorialChoiceModal,
     TutorialVideoModal,
-    ConnectionErrorModal
+    ConnectionErrorModal,
+    AdminUpdateNoticeModal
 } from './components/modals/ActionModals';
 
 import { isInternetFastAndStable } from './utils/network';
@@ -256,6 +257,8 @@ const App: React.FC = () => {
 
     // Ref to prevent double "loaded" notifications
     const initialLoadDoneRef = useRef(false);
+    const initialEmpLoadDoneRef = useRef(false);
+    const initialRegLoadDoneRef = useRef(false);
 
     // Manter refs sincronizados com o state
     useEffect(() => { employeesRef.current = employees; }, [employees]);
@@ -443,6 +446,8 @@ const App: React.FC = () => {
         if (!isAuthReady) return;
 
         initialLoadDoneRef.current = false; // Reset notification flag when turma changes
+        initialEmpLoadDoneRef.current = false;
+        initialRegLoadDoneRef.current = false;
 
         let unsubscribeEmployees = () => { };
         let unsubscribeRegistrations = () => { };
@@ -497,10 +502,13 @@ const App: React.FC = () => {
                         return prevEmployees;
                     });
 
-                    if (!initialLoadDoneRef.current) {
-                        setLoading(false);
-                        showNotification(`Dados da Turma ${TURMA_DISPLAY_NAMES[selectedTurma]} carregados!`, 'success');
-                        initialLoadDoneRef.current = true;
+                    if (!initialEmpLoadDoneRef.current) {
+                        initialEmpLoadDoneRef.current = true;
+                        if (initialRegLoadDoneRef.current && !initialLoadDoneRef.current) {
+                            setLoading(false);
+                            showNotification(`Dados da Turma ${TURMA_DISPLAY_NAMES[selectedTurma]} carregados!`, 'success');
+                            initialLoadDoneRef.current = true;
+                        }
                     }
 
                 }, (error) => {
@@ -594,6 +602,15 @@ const App: React.FC = () => {
                     }
                     setSpecialResponsible(specialReg?.name || '');
                     setSpecialRegisterTime(specialReg?.horario || '');
+                    
+                    if (!initialRegLoadDoneRef.current) {
+                        initialRegLoadDoneRef.current = true;
+                        if (initialEmpLoadDoneRef.current && !initialLoadDoneRef.current) {
+                            setLoading(false);
+                            showNotification(`Dados da Turma ${TURMA_DISPLAY_NAMES[selectedTurma]} carregados!`, 'success');
+                            initialLoadDoneRef.current = true;
+                        }
+                    }
                 });
 
                 const configAutomacaoQuery = doc(db, 'configuracoes', 'automacao');
@@ -1676,13 +1693,19 @@ const App: React.FC = () => {
             setIsAdmin(true);
             setAdminEmail(loggedEmail);
             
-            // Sugere registro biométrico se estiver no celular e biometria ainda não estiver cadastrada
-            const isCell = await isMobileCellularWithBiometrics();
-            const alreadyRegistered = hasRegisteredBiometrics();
-            if (isCell && !alreadyRegistered && !isDemo) {
-                setActiveModal(ModalType.ConfirmBiometric);
+            const hasSeenUpdate = localStorage.getItem('hasSeenReportUpdateNotice');
+
+            if (!hasSeenUpdate) {
+                setActiveModal(ModalType.AdminUpdateNotice);
             } else {
-                setActiveModal(ModalType.AdminOptions);
+                // Sugere registro biométrico se estiver no celular e biometria ainda não estiver cadastrada
+                const isCell = await isMobileCellularWithBiometrics();
+                const alreadyRegistered = hasRegisteredBiometrics();
+                if (isCell && !alreadyRegistered && !isDemo) {
+                    setActiveModal(ModalType.ConfirmBiometric);
+                } else {
+                    setActiveModal(ModalType.AdminOptions);
+                }
             }
             
             showNotification(isDemo ? 'Acesso Admin (DEMO) concedido.' : 'Login de administrador bem-sucedido!', 'success');
@@ -2117,6 +2140,17 @@ const App: React.FC = () => {
         setIsDemoMode(false);
     }, []);
 
+    const handleCloseAdminUpdateNotice = useCallback(async () => {
+        localStorage.setItem('hasSeenReportUpdateNotice', 'true');
+        const isCell = await isMobileCellularWithBiometrics();
+        const alreadyRegistered = hasRegisteredBiometrics();
+        if (isCell && !alreadyRegistered && !isDemoMode) {
+            setActiveModal(ModalType.ConfirmBiometric);
+        } else {
+            setActiveModal(ModalType.AdminOptions);
+        }
+    }, [isDemoMode]);
+
     const handleHelpClick = useCallback(() => {
         // Não removemos mais as flags aqui para evitar loops de tutorial ao recarregar
         setActiveModal(ModalType.TutorialChoice);
@@ -2469,7 +2503,7 @@ const App: React.FC = () => {
         );
     }
 
-    if (!hasSelectedTheme) {
+    if (!loading && !hasSelectedTheme) {
         return (
             <ThemeSelectionScreen 
                 isDarkMode={isDarkMode} 
@@ -2479,7 +2513,7 @@ const App: React.FC = () => {
         );
     }
 
-    if (!selectedLayout) {
+    if (!loading && !selectedLayout) {
         return (
             <LayoutSelectionScreen
                 onSelect={handleSelectLayout}
@@ -2903,6 +2937,11 @@ const App: React.FC = () => {
                     <TutorialVideoModal
                         isOpen={activeModal === ModalType.TutorialVideo}
                         onClose={() => setActiveModal(ModalType.None)}
+                        scale={modalScale}
+                    />
+                    <AdminUpdateNoticeModal
+                        isOpen={activeModal === ModalType.AdminUpdateNotice}
+                        onClose={handleCloseAdminUpdateNotice}
                         scale={modalScale}
                     />
                     <TutorialChoiceModal
