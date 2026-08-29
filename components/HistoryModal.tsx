@@ -1156,7 +1156,7 @@ const HistoryModal: React.FC<{
                                 <div className="mb-2 relative z-10">
                                     <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold text-center">Tema DSS</span>
                                     <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight text-center">
-                                        {historyData.registros7H.length > 0 ? historyData.registros7H[0].assunto || 'NÃO PREENCHIDO' : 'NÃO PREENCHIDO'}
+                                        {historyData.registros7H.length > 0 ? historyData.registros7H[0].assunto || 'NÃO PREENCHIDO' : 'TURNO DESCARTADO (SEM TEMA)'}
                                     </span>
                                 </div>
                                 <div className="relative z-10">
@@ -1177,7 +1177,7 @@ const HistoryModal: React.FC<{
                                     <div className="mb-2 relative z-10">
                                         <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold text-center">Tema DSS</span>
                                         <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight text-center">
-                                            {historyData.registros6H.length > 0 ? historyData.registros6H[0].assunto || 'NÃO PREENCHIDO' : 'NÃO PREENCHIDO'}
+                                            {historyData.registros6H.length > 0 ? historyData.registros6H[0].assunto || 'NÃO PREENCHIDO' : 'TURNO DESCARTADO (SEM TEMA)'}
                                         </span>
                                     </div>
                                     <div className="relative z-10">
