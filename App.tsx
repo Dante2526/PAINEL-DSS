@@ -1722,7 +1722,7 @@ const App: React.FC = () => {
                 const isCell = await isMobileCellularWithBiometrics();
                 const alreadyRegistered = hasRegisteredBiometrics();
                 if (isCell && !alreadyRegistered && !isDemo) {
-                    setActiveModal(ModalType.ConfirmBiometric);
+                    setActiveModal(ModalType.BiometricEnrollment);
                 } else {
                     setActiveModal(ModalType.AdminOptions);
                 }
@@ -2167,7 +2167,7 @@ const App: React.FC = () => {
         const isCell = await isMobileCellularWithBiometrics();
         const alreadyRegistered = hasRegisteredBiometrics();
         if (isCell && !alreadyRegistered && !isDemoMode) {
-            setActiveModal(ModalType.ConfirmBiometric);
+            setActiveModal(ModalType.BiometricEnrollment);
         } else {
             setActiveModal(ModalType.AdminOptions);
         }
@@ -2728,7 +2728,7 @@ const App: React.FC = () => {
                         scale={modalScale}
                     />
                     <ConfirmBiometricModal
-                        isOpen={activeModal === ModalType.ConfirmBiometric}
+                        isOpen={activeModal === ModalType.BiometricEnrollment}
                         onClose={handleDeclineBiometrics}
                         onActivate={handleActivateBiometrics}
                         scale={modalScale}
