@@ -1114,7 +1114,7 @@ const HistoryModal: React.FC<{
                                 Por que não há histórico?
                             </p>
                             <p className="text-[11px] text-orange-700 dark:text-orange-400">
-                                O relatório não foi gerado e salvo porque o tema da DSS <strong>não foi preenchido</strong> pela gestão durante o plantão. O sistema descarta automaticamente turnos sem tema registrado.
+                                O relatório não foi gerado e salvo porque o tema da DSS <strong>não foi preenchido</strong> pela gestão durante o turno. O sistema descarta automaticamente turnos sem tema registrado.
                             </p>
                         </div>
                     </div>
@@ -1173,6 +1173,11 @@ const HistoryModal: React.FC<{
                                         {historyData.registros7H.length > 0 && historyData.registros7H[0].name ? historyData.registros7H[0].name : '---'}
                                     </span>
                                 </div>
+                                {historyData.registros7H.length === 0 && (
+                                    <div className="mt-2 relative z-10 text-[9px] text-blue-800 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/50 p-1.5 rounded text-left leading-tight font-medium">
+                                        O relatório deste turno não foi gerado e salvo porque a gestão não preencheu o tema.
+                                    </div>
+                                )}
                             </div>
 
                             {/* 6H Card (somente se não for C_CG e estiver ativo) */}
@@ -1194,6 +1199,11 @@ const HistoryModal: React.FC<{
                                             {historyData.registros6H.length > 0 && historyData.registros6H[0].name ? historyData.registros6H[0].name : '---'}
                                         </span>
                                     </div>
+                                    {historyData.registros6H.length === 0 && (
+                                        <div className="mt-2 relative z-10 text-[9px] text-orange-800 dark:text-orange-300 bg-orange-100 dark:bg-orange-900/50 p-1.5 rounded text-left leading-tight font-medium">
+                                            O relatório deste turno não foi gerado e salvo porque a gestão não preencheu o tema.
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
