@@ -52,10 +52,16 @@ async function salvarHistorico() {
   });
 
   const hasValidEntry = (arr) =>
-    arr.some(e => (e.name && e.name.trim()) || (e.assunto && e.assunto.trim()));
+    arr.some(e => {
+      const tema = e.assunto ? String(e.assunto).trim().toLowerCase() : '';
+      return tema !== '' && tema !== 'não preenchido' && tema !== 'nao preenchido';
+    });
 
-  if (!hasValidEntry(registros7H) && !hasValidEntry(registros6H)) {
-    console.log(`[Histórico] Tema da DSS não preenchido. Histórico não será salvo.`);
+  const valid7H = hasValidEntry(registros7H);
+  const valid6H = hasValidEntry(registros6H);
+
+  if (!valid7H && !valid6H) {
+    console.log(`[Histórico] Nenhum turno tem tema preenchido. Histórico não será salvo.`);
     return;
   }
 
@@ -63,6 +69,10 @@ async function salvarHistorico() {
   const funcionarios = [];
   empSnapshot.forEach(doc => {
     const emp = doc.data();
+    const turno = emp.turno || '7H';
+    
+    if (turno === '7H' && !valid7H) return;
+    if (turno === '6H' && !valid6H) return;
 
     // Determinar status compacto
     let status = 'PEN'; // Pendente (default)
@@ -75,7 +85,7 @@ async function salvarHistorico() {
       n: (emp.name || '').replace(/\s+/g, ' ').trim(),
       s: status,
       t: emp.time || null,
-      turno: emp.turno || '7H'
+      turno: turno
     });
   });
 
@@ -99,8 +109,8 @@ async function salvarHistorico() {
     data: dataBR,
     dataISO: dataISO,
     turma: TARGET_TEAM,
-    registros7H: registros7H,
-    registros6H: registros6H,
+    registros7H: valid7H ? registros7H : [],
+    registros6H: valid6H ? registros6H : [],
     r: funcionarios,
     totalFuncionarios: funcionarios.length,
     totalPresentes: funcionarios.filter(f => f.s === 'BEM' || f.s === 'MAL').length,

@@ -148,6 +148,58 @@ export const ConfirmMalModal: React.FC<{
     );
 };
 
+export const AdminUpdateNoticeModal: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    scale: number;
+}> = ({ isOpen, onClose, scale }) => {
+    if (!isOpen) return null;
+    return (
+        <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
+        >
+            <div
+                className="bg-light-card dark:bg-dark-card rounded-2xl shadow-2xl p-8 w-full max-w-sm text-center relative mx-4"
+                style={{ transform: `scale(${scale})`, animation: 'fade-in-scale 0.3s forwards ease-out' }}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl z-10"
+                >
+                    &times;
+                </button>
+                <h2 className="text-xl font-bold uppercase text-light-text dark:text-dark-text mb-6">NOVA ATUALIZAÇÃO</h2>
+                <div className="space-y-6 text-center p-2 flex flex-col items-center">
+                    <div className="mx-auto w-16 h-16 bg-amber-100 dark:bg-amber-900/30 rounded-full flex items-center justify-center mb-2 text-amber-500">
+                        <InfoIcon className="w-8 h-8" />
+                    </div>
+                    <div className="text-lg text-light-text dark:text-dark-text font-medium flex flex-col items-center gap-2">
+                        <span>Obrigatório: <strong>Tema da DSS</strong></span>
+                    </div>
+                    <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl w-full border border-gray-200 dark:border-gray-600 text-left">
+                        <p className="text-sm text-light-text-secondary dark:text-gray-300">
+                            A partir de agora, o histórico diário <strong>só será salvo</strong> e o e-mail <strong>só será enviado</strong> se o <strong className="text-amber-600 dark:text-amber-400">Tema da DSS</strong> do dia estiver preenchido.
+                        </p>
+                        <div className="mt-3 text-xs text-light-text-secondary dark:text-gray-400 bg-white/50 dark:bg-black/20 p-3 rounded-lg border border-gray-200/50 dark:border-gray-600/50">
+                            <strong>Por que essa mudança?</strong><br/>
+                            Sem o tema da DSS (que é como identificamos o relatório), as informações não têm utilidade. É praticamente um arquivo vazio ocupando espaço desnecessário no banco de dados.
+                        </div>
+                    </div>
+                    <div className="w-full mt-2">
+                        <button
+                            onClick={onClose}
+                            className="w-full py-4 font-bold text-white bg-primary rounded-lg hover:bg-primary-dark shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
+                        >
+                            ENTENDI
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 export const ConfirmTurnoModal: React.FC<{
     isOpen: boolean;
     onClose: () => void;

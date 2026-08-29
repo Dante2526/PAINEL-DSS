@@ -321,17 +321,32 @@ export default async function handler(req, res) {
       }
     }
 
-    // 10.6 Verificar se há tema preenchido
+    // 10.6 Verificar se há tema preenchido por turno
     const regSnapshotVerif = await db.collection(colRegistrosName).get();
-    const temTemaValido = regSnapshotVerif.docs.some(doc => {
-      if (doc.id.startsWith('config_')) return false;
+    
+    let valid7H = false;
+    let valid6H = false;
+
+    regSnapshotVerif.forEach(doc => {
+      if (doc.id.startsWith('config_')) return;
       const r = doc.data();
-      return (r.name && String(r.name).trim()) || (r.assunto && String(r.assunto).trim());
+      const tema = r.assunto ? String(r.assunto).trim().toLowerCase() : '';
+      const isValid = tema !== '' && tema !== 'não preenchido' && tema !== 'nao preenchido';
+      
+      if (isValid) {
+        if (r.TURNO === '6H') valid6H = true;
+        else valid7H = true;
+      }
     });
     
-    if (!temTemaValido) {
-      console.log(`>>> [SERVERLESS] Tema da DSS não preenchido para Turma ${validatedTeam}. Envio cancelado. <<<`);
+    if (!valid7H && !valid6H) {
+      console.log(`>>> [SERVERLESS] Nenhum turno tem tema preenchido para Turma ${validatedTeam}. Envio cancelado. <<<`);
       return res.status(200).json({ status: 'no_tema', message: `Tema da DSS não preenchido para a Turma ${validatedTeam}. E-mail não enviado.` });
+    }
+
+    // Se o 6H não tiver tema preenchido, não renderizar no relatório
+    if (!valid6H) {
+      is6HActive = false;
     }
 
     // 11. Gerar HTML Integrado

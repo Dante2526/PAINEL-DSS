@@ -109,6 +109,7 @@ export enum ModalType {
   AuditLog,
   DssRaffle,
   ConnectionError,
+  AdminUpdateNotice,
 }
 
 export interface PdfReportData {

@@ -228,17 +228,32 @@ async function main() {
       }
     }
 
-    // Verificar se há tema preenchido
+    // Verificar se há tema preenchido por turno
     const regSnapshotVerif = await db.collection(colRegistrosName).get();
-    const temTemaValido = regSnapshotVerif.docs.some(doc => {
-      if (doc.id.startsWith('config_')) return false;
+    
+    let valid7H = false;
+    let valid6H = false;
+
+    regSnapshotVerif.forEach(doc => {
+      if (doc.id.startsWith('config_')) return;
       const r = doc.data();
-      return (r.name && String(r.name).trim()) || (r.assunto && String(r.assunto).trim());
+      const tema = r.assunto ? String(r.assunto).trim().toLowerCase() : '';
+      const isValid = tema !== '' && tema !== 'não preenchido' && tema !== 'nao preenchido';
+      
+      if (isValid) {
+        if (r.TURNO === '6H') valid6H = true;
+        else valid7H = true;
+      }
     });
     
-    if (!temTemaValido) {
-      console.log('Tema da DSS não preenchido. Abortando envio de e-mail.');
+    if (!valid7H && !valid6H) {
+      console.log('Nenhum turno tem tema preenchido. Abortando envio de e-mail.');
       process.exit(0);
+    }
+
+    // Se o 6H não tiver tema preenchido, não renderizar no relatório
+    if (!valid6H) {
+      is6HActive = false;
     }
 
     const htmlRelatorio = await gerarRelatorio(empSnapshot, dataExibicao, is6HActive);

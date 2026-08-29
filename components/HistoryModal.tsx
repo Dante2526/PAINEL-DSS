@@ -1101,14 +1101,22 @@ const HistoryModal: React.FC<{
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 20a8 8 0 100-16 8 8 0 000 16z" />
                             </svg>
                         </div>
-                        <p className="text-light-text-secondary dark:text-dark-text-secondary font-medium">
+                        <p className="text-light-text-secondary dark:text-dark-text-secondary font-medium mt-2">
                             {selectedSearchTurmas.length === 1
-                                ? 'Nenhum registro encontrado para esta data.'
-                                : 'Nenhum registro encontrado para as turmas selecionadas nesta data.'}
+                                ? 'Nenhum relatório encontrado para esta data.'
+                                : 'Nenhum relatório encontrado para as turmas selecionadas nesta data.'}
                         </p>
-                        <p className="text-xs text-gray-400 mt-1">
-                            O histórico só inclui dias em que houve limpeza automática.
-                        </p>
+                        <div className="mt-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800/30 rounded-lg p-3 text-left">
+                            <p className="text-xs text-orange-800 dark:text-orange-300 font-semibold mb-1 flex items-center gap-1.5">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Por que não há histórico?
+                            </p>
+                            <p className="text-[11px] text-orange-700 dark:text-orange-400">
+                                O relatório não foi gerado e salvo porque o tema da DSS <strong>não foi preenchido</strong> pela gestão durante o turno. O sistema descarta automaticamente turnos sem tema registrado.
+                            </p>
+                        </div>
                     </div>
                 )}
 
@@ -1156,7 +1164,7 @@ const HistoryModal: React.FC<{
                                 <div className="mb-2 relative z-10">
                                     <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold text-center">Tema DSS</span>
                                     <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight text-center">
-                                        {historyData.registros7H.length > 0 ? historyData.registros7H[0].assunto || 'NÃO PREENCHIDO' : 'NÃO PREENCHIDO'}
+                                        {historyData.registros7H.length > 0 ? historyData.registros7H[0].assunto || 'NÃO PREENCHIDO' : 'TURNO DESCARTADO (SEM TEMA)'}
                                     </span>
                                 </div>
                                 <div className="relative z-10">
@@ -1165,6 +1173,11 @@ const HistoryModal: React.FC<{
                                         {historyData.registros7H.length > 0 && historyData.registros7H[0].name ? historyData.registros7H[0].name : '---'}
                                     </span>
                                 </div>
+                                {historyData.registros7H.length === 0 && (
+                                    <div className="mt-2 relative z-10 text-[9px] text-blue-800 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/50 p-1.5 rounded text-left leading-tight font-medium">
+                                        O relatório deste turno não foi gerado e salvo porque a gestão não preencheu o tema.
+                                    </div>
+                                )}
                             </div>
 
                             {/* 6H Card (somente se não for C_CG e estiver ativo) */}
@@ -1177,7 +1190,7 @@ const HistoryModal: React.FC<{
                                     <div className="mb-2 relative z-10">
                                         <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold text-center">Tema DSS</span>
                                         <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight text-center">
-                                            {historyData.registros6H.length > 0 ? historyData.registros6H[0].assunto || 'NÃO PREENCHIDO' : 'NÃO PREENCHIDO'}
+                                            {historyData.registros6H.length > 0 ? historyData.registros6H[0].assunto || 'NÃO PREENCHIDO' : 'TURNO DESCARTADO (SEM TEMA)'}
                                         </span>
                                     </div>
                                     <div className="relative z-10">
@@ -1186,6 +1199,11 @@ const HistoryModal: React.FC<{
                                             {historyData.registros6H.length > 0 && historyData.registros6H[0].name ? historyData.registros6H[0].name : '---'}
                                         </span>
                                     </div>
+                                    {historyData.registros6H.length === 0 && (
+                                        <div className="mt-2 relative z-10 text-[9px] text-orange-800 dark:text-orange-300 bg-orange-100 dark:bg-orange-900/50 p-1.5 rounded text-left leading-tight font-medium">
+                                            O relatório deste turno não foi gerado e salvo porque a gestão não preencheu o tema.
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>

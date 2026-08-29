@@ -99,7 +99,8 @@ import {
     ConfirmDeactivate6HModal,
     TutorialChoiceModal,
     TutorialVideoModal,
-    ConnectionErrorModal
+    ConnectionErrorModal,
+    AdminUpdateNoticeModal
 } from './components/modals/ActionModals';
 
 import { isInternetFastAndStable } from './utils/network';
@@ -256,6 +257,8 @@ const App: React.FC = () => {
 
     // Ref to prevent double "loaded" notifications
     const initialLoadDoneRef = useRef(false);
+    const initialEmpLoadDoneRef = useRef(false);
+    const initialRegLoadDoneRef = useRef(false);
 
     // Manter refs sincronizados com o state
     useEffect(() => { employeesRef.current = employees; }, [employees]);
@@ -443,6 +446,8 @@ const App: React.FC = () => {
         if (!isAuthReady) return;
 
         initialLoadDoneRef.current = false; // Reset notification flag when turma changes
+        initialEmpLoadDoneRef.current = false;
+        initialRegLoadDoneRef.current = false;
 
         let unsubscribeEmployees = () => { };
         let unsubscribeRegistrations = () => { };
@@ -497,10 +502,13 @@ const App: React.FC = () => {
                         return prevEmployees;
                     });
 
-                    if (!initialLoadDoneRef.current) {
-                        setLoading(false);
-                        showNotification(`Dados da Turma ${TURMA_DISPLAY_NAMES[selectedTurma]} carregados!`, 'success');
-                        initialLoadDoneRef.current = true;
+                    if (!initialEmpLoadDoneRef.current) {
+                        initialEmpLoadDoneRef.current = true;
+                        if (initialRegLoadDoneRef.current && !initialLoadDoneRef.current) {
+                            setLoading(false);
+                            showNotification(`Dados da Turma ${TURMA_DISPLAY_NAMES[selectedTurma]} carregados!`, 'success');
+                            initialLoadDoneRef.current = true;
+                        }
                     }
 
                 }, (error) => {
@@ -594,6 +602,15 @@ const App: React.FC = () => {
                     }
                     setSpecialResponsible(specialReg?.name || '');
                     setSpecialRegisterTime(specialReg?.horario || '');
+                    
+                    if (!initialRegLoadDoneRef.current) {
+                        initialRegLoadDoneRef.current = true;
+                        if (initialEmpLoadDoneRef.current && !initialLoadDoneRef.current) {
+                            setLoading(false);
+                            showNotification(`Dados da Turma ${TURMA_DISPLAY_NAMES[selectedTurma]} carregados!`, 'success');
+                            initialLoadDoneRef.current = true;
+                        }
+                    }
                 });
 
                 const configAutomacaoQuery = doc(db, 'configuracoes', 'automacao');
@@ -1101,7 +1118,7 @@ const App: React.FC = () => {
         const employee = employeesRef.current.find(e => e.id === id);
         if (!employee) return false;
 
-        const isSpecial = employee.isSpecialTeam;
+        const isSpecial = employee.turno === '6H';
         const currentSubject = isSpecial ? lastDbSpecialSubject.current : lastDbMainSubject.current;
 
         if (currentSubject) return false; // Tema já preenchido
@@ -1111,7 +1128,7 @@ const App: React.FC = () => {
         // Check se o usuário já foi sorteado
         if (drawnList.includes(id)) {
             // Verifica se todos já foram sorteados para resetar o ciclo
-            const activeShiftEmployees = employeesRef.current.filter(e => e.isSpecialTeam === isSpecial && !e.ausente);
+            const activeShiftEmployees = employeesRef.current.filter(e => (e.turno === '6H') === isSpecial && !e.ausente);
             const activeIds = activeShiftEmployees.map(e => e.id);
             const allDrawn = activeIds.length > 0 && activeIds.every(eid => drawnList.includes(eid));
             
@@ -1310,8 +1327,13 @@ const App: React.FC = () => {
         const employee = employeesRef.current.find(e => e.id === pendingRaffleId);
         if (!employee) return;
 
-        const isSpecial = employee.isSpecialTeam;
+        const isSpecial = employee.turno === '6H';
         const shift = isSpecial ? '6H' : '7H';
+
+        if (!db) {
+            showNotification('A conexão com o banco de dados não está disponível.', 'error');
+            return;
+        }
 
         try {
             // 1. Atualizar config_dss_raffle
@@ -1625,6 +1647,11 @@ const App: React.FC = () => {
             return;
         }
 
+        if (!db) {
+            showNotification('A conexão com o banco de dados não está disponível.', 'error');
+            return;
+        }
+
         try {
             const docRef = doc(db, getTurmaRegistrationName(selectedTurma), 'config_pular_telas');
             await setDoc(docRef, { ativado: newActive }, { merge: true });
@@ -1676,13 +1703,29 @@ const App: React.FC = () => {
             setIsAdmin(true);
             setAdminEmail(loggedEmail);
             
-            // Sugere registro biométrico se estiver no celular e biometria ainda não estiver cadastrada
-            const isCell = await isMobileCellularWithBiometrics();
-            const alreadyRegistered = hasRegisteredBiometrics();
-            if (isCell && !alreadyRegistered && !isDemo) {
-                setActiveModal(ModalType.ConfirmBiometric);
+            const storageKey = `hasSeenNotice_${loggedEmail}`;
+            const lastSeenStr = localStorage.getItem(storageKey);
+            let hasSeenUpdate = false;
+            
+            if (lastSeenStr) {
+                const lastSeenTime = parseInt(lastSeenStr, 10);
+                // Verifica se passou menos de 24 horas
+                if (Date.now() - lastSeenTime < 24 * 60 * 60 * 1000) {
+                    hasSeenUpdate = true;
+                }
+            }
+
+            if (!hasSeenUpdate) {
+                setActiveModal(ModalType.AdminUpdateNotice);
             } else {
-                setActiveModal(ModalType.AdminOptions);
+                // Sugere registro biométrico se estiver no celular e biometria ainda não estiver cadastrada
+                const isCell = await isMobileCellularWithBiometrics();
+                const alreadyRegistered = hasRegisteredBiometrics();
+                if (isCell && !alreadyRegistered && !isDemo) {
+                    setActiveModal(ModalType.BiometricEnrollment);
+                } else {
+                    setActiveModal(ModalType.AdminOptions);
+                }
             }
             
             showNotification(isDemo ? 'Acesso Admin (DEMO) concedido.' : 'Login de administrador bem-sucedido!', 'success');
@@ -2117,6 +2160,19 @@ const App: React.FC = () => {
         setIsDemoMode(false);
     }, []);
 
+    const handleCloseAdminUpdateNotice = useCallback(async () => {
+        if (adminEmail) {
+            localStorage.setItem(`hasSeenNotice_${adminEmail}`, Date.now().toString());
+        }
+        const isCell = await isMobileCellularWithBiometrics();
+        const alreadyRegistered = hasRegisteredBiometrics();
+        if (isCell && !alreadyRegistered && !isDemoMode) {
+            setActiveModal(ModalType.BiometricEnrollment);
+        } else {
+            setActiveModal(ModalType.AdminOptions);
+        }
+    }, [isDemoMode, adminEmail]);
+
     const handleHelpClick = useCallback(() => {
         // Não removemos mais as flags aqui para evitar loops de tutorial ao recarregar
         setActiveModal(ModalType.TutorialChoice);
@@ -2469,7 +2525,7 @@ const App: React.FC = () => {
         );
     }
 
-    if (!hasSelectedTheme) {
+    if (!loading && !hasSelectedTheme) {
         return (
             <ThemeSelectionScreen 
                 isDarkMode={isDarkMode} 
@@ -2479,7 +2535,7 @@ const App: React.FC = () => {
         );
     }
 
-    if (!selectedLayout) {
+    if (!loading && !selectedLayout) {
         return (
             <LayoutSelectionScreen
                 onSelect={handleSelectLayout}
@@ -2672,7 +2728,7 @@ const App: React.FC = () => {
                         scale={modalScale}
                     />
                     <ConfirmBiometricModal
-                        isOpen={activeModal === ModalType.ConfirmBiometric}
+                        isOpen={activeModal === ModalType.BiometricEnrollment}
                         onClose={handleDeclineBiometrics}
                         onActivate={handleActivateBiometrics}
                         scale={modalScale}
@@ -2698,7 +2754,7 @@ const App: React.FC = () => {
                             showNotification('Acesso por impressão digital desativado neste aparelho.', 'success');
                             setActiveModal(ModalType.None);
                         }}
-                        onChangeAdminPassword={() => setActiveModal(ModalType.AdminPassword)}
+                        onChangeAdminPassword={() => setActiveModal(ModalType.ChangeAdminPassword)}
                         onManageAdmins={() => setActiveModal(ModalType.ManageAdmins)}
                         onAuditLog={handleOpenAuditLog}
                         onToggleSignaturePassword={handleToggleSignaturePassword}
@@ -2838,7 +2894,7 @@ const App: React.FC = () => {
                         />
                     )}
                     <AdminPasswordModal
-                        isOpen={activeModal === ModalType.AdminPassword}
+                        isOpen={activeModal === ModalType.ChangeAdminPassword}
                         onClose={handleCloseModal}
                         onBack={handleBackToAdminOptions}
                         onConfirm={handleChangeAdminPassword}
@@ -2903,6 +2959,11 @@ const App: React.FC = () => {
                     <TutorialVideoModal
                         isOpen={activeModal === ModalType.TutorialVideo}
                         onClose={() => setActiveModal(ModalType.None)}
+                        scale={modalScale}
+                    />
+                    <AdminUpdateNoticeModal
+                        isOpen={activeModal === ModalType.AdminUpdateNotice}
+                        onClose={handleCloseAdminUpdateNotice}
                         scale={modalScale}
                     />
                     <TutorialChoiceModal
