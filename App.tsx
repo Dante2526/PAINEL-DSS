@@ -1330,6 +1330,11 @@ const App: React.FC = () => {
         const isSpecial = employee.turno === '6H';
         const shift = isSpecial ? '6H' : '7H';
 
+        if (!db) {
+            showNotification('A conexão com o banco de dados não está disponível.', 'error');
+            return;
+        }
+
         try {
             // 1. Atualizar config_dss_raffle
             const newDrawn = isSpecial ? [...drawn6HRef.current, employee.id] : [...drawn7HRef.current, employee.id];
@@ -1639,6 +1644,11 @@ const App: React.FC = () => {
         if (isDemoMode) {
             setIsPularTelasActive(newActive);
             showNotification(newActive ? 'Pular Telas Iniciais ATIVADO (DEMO).' : 'Pular Telas Iniciais DESATIVADO (DEMO).', 'success');
+            return;
+        }
+
+        if (!db) {
+            showNotification('A conexão com o banco de dados não está disponível.', 'error');
             return;
         }
 
