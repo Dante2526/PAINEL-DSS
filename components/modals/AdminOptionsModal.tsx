@@ -161,7 +161,7 @@ export const AdminOptionsModal: React.FC<{
                                     </span>
                                 </button>
                             </div>
-                            <div className="border-t border-gray-200 dark:border-gray-700 pt-3 md:pt-3 mt-1 md:mt-1 grid grid-cols-2 gap-2 md:gap-3">
+                            <div className="col-span-2 grid grid-cols-2 gap-2 md:gap-3 mt-1 md:mt-1">
                                 <button
                                     id="admin-tutorial-btn"
                                     onClick={onStartAdminTutorial}
@@ -242,7 +242,7 @@ export const AdminOptionsModal: React.FC<{
                                     </span>
                                 </button>
                             </div>
-                            <div className="border-t border-gray-200 dark:border-gray-700 pt-3 md:pt-3 mt-1 md:mt-1 grid grid-cols-2 gap-2 md:gap-3">
+                            <div className="col-span-2 grid grid-cols-2 gap-2 md:gap-3 mt-1 md:mt-1">
                                 <button
                                     id="admin-tutorial-btn"
                                     onClick={onStartAdminTutorial}
