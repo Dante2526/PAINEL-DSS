@@ -2754,7 +2754,7 @@ const App: React.FC = () => {
                             showNotification('Acesso por impressão digital desativado neste aparelho.', 'success');
                             setActiveModal(ModalType.None);
                         }}
-                        onChangeAdminPassword={() => setActiveModal(ModalType.AdminPassword)}
+                        onChangeAdminPassword={() => setActiveModal(ModalType.ChangeAdminPassword)}
                         onManageAdmins={() => setActiveModal(ModalType.ManageAdmins)}
                         onAuditLog={handleOpenAuditLog}
                         onToggleSignaturePassword={handleToggleSignaturePassword}
@@ -2894,7 +2894,7 @@ const App: React.FC = () => {
                         />
                     )}
                     <AdminPasswordModal
-                        isOpen={activeModal === ModalType.AdminPassword}
+                        isOpen={activeModal === ModalType.ChangeAdminPassword}
                         onClose={handleCloseModal}
                         onBack={handleBackToAdminOptions}
                         onConfirm={handleChangeAdminPassword}
