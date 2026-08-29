@@ -177,7 +177,7 @@ export const AdminUpdateNoticeModal: React.FC<{
                     <div className="text-lg text-light-text dark:text-dark-text font-medium flex flex-col items-center gap-2">
                         <span>Obrigatório: <strong>Tema da DSS</strong></span>
                     </div>
-                    <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl w-full border border-gray-200 dark:border-gray-600 text-left">
+                    <div className="bg-gray-100 dark:bg-gray-700 p-4 rounded-xl w-full border border-gray-200 dark:border-gray-600 text-center">
                         <p className="text-sm text-light-text-secondary dark:text-gray-300">
                             A partir de agora, o histórico diário <strong>só será salvo</strong> e o e-mail <strong>só será enviado</strong> se o <strong className="text-amber-600 dark:text-amber-400">Tema da DSS</strong> do dia estiver preenchido.
                         </p>
