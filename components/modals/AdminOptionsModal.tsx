@@ -261,7 +261,7 @@ export const AdminOptionsModal: React.FC<{
                                 </button>
                             </div>
                         </>
-
+                    )}
                 </div>
                 {hasBiometrics && (
                     <div className="mt-1">
