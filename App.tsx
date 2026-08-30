@@ -544,12 +544,25 @@ const App: React.FC = () => {
                     const pularAtivo = configPularTelas?.data()?.ativado ?? false;
                     setIsPularTelasActive(pularAtivo);
                     if (pularAtivo) {
-                        // Pular telas automaticamente ao carregar a turma
+                        // Pular telas automaticamente ao carregar a turma.
+                        // Marca que foi o Pular Telas quem setou essas chaves (não uma escolha manual do usuário),
+                        // para podermos reverter com segurança se a config for desativada depois.
                         localStorage.setItem('themeSelected', 'true');
                         localStorage.setItem('selectedLayout', 'standard');
                         localStorage.setItem('hasSeenTutorial', 'true');
+                        localStorage.setItem('pularTelasAutoSet', 'true');
                         setHasSelectedTheme(true);
                         setSelectedLayout('standard');
+                    } else if (localStorage.getItem('pularTelasAutoSet') === 'true') {
+                        // A config está desligada para esta turma, mas as chaves foram deixadas
+                        // pelo Pular Telas em uma sessão/turma anterior. Reverte com segurança,
+                        // sem afetar quem selecionou tema/layout manualmente de propósito.
+                        localStorage.removeItem('themeSelected');
+                        localStorage.removeItem('selectedLayout');
+                        localStorage.removeItem('hasSeenTutorial');
+                        localStorage.removeItem('pularTelasAutoSet');
+                        setHasSelectedTheme(false);
+                        setSelectedLayout(null);
                     }
 
                     const configSignaturePassword = querySnapshot.docs.find(d => d.id === 'config_senha_assinatura');
@@ -2146,6 +2159,7 @@ const App: React.FC = () => {
 
     const handleSelectLayout = useCallback((layout: 'standard' | 'custom') => {
         localStorage.setItem('selectedLayout', layout);
+        localStorage.removeItem('pularTelasAutoSet'); // Escolha manual, não é mais do Pular Telas
         setSelectedLayout(layout);
     }, []);
 
@@ -2505,6 +2519,7 @@ const App: React.FC = () => {
 
     const handleThemeContinue = useCallback(() => {
         localStorage.setItem('themeSelected', 'true');
+        localStorage.removeItem('pularTelasAutoSet'); // Escolha manual, não é mais do Pular Telas
         setHasSelectedTheme(true);
     }, []);
 
