@@ -90,6 +90,11 @@ export const ManualRegisterSection: React.FC<{
                         type="text"
                         value={localSubject}
                         onChange={(e) => setLocalSubject(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                !isLocked && onRegister(localSubject, localMatricula);
+                            }
+                        }}
                         placeholder={`TEMA DSS - TURNO ${getMainShiftLabel(turma)}`}
                         disabled={isLocked}
                         className={`w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 rounded-xl outline-none transition uppercase ${isLocked ? 'opacity-60 cursor-not-allowed bg-gray-200 dark:bg-gray-800' : `${subjectBorderClass} focus:ring-2`}`}
@@ -102,6 +107,11 @@ export const ManualRegisterSection: React.FC<{
                         type="text"
                         value={localMatricula}
                         onChange={handleMatriculaChange}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                                !isLocked && onRegister(localSubject, localMatricula);
+                            }
+                        }}
                         placeholder="Matrícula"
                         disabled={isLocked}
                         className={`w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 rounded-xl outline-none transition ${isLocked ? 'opacity-60 cursor-not-allowed bg-gray-200 dark:bg-gray-800' : `${matriculaBorderClass} focus:ring-2`}`}

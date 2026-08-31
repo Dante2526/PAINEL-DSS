@@ -134,7 +134,12 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
                                 <input
                                     type="text"
                                     value={localSubject}
-                                    onChange={(e) => setLocalSubject(e.target.value)}
+                                    onChange={handleSubjectChangeLocal}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            !isLocked && onRegister(localSubject, localMatricula);
+                                        }
+                                    }}
                                     placeholder={`TEMA DSS - TURNO ${shiftLabel}`}
                                     disabled={isLocked}
                                     className={`w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 rounded-lg outline-none transition uppercase ${isLocked ? 'opacity-60 cursor-not-allowed bg-gray-200 dark:bg-gray-800' : `${subjectBorderClass} focus:ring-2`}`}
@@ -149,6 +154,11 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
                                         type="text"
                                         value={localMatricula}
                                         onChange={handleMatriculaChangeLocal}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                !isLocked && onRegister(localSubject, localMatricula);
+                                            }
+                                        }}
                                         placeholder="Matrícula"
                                         disabled={isLocked}
                                         className={`w-full pl-12 pr-4 py-4 bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text border-2 rounded-l-lg outline-none transition ${isLocked ? 'opacity-60 cursor-not-allowed bg-gray-200 dark:bg-gray-800' : `${matriculaBorderClass} ${!isMatriculaEmpty ? 'border-r border-r-gray-300 dark:border-r-gray-600' : ''} focus:ring-2`}`}

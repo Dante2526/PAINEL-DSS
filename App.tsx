@@ -1257,19 +1257,19 @@ const App: React.FC = () => {
         }
     }, [pendingEmployeeId, processStatusUpdate, selectedTurma, showNotification, checkDssRaffle]);
 
-    const handleManualRegister = useCallback(async (turno: '7H' | '6H', matricula: string, rawSubject: string) => {
-        if (!selectedTurma || !db) return;
+    const handleManualRegister = useCallback(async (turno: '7H' | '6H', matricula: string, rawSubject: string): Promise<boolean> => {
+        if (!selectedTurma || !db) return false;
 
         const subject = rawSubject ? rawSubject.toUpperCase() : '';
 
         if (!matricula) {
             showNotification('Por favor, insira uma matrícula.', 'error');
-            return;
+            return false;
         }
 
         if (matricula.length !== 8) {
             setActiveModal(ModalType.InvalidMatricula);
-            return;
+            return false;
         }
 
         let resolvedName = '';
@@ -1299,12 +1299,12 @@ const App: React.FC = () => {
 
         if (isDemoMode) {
             showNotification(`Registro para turno ${turno} salvo com sucesso (DEMO).`, 'success');
-            return;
+            return true;
         }
 
         if (!db) {
             showNotification("A conexão com o banco de dados não está disponível.", "error");
-            return;
+            return false;
         }
 
         const registrationCollectionName = getTurmaRegistrationName(selectedTurma);
@@ -1328,12 +1328,14 @@ const App: React.FC = () => {
 
             showNotification(`Registro para turno ${turno} salvo com sucesso.`, 'success');
             logAuditEvent(adminEmailRef.current, 'REGISTRO MANUAL', `Registro manual salvo | Turno: ${turno} | Matrícula: ${matricula} | Assunto: ${subject || 'Não preenchido'}`, selectedTurma);
+            return true;
         } catch (error) {
             console.error("Error saving manual registration:", error);
             const message = error instanceof Error ? error.message : 'Ocorreu um erro desconhecido.';
             showNotification(`Falha ao salvar registro: ${message}`, 'error');
+            return false;
         }
-    }, [selectedTurma, isDemoMode, isSignaturePasswordActive, showNotification]);
+    }, [selectedTurma, isDemoMode, isSignaturePasswordActive, showNotification, db]);
 
     const handleDssRaffleCancel = useCallback(() => {
         if (pendingRaffleId) {
@@ -1372,7 +1374,9 @@ const App: React.FC = () => {
             }, { merge: true });
 
             // 2. Preencher assunto e matricula
-            await handleManualRegister(shift, inspectorMatricula, subject);
+            const success = await handleManualRegister(shift, inspectorMatricula, subject);
+            
+            if (!success) return; // Se falhou (ex: matrícula inválida), não prossegue nem fecha o modal
 
             // 3. Processar assinatura normal
             processStatusUpdate(pendingRaffleId, 'assDss');

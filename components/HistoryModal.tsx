@@ -1156,52 +1156,62 @@ const HistoryModal: React.FC<{
                         {/* Registro DSS Cards */}
                         <div className="flex gap-3">
                             {/* 7H Card */}
-                            <div className="flex-1 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-xl border border-blue-100 dark:border-blue-800 text-center relative overflow-hidden group">
+                            <div className="flex-1 flex flex-col bg-blue-50 dark:bg-blue-900/20 p-3 rounded-xl border border-blue-100 dark:border-blue-800 text-center relative overflow-hidden group">
                                 <div className="absolute right-0 top-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
                                     <SubjectIcon className="w-12 h-12 text-blue-600" />
                                 </div>
                                 <div className="text-[10px] font-bold text-white bg-blue-500 px-2 py-0.5 rounded-full w-fit mb-2 mx-auto">TURNO {mainShiftLabel}</div>
-                                <div className="mb-2 relative z-10">
-                                    <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold text-center">Tema DSS</span>
-                                    <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight text-center">
-                                        {historyData.registros7H.length > 0 ? historyData.registros7H[0].assunto || 'NÃO PREENCHIDO' : 'TURNO DESCARTADO (SEM TEMA)'}
-                                    </span>
-                                </div>
-                                <div className="relative z-10">
-                                    <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold text-center">Responsável</span>
-                                    <span className="text-xs text-gray-700 dark:text-gray-300 truncate block text-center">
-                                        {historyData.registros7H.length > 0 && historyData.registros7H[0].name ? historyData.registros7H[0].name : '---'}
-                                    </span>
-                                </div>
-                                {historyData.registros7H.length === 0 && (
-                                    <div className="mt-2 relative z-10 text-[9px] text-blue-800 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/50 p-1.5 rounded text-left leading-tight font-medium">
-                                        O relatório deste turno não foi gerado e salvo porque a gestão não preencheu o tema.
+                                {historyData.registros7H.length > 0 ? (
+                                    <>
+                                        <div className="mb-2 relative z-10">
+                                            <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold text-center">Tema DSS</span>
+                                            <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight text-center">
+                                                {historyData.registros7H[0].assunto || 'NÃO PREENCHIDO'}
+                                            </span>
+                                        </div>
+                                        <div className="relative z-10">
+                                            <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold text-center">Responsável</span>
+                                            <span className="text-xs text-gray-700 dark:text-gray-300 truncate block text-center">
+                                                {historyData.registros7H[0].name || '---'}
+                                            </span>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="flex-1 flex items-center justify-center relative z-10 mt-1">
+                                        <div className="text-[10px] text-blue-800 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/50 p-2 rounded-lg text-center leading-snug font-medium w-full">
+                                            O relatório deste turno não foi gerado e salvo porque a gestão não preencheu o tema.
+                                        </div>
                                     </div>
                                 )}
                             </div>
 
                             {/* 6H Card (somente se não for C_CG e estiver ativo) */}
                             {is6HActive && turma !== 'ESTAGIO' && (
-                                <div className="flex-1 bg-orange-50 dark:bg-orange-900/20 p-3 rounded-xl border border-orange-100 dark:border-orange-800 text-center relative overflow-hidden group">
+                                <div className="flex-1 flex flex-col bg-orange-50 dark:bg-orange-900/20 p-3 rounded-xl border border-orange-100 dark:border-orange-800 text-center relative overflow-hidden group">
                                     <div className="absolute right-0 top-0 p-2 opacity-10 group-hover:opacity-20 transition-opacity">
                                         <ShiftIcon className="w-12 h-12 text-orange-600" />
                                     </div>
                                     <div className="text-[10px] font-bold text-white bg-orange-500 px-2 py-0.5 rounded-full w-fit mb-2 mx-auto">TURNO {shiftLabel}</div>
-                                    <div className="mb-2 relative z-10">
-                                        <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold text-center">Tema DSS</span>
-                                        <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight text-center">
-                                            {historyData.registros6H.length > 0 ? historyData.registros6H[0].assunto || 'NÃO PREENCHIDO' : 'TURNO DESCARTADO (SEM TEMA)'}
-                                        </span>
-                                    </div>
-                                    <div className="relative z-10">
-                                        <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold text-center">Responsável</span>
-                                        <span className="text-xs text-gray-700 dark:text-gray-300 truncate block text-center">
-                                            {historyData.registros6H.length > 0 && historyData.registros6H[0].name ? historyData.registros6H[0].name : '---'}
-                                        </span>
-                                    </div>
-                                    {historyData.registros6H.length === 0 && (
-                                        <div className="mt-2 relative z-10 text-[9px] text-orange-800 dark:text-orange-300 bg-orange-100 dark:bg-orange-900/50 p-1.5 rounded text-left leading-tight font-medium">
-                                            O relatório deste turno não foi gerado e salvo porque a gestão não preencheu o tema.
+                                    {historyData.registros6H.length > 0 ? (
+                                        <>
+                                            <div className="mb-2 relative z-10">
+                                                <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold text-center">Tema DSS</span>
+                                                <span className="text-xs font-bold text-gray-800 dark:text-gray-100 line-clamp-2 leading-tight text-center">
+                                                    {historyData.registros6H[0].assunto || 'NÃO PREENCHIDO'}
+                                                </span>
+                                            </div>
+                                            <div className="relative z-10">
+                                                <span className="text-[9px] uppercase text-gray-500 dark:text-gray-400 block font-bold text-center">Responsável</span>
+                                                <span className="text-xs text-gray-700 dark:text-gray-300 truncate block text-center">
+                                                    {historyData.registros6H[0].name || '---'}
+                                                </span>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="flex-1 flex items-center justify-center relative z-10 mt-1">
+                                            <div className="text-[10px] text-orange-800 dark:text-orange-300 bg-orange-100 dark:bg-orange-900/50 p-2 rounded-lg text-center leading-snug font-medium w-full">
+                                                O relatório deste turno não foi gerado e salvo porque a gestão não preencheu o tema.
+                                            </div>
                                         </div>
                                     )}
                                 </div>
