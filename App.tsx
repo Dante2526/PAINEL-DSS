@@ -115,10 +115,9 @@ const App: React.FC = () => {
             const isCgTurma = isCargaGeralTurma(savedTurma);
             const isMinerioTurmaSaved = isMinerioTurma(savedTurma);
             
-            let isValidRoute = false;
-            if (displayMode === 'CG' && isCgTurma) isValidRoute = true;
-            else if (displayMode === 'MINERIO' && isMinerioTurmaSaved) isValidRoute = true;
-            else if (displayMode === 'NORMAL' && !isCgTurma && !isMinerioTurmaSaved) isValidRoute = true;
+            let isValidRoute = true;
+            if (displayMode === 'CG' && !isCgTurma) isValidRoute = false;
+            else if (displayMode === 'MINERIO' && !isMinerioTurmaSaved) isValidRoute = false;
             
             if (!isValidRoute) {
                 localStorage.removeItem('selectedTurma');
@@ -183,6 +182,14 @@ const App: React.FC = () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
     }, []);
+
+    const [isTransitioning, setIsTransitioning] = useState(false);
+
+    useEffect(() => {
+        if (!loading) {
+            setIsTransitioning(false);
+        }
+    }, [loading]);
 
     // Refs para estabilizar callbacks sem dependência de state mutável
     const employeesRef = useRef<Employee[]>([]);
@@ -1184,6 +1191,10 @@ const App: React.FC = () => {
         }
 
         if (type === 'mal' && isChecking) {
+            if (!isAdminRef.current && employee.bem) {
+                showNotification('Não é possível marcar "Estou mal" após ter marcado "Estou Bem"', 'error');
+                return;
+            }
             setPendingEmployeeId(id);
             setActiveModal(ModalType.ConfirmMal);
             return;
@@ -1202,7 +1213,7 @@ const App: React.FC = () => {
         }
 
         processStatusUpdate(id, type);
-    }, [processStatusUpdate, isSignaturePasswordActive, checkDssRaffle]);
+    }, [processStatusUpdate, isSignaturePasswordActive, checkDssRaffle, showNotification]);
 
     const handleConfirmMal = useCallback(() => {
         if (pendingEmployeeId) {
@@ -2145,6 +2156,7 @@ const App: React.FC = () => {
     };
 
     const handleSelectTurma = useCallback((turma: TurmaType) => {
+        setIsTransitioning(true);
         localStorage.setItem('selectedTurma', turma);
         setLoading(true);
         setEmployees([]); // Limpa dados antigos para evitar exibir dados da turma errada
@@ -2530,35 +2542,50 @@ const App: React.FC = () => {
     const memoizedTutorialSteps = useMemo(() => getTutorialSteps(selectedTurma, is6HActive), [selectedTurma, is6HActive]);
     const handleCloseAdminTutorial = useCallback(() => setIsAdminTutorialOpen(false), []);
 
-    if (!selectedTurma) {
+    if (!selectedTurma || (loading && isTransitioning)) {
         return (
-            <TurmaSelectionScreen
-                onSelect={handleSelectTurma}
-                isDarkMode={isDarkMode}
-                onToggleDarkMode={handleToggleDarkMode}
-            />
+            <div className="relative w-full h-[100dvh]">
+                <TurmaSelectionScreen
+                    onSelect={handleSelectTurma}
+                    isDarkMode={isDarkMode}
+                    onToggleDarkMode={handleToggleDarkMode}
+                />
+                {loading && selectedTurma && (
+                    <div className="absolute inset-0 z-[100] bg-light-bg-secondary/50 dark:bg-dark-bg/50 backdrop-blur-[2px] transition-opacity duration-300 pointer-events-none" />
+                )}
+            </div>
         );
     }
 
-    if (!loading && !hasSelectedTheme) {
+    if (!hasSelectedTheme) {
         return (
-            <ThemeSelectionScreen 
-                isDarkMode={isDarkMode} 
-                onToggleDarkMode={handleToggleDarkMode} 
-                onContinue={handleThemeContinue} 
-            />
+            <div className="relative w-full h-[100dvh]">
+                <ThemeSelectionScreen 
+                    isDarkMode={isDarkMode} 
+                    onToggleDarkMode={handleToggleDarkMode} 
+                    onContinue={handleThemeContinue} 
+                />
+                {loading && (
+                    <div className="absolute inset-0 z-[100] bg-light-bg-secondary/50 dark:bg-dark-bg/50 backdrop-blur-[2px] transition-opacity duration-300 pointer-events-none" />
+                )}
+            </div>
         );
     }
 
-    if (!loading && !selectedLayout) {
+    if (!selectedLayout) {
         return (
-            <LayoutSelectionScreen
-                onSelect={handleSelectLayout}
-                isDarkMode={isDarkMode}
-                onToggleDarkMode={handleToggleDarkMode}
-                onBack={handleReturnToSelection}
-                selecionadaTurma={selectedTurma}
-            />
+            <div className="relative w-full h-[100dvh]">
+                <LayoutSelectionScreen
+                    onSelect={handleSelectLayout}
+                    isDarkMode={isDarkMode}
+                    onToggleDarkMode={handleToggleDarkMode}
+                    onBack={handleReturnToSelection}
+                    selecionadaTurma={selectedTurma}
+                />
+                {loading && (
+                    <div className="absolute inset-0 z-[100] bg-light-bg-secondary/50 dark:bg-dark-bg/50 backdrop-blur-[2px] transition-opacity duration-300 pointer-events-none" />
+                )}
+            </div>
         );
     }
 
