@@ -118,6 +118,7 @@ const App: React.FC = () => {
             let isValidRoute = true;
             if (displayMode === 'CG' && !isCgTurma) isValidRoute = false;
             else if (displayMode === 'MINERIO' && !isMinerioTurmaSaved) isValidRoute = false;
+            else if (displayMode === 'NORMAL' && (isCgTurma || isMinerioTurmaSaved)) isValidRoute = false;
             
             if (!isValidRoute) {
                 localStorage.removeItem('selectedTurma');
@@ -1161,8 +1162,8 @@ const App: React.FC = () => {
             }
         }
 
-        // Chance de 100% (TESTE PONTUAL - REMOVER DEPOIS)
-        if (true || Math.random() < 0.3) {
+        // Chance de 30% de solicitar matrícula de registro da DSS
+        if (Math.random() < 0.3) {
             setPendingRaffleId(id);
             setActiveModal(ModalType.DssRaffle);
             return true;

@@ -134,7 +134,7 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
                                 <input
                                     type="text"
                                     value={localSubject}
-                                    onChange={handleSubjectChangeLocal}
+                                    onChange={(e) => setLocalSubject(e.target.value)}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
                                             !isLocked && onRegister(localSubject, localMatricula);
@@ -153,7 +153,7 @@ const SpecialTeamPanelComponent: React.FC<SpecialTeamPanelProps> = ({
                                     <input
                                         type="text"
                                         value={localMatricula}
-                                        onChange={handleMatriculaChangeLocal}
+                                        onChange={(e) => setLocalMatricula(e.target.value)}
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter') {
                                                 !isLocked && onRegister(localSubject, localMatricula);
