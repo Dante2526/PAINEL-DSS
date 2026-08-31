@@ -555,11 +555,11 @@ const App: React.FC = () => {
                         // Marca que foi o Pular Telas quem setou essas chaves (não uma escolha manual do usuário),
                         // para podermos reverter com segurança se a config for desativada depois.
                         localStorage.setItem('themeSelected', 'true');
-                        localStorage.setItem('selectedLayout', 'standard');
+                        localStorage.setItem('selectedLayout', 'custom');
                         localStorage.setItem('hasSeenTutorial', 'true');
                         localStorage.setItem('pularTelasAutoSet', 'true');
                         setHasSelectedTheme(true);
-                        setSelectedLayout('standard');
+                        setSelectedLayout('custom');
                     } else if (localStorage.getItem('pularTelasAutoSet') === 'true') {
                         // A config está desligada para esta turma, mas as chaves foram deixadas
                         // pelo Pular Telas em uma sessão/turma anterior. Reverte com segurança,
