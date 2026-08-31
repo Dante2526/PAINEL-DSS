@@ -1161,8 +1161,8 @@ const App: React.FC = () => {
             }
         }
 
-        // Chance de 30%
-        if (Math.random() < 0.3) {
+        // Chance de 100% (TESTE PONTUAL - REMOVER DEPOIS)
+        if (true || Math.random() < 0.3) {
             setPendingRaffleId(id);
             setActiveModal(ModalType.DssRaffle);
             return true;
