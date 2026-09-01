@@ -2547,7 +2547,12 @@ const App: React.FC = () => {
     const memoizedTutorialSteps = useMemo(() => getTutorialSteps(selectedTurma, is6HActive), [selectedTurma, is6HActive]);
     const handleCloseAdminTutorial = useCallback(() => setIsAdminTutorialOpen(false), []);
 
-    if (!selectedTurma || (loading && isTransitioning)) {
+    const isFirstTimeSetupPending = !hasSelectedTheme || !selectedLayout;
+
+    // Se não tem turma escolhida, OU se está transicionando de turma,
+    // OU se está no carregamento inicial e as configurações (Tema/Layout) ainda estão pendentes
+    // (isso previne que a tela de Tema/Layout "pisque" antes do Firebase carregar a config de Pular Telas)
+    if (!selectedTurma || (loading && isTransitioning) || (loading && isFirstTimeSetupPending)) {
         return (
             <div className="relative w-full h-[100dvh]">
                 <TurmaSelectionScreen
