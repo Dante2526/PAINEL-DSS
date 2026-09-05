@@ -2307,6 +2307,12 @@ const App: React.FC = () => {
         return groups;
     }, [mainTeam]);
 
+    // Calcula a quantidade máxima de colunas em qualquer grupo de letra no layout alfabético
+    const customLayoutCols = useMemo(() => {
+        if (groupedMainTeam.length === 0) return 1;
+        return Math.min(3, Math.max(...groupedMainTeam.map(g => g.employees.length)));
+    }, [groupedMainTeam]);
+
     // Tracking vertical scroll percentage of the main viewport 
     // to map to the vertical scroll percentage of the fast scroller bar itself.
 
@@ -2702,7 +2708,7 @@ const App: React.FC = () => {
                                     <div 
                                         className="flex flex-col gap-8 shrink-0 relative pb-2"
                                         style={selectedLayout === 'custom' ? {
-                                            minWidth: mainTeam.length <= 1 ? '870px' : mainTeam.length === 2 ? '1764px' : '2658px'
+                                            minWidth: customLayoutCols <= 1 ? '870px' : customLayoutCols === 2 ? '1764px' : '2658px'
                                         } : undefined}
                                     >
                                         {/* RENDERIZAÇÃO BASEADA NO LAYOUT SELECIONADO */}
