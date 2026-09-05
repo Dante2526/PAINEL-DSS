@@ -1216,8 +1216,8 @@ const App: React.FC = () => {
             }
         }
 
-        // Chance de 30% de solicitar matrícula de registro da DSS
-        if (Math.random() < 0.3) {
+        // Chance de 60% de solicitar matrícula de registro da DSS
+        if (Math.random() < 0.6) {
             setPendingRaffleId(id);
             setActiveModal(ModalType.DssRaffle);
             return true;
