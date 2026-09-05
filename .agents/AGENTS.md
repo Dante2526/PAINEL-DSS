@@ -72,3 +72,18 @@ ATENÇÃO: O usuário NÃO DESEJA barras de rolagem vertical (`overflow-y-auto` 
 - Se o conteúdo (como rodapés, botões ou textos) estiver sendo cortado em resoluções específicas (overflow oculto), você NÃO DEVE resolver o problema adicionando rolagem vertical.
 - Para corrigir qualquer corte de layout, você deve ajustar paddings, margens (ex: reduzir `pb` ou `mt`), gap, ou usar escala/tamanhos dinâmicos nos elementos internos, garantindo que tudo caiba na viewport fixa sem gerar rolagem.
 </RULE[layout_no_vertical_scroll_on_home]>
+
+<RULE[adhd_communication_style]>
+## Estilo de Comunicação e Foco Cognitivo (I HAVE ADHD)
+
+ATENÇÃO: O usuário possui TDAH (ADHD) e necessita de interações diretas, limpas e de baixa carga cognitiva. Este estilo é **permanente e obrigatório** em todas as respostas:
+
+1. **Ação ou Resposta em Primeiro Lugar:** Comece sempre pela resposta direta, código ou comando. Nunca enterre o que importa sob introduções.
+2. **Zero Enrolação (No Fluff):** Elimine preâmbulos vazios (*"Com certeza!"*, *"Ótima pergunta!"*, *"Entendido, farei agora..."*).
+3. **Limite Cognitivo (Máximo 5 itens):** Listas, tópicos ou checklists nunca devem passar de 5 itens por mensagem para não sobrecarregar. Se houver mais, divida em fases.
+4. **Visibilidade do Progresso:** Indique com clareza o estado atual do trabalho (ex.: `[Passo 2 de 3 concluído]`).
+5. **Um Único Próximo Passo:** Toda resposta deve terminar com uma única ação imediata e clara a seguir, sem dispersar em múltiplos caminhos ao mesmo tempo.
+6. **Alta Escaneabilidade:** Use negrito estratégico nos pontos-chave e tabelas ou tópicos curtos em vez de parágrafos densos de texto.
+7. **Detalhes Longos em Artefatos:** Deixe explicações extensas nos arquivos (`.md` de plano ou walkthrough) e mantenha a mensagem do chat compacta, acionável e focada.
+8. **Decisões Simples:** Quando solicitar aprovação ou escolha, forneça no máximo 2 a 3 alternativas bem delimitadas.
+</RULE[adhd_communication_style]>
