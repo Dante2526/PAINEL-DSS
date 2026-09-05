@@ -2621,7 +2621,7 @@ const App: React.FC = () => {
                     onToggleDarkMode={handleToggleDarkMode}
                 />
                 {loading && selectedTurma && (
-                    <div className="absolute inset-0 z-[100] bg-light-bg-secondary/50 dark:bg-dark-bg/50 backdrop-blur-[2px] transition-opacity duration-300 pointer-events-none" />
+                    <div className="absolute inset-0 z-[100] bg-light-bg-secondary/50 dark:bg-dark-bg/50 backdrop-blur-[2px] transition-opacity duration-300 cursor-wait" />
                 )}
             </div>
         );
@@ -2636,7 +2636,7 @@ const App: React.FC = () => {
                     onContinue={handleThemeContinue} 
                 />
                 {loading && (
-                    <div className="absolute inset-0 z-[100] bg-light-bg-secondary/50 dark:bg-dark-bg/50 backdrop-blur-[2px] transition-opacity duration-300 pointer-events-none" />
+                    <div className="absolute inset-0 z-[100] bg-light-bg-secondary/50 dark:bg-dark-bg/50 backdrop-blur-[2px] transition-opacity duration-300 cursor-wait" />
                 )}
             </div>
         );
@@ -2653,7 +2653,7 @@ const App: React.FC = () => {
                     selecionadaTurma={selectedTurma}
                 />
                 {loading && (
-                    <div className="absolute inset-0 z-[100] bg-light-bg-secondary/50 dark:bg-dark-bg/50 backdrop-blur-[2px] transition-opacity duration-300 pointer-events-none" />
+                    <div className="absolute inset-0 z-[100] bg-light-bg-secondary/50 dark:bg-dark-bg/50 backdrop-blur-[2px] transition-opacity duration-300 cursor-wait" />
                 )}
             </div>
         );
@@ -2665,7 +2665,7 @@ const App: React.FC = () => {
                 <div ref={contentWrapperRef} className="origin-top-left">
                     <div ref={scalableContainerRef} className="scalable-container relative w-fit origin-top-left p-8 bg-light-bg-secondary dark:bg-dark-bg pt-[calc(2rem+env(safe-area-inset-top))] pb-[calc(2rem+env(safe-area-inset-bottom))]">
                         {loading && (
-                            <div className="absolute inset-0 z-[100] bg-light-bg-secondary/50 dark:bg-dark-bg/50 backdrop-blur-[2px] transition-opacity duration-300 pointer-events-none" />
+                            <div className="absolute inset-0 z-[100] bg-light-bg-secondary/50 dark:bg-dark-bg/50 backdrop-blur-[2px] transition-opacity duration-300 cursor-wait" />
                         )}
                         <Header
                             stats={stats}
