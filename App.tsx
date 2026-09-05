@@ -165,21 +165,52 @@ const App: React.FC = () => {
     });
     const [modalScale, setModalScale] = useState(1);
     
+    const hiddenTimestampRef = useRef<number>(0);
+    const visibilityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const selectedTurmaRef = useRef<TurmaType | null>(selectedTurma);
+    useEffect(() => { selectedTurmaRef.current = selectedTurma; }, [selectedTurma]);
+
     // Pausar/Retomar Firebase com base na visibilidade da aba para economizar leituras e bateria
     useEffect(() => {
         if (!db) return;
 
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'hidden') {
+                hiddenTimestampRef.current = Date.now();
+                if (visibilityTimerRef.current) clearTimeout(visibilityTimerRef.current);
                 disableNetwork(db!).catch(error => console.error("Erro ao suspender rede:", error));
             } else if (document.visibilityState === 'visible') {
                 enableNetwork(db!).catch(error => console.error("Erro ao retomar rede:", error));
+
+                const lastHidden = hiddenTimestampRef.current;
+                if (lastHidden > 0 && selectedTurmaRef.current) {
+                    const elapsedMinutes = (Date.now() - lastHidden) / (1000 * 60);
+                    const hasDateChanged = new Date(lastHidden).getDate() !== new Date().getDate();
+
+                    // Se a aba ficou em segundo plano por tempo prolongado ou virou o dia (rotina de limpeza da madrugada),
+                    // reativa o blur temporariamente até o Firebase reconectar e confirmar os dados do servidor.
+                    if (hasDateChanged || elapsedMinutes >= 10) {
+                        setLoading(true);
+                        initialEmpLoadDoneRef.current = false;
+                        initialRegLoadDoneRef.current = false;
+                        initialLoadDoneRef.current = false;
+                        if (visibilityTimerRef.current) clearTimeout(visibilityTimerRef.current);
+                        visibilityTimerRef.current = setTimeout(() => {
+                            if (!initialLoadDoneRef.current) {
+                                // Mantém o blur e avisa que a internet está lenta/caiu, sem liberar dados do dia anterior
+                                setActiveModal(ModalType.ConnectionError);
+                            }
+                        }, 8000);
+                    }
+                }
+                hiddenTimestampRef.current = 0;
             }
         };
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
 
         return () => {
+            if (visibilityTimerRef.current) clearTimeout(visibilityTimerRef.current);
             document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
     }, []);
@@ -460,17 +491,27 @@ const App: React.FC = () => {
         let unsubscribeEmployees = () => { };
         let unsubscribeRegistrations = () => { };
         let unsubscribeAutomacao = () => { };
+        let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
 
         const setupListeners = async () => {
             if (!db) {
                 setLoading(false);
                 return;
             }
+
+            // Alerta de conexão lenta: se após 8s a nuvem não responder (offline/instabilidade),
+            // mantém o blur cobrindo a tela (sem liberar dados velhos de ontem) e exibe o cartão de Internet Lenta.
+            fallbackTimer = setTimeout(() => {
+                if (!initialLoadDoneRef.current) {
+                    setActiveModal(ModalType.ConnectionError);
+                }
+            }, 8000);
+
             try {
-                // Listeners for the specific turma
+                // Listeners for the specific turma com includeMetadataChanges para saber quando os dados vêm do servidor
                 const collectionName = getTurmaCollectionName(selectedTurma);
                 const employeesQuery = query(collection(db, collectionName), orderBy("name", "asc"));
-                unsubscribeEmployees = onSnapshot(employeesQuery, (querySnapshot) => {
+                unsubscribeEmployees = onSnapshot(employeesQuery, { includeMetadataChanges: true }, (querySnapshot) => {
                     if (isDemoModeRef.current) return;
 
                     setEmployees(prevEmployees => {
@@ -510,9 +551,15 @@ const App: React.FC = () => {
                         return prevEmployees;
                     });
 
-                    if (!initialEmpLoadDoneRef.current) {
+                    // Somente considera o carregamento concluído quando os dados vierem do servidor (ou já estiverem sincronizados),
+                    // evitando que o blur suma prematuramente mostrando dados do dia anterior em cache antes da limpeza ser refletida.
+                    const isEmpFromCache = querySnapshot.metadata.fromCache;
+                    if (!isEmpFromCache && !initialEmpLoadDoneRef.current) {
                         initialEmpLoadDoneRef.current = true;
                         if (initialRegLoadDoneRef.current && !initialLoadDoneRef.current) {
+                            if (fallbackTimer) clearTimeout(fallbackTimer);
+                            if (visibilityTimerRef.current) clearTimeout(visibilityTimerRef.current);
+                            setActiveModal(prev => prev === ModalType.ConnectionError ? ModalType.None : prev);
                             setLoading(false);
                             showNotification(`Dados da Turma ${TURMA_DISPLAY_NAMES[selectedTurma]} carregados!`, 'success');
                             initialLoadDoneRef.current = true;
@@ -522,18 +569,17 @@ const App: React.FC = () => {
                 }, (error) => {
                     console.error("Error listening to employee updates:", error);
                     if (!isDemoModeRef.current) showNotification(`Erro ao carregar funcionários: ${error.message}`, "error");
+                    if (fallbackTimer) clearTimeout(fallbackTimer);
                     setLoading(false);
                 });
 
                 const registrationCollectionName = getTurmaRegistrationName(selectedTurma);
                 const registrationsQuery = query(collection(db, registrationCollectionName));
-                unsubscribeRegistrations = onSnapshot(registrationsQuery, (querySnapshot) => {
+                unsubscribeRegistrations = onSnapshot(registrationsQuery, { includeMetadataChanges: true }, (querySnapshot) => {
                     if (isDemoModeRef.current) return;
                     const registrations = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() })) as ManualRegistration[];
                     const mainReg = registrations.find(r => r.id === 'registro_7H') || registrations.find(r => r.TURNO === '7H');
                     const specialReg = registrations.find(r => r.id === 'registro_6H') || registrations.find(r => r.TURNO === '6H');
-                    
-                    const isSingleShiftTurma = selectedTurma.includes('_CG') || selectedTurma.includes('_CCP_') || selectedTurma === 'ESTAGIO';
                     const config6H = querySnapshot.docs.find(d => d.id === 'config_6H');
                     if (config6H) {
                         setIs6HActive(config6H.data().ativado ?? false);
@@ -624,9 +670,14 @@ const App: React.FC = () => {
                     setSpecialResponsible(specialReg?.name || '');
                     setSpecialRegisterTime(specialReg?.horario || '');
                     
-                    if (!initialRegLoadDoneRef.current) {
+                    // Somente considera o registro concluído quando vier do servidor (ou sincronizado)
+                    const isRegFromCache = querySnapshot.metadata.fromCache;
+                    if (!isRegFromCache && !initialRegLoadDoneRef.current) {
                         initialRegLoadDoneRef.current = true;
                         if (initialEmpLoadDoneRef.current && !initialLoadDoneRef.current) {
+                            if (fallbackTimer) clearTimeout(fallbackTimer);
+                            if (visibilityTimerRef.current) clearTimeout(visibilityTimerRef.current);
+                            setActiveModal(prev => prev === ModalType.ConnectionError ? ModalType.None : prev);
                             setLoading(false);
                             showNotification(`Dados da Turma ${TURMA_DISPLAY_NAMES[selectedTurma]} carregados!`, 'success');
                             initialLoadDoneRef.current = true;
@@ -649,6 +700,7 @@ const App: React.FC = () => {
                 console.error("Listener setup failed:", error);
                 const message = error instanceof Error ? error.message : 'Verifique as credenciais.';
                 if (!isDemoModeRef.current) showNotification(`Falha na conexão: ${message}`, "error");
+                if (fallbackTimer) clearTimeout(fallbackTimer);
                 setLoading(false);
             }
         };
@@ -656,6 +708,8 @@ const App: React.FC = () => {
         setupListeners();
 
         return () => {
+            if (fallbackTimer) clearTimeout(fallbackTimer);
+            if (visibilityTimerRef.current) clearTimeout(visibilityTimerRef.current);
             unsubscribeEmployees();
             unsubscribeRegistrations();
             unsubscribeAutomacao();
